@@ -10,193 +10,50 @@
 #ifndef KEYTYPES_H_INCLUDED
 #define KEYTYPES_H_INCLUDED
 
+#include "KEYTypes_fwd.h"
+
 #include <deque>
 
 #include <boost/optional.hpp>
 
 #include "libetonyek_utils.h"
-#include "KEYObject.h"
-#include "KEYPath_fwd.h"
-#include "KEYStyle.h"
-#include "KEYText_fwd.h"
-#include "KEYTypes_fwd.h"
+#include "IWORKPath_fwd.h"
+#include "IWORKStyle_fwd.h"
+#include "IWORKText_fwd.h"
+#include "IWORKTypes.h"
 
 namespace libetonyek
 {
 
-struct KEYSize
-{
-  double width;
-  double height;
-
-  KEYSize();
-  KEYSize(double w, double h);
-};
-
-struct KEYPosition
-{
-  double x;
-  double y;
-
-  KEYPosition();
-  KEYPosition(double x_, double y_);
-};
-
-struct KEYGeometry
-{
-  KEYSize naturalSize;
-  KEYSize size;
-  KEYPosition position;
-  boost::optional<double> angle;
-  boost::optional<double> shearXAngle;
-  boost::optional<double> shearYAngle;
-  boost::optional<bool> horizontalFlip;
-  boost::optional<bool> verticalFlip;
-  boost::optional<bool> aspectRatioLocked;
-  boost::optional<bool> sizesLocked;
-
-  KEYGeometry();
-};
-
-struct KEYColor
-{
-  double red;
-  double green;
-  double blue;
-  double alpha;
-
-  KEYColor();
-  KEYColor(double r, double g, double b, double a);
-};
-
-struct KEYPadding
-{
-  boost::optional<int> top;
-  boost::optional<int> right;
-  boost::optional<int> bottom;
-  boost::optional<int> left;
-
-  KEYPadding();
-};
-
-struct KEYLine
-{
-  KEYGeometryPtr_t geometry;
-  KEYStylePtr_t style;
-  boost::optional<double> x1;
-  boost::optional<double> y1;
-  boost::optional<double> x2;
-  boost::optional<double> y2;
-
-  KEYLine();
-};
-
-struct KEYData
-{
-  WPXInputStreamPtr_t stream;
-  boost::optional<std::string> displayName;
-  boost::optional<int> type;
-
-  KEYData();
-};
-
-struct KEYMediaContent
-{
-  boost::optional<KEYSize> size;
-  KEYDataPtr_t data;
-
-  KEYMediaContent();
-};
-
-struct KEYBinary
-{
-  boost::optional<KEYSize> size;
-  boost::optional<std::string> path;
-  boost::optional<std::string> type;
-  boost::optional<unsigned> dataSize;
-
-  KEYBinary();
-};
-
-struct KEYImage
-{
-  boost::optional<bool> locked;
-  KEYGeometryPtr_t geometry;
-  boost::optional<KEYBinary> binary;
-
-  KEYImage();
-};
-
-struct KEYMedia
-{
-  KEYGeometryPtr_t geometry;
-  KEYGraphicStylePtr_t style;
-  boost::optional<bool> placeholder;
-  boost::optional<KEYSize> placeholderSize;
-  KEYMediaContentPtr_t content;
-
-  KEYMedia();
-};
-
-struct KEYWrap
-{
-  KEYPathPtr_t path;
-  KEYGeometryPtr_t geometry;
-
-  KEYWrap();
-};
-
-struct KEYGroup
-{
-  KEYObjectList_t objects;
-
-  KEYGroup();
-};
-
 struct KEYLayer
 {
-  boost::optional<std::string> type;
-  KEYObjectList_t objects;
+  boost::optional<std::string> m_type;
+  boost::optional<IWORKZoneID_t> m_zoneId;
 
   KEYLayer();
 };
 
 struct KEYPlaceholder
 {
-  boost::optional<bool> title;
-  boost::optional<bool> empty;
-  KEYPlaceholderStylePtr_t style;
-  KEYGeometryPtr_t geometry;
-  KEYTextPtr_t text;
+  boost::optional<bool> m_title;
+  boost::optional<bool> m_empty;
+  IWORKStylePtr_t m_style;
+  IWORKGeometryPtr_t m_geometry;
+  IWORKTextPtr_t m_text;
 
   KEYPlaceholder();
 };
 
 struct KEYStickyNote
 {
-  KEYGeometryPtr_t geometry;
-  KEYTextPtr_t text;
+  IWORKGeometryPtr_t m_geometry;
+  IWORKTextPtr_t m_text;
 
   KEYStickyNote();
-  KEYStickyNote(const KEYGeometryPtr_t &geometry, const KEYTextPtr_t &text);
+  KEYStickyNote(const IWORKGeometryPtr_t &geometry, const IWORKTextPtr_t &text);
 };
 
 typedef std::deque<KEYStickyNote> KEYStickyNotes_t;
-
-struct KEYTabStop
-{
-  double pos;
-
-  explicit KEYTabStop(double pos_);
-};
-
-typedef std::deque<KEYTabStop> KEYTabStops_t;
-
-KEYObjectPtr_t makeObject(const KEYGroupPtr_t &group);
-KEYObjectPtr_t makeObject(const KEYImagePtr_t &image);
-KEYObjectPtr_t makeObject(const KEYLinePtr_t &line);
-KEYObjectPtr_t makeObject(const KEYMediaPtr_t &media);
-KEYObjectPtr_t makeObject(const KEYPlaceholderPtr_t &placeholder);
 
 }
 

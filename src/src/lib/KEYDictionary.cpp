@@ -13,19 +13,11 @@ namespace libetonyek
 {
 
 KEYDictionary::KEYDictionary()
-  : characterStyles()
-  , graphicStyles()
-  , layoutStyles()
-  , paragraphStyles()
-  , placeholderStyles()
-  , stylesheets()
-  , beziers()
-  , data()
-  , unfiltereds()
-  , filteredImages()
-  , images()
-  , bodyPlaceholders()
-  , titlePlaceholders()
+  : IWORKDictionary()
+  , m_layoutStyles()
+  , m_placeholderStyles()
+  , m_bodyPlaceholders()
+  , m_titlePlaceholders()
 {
 }
 

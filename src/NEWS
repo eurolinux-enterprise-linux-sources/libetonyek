@@ -1,8 +1,28 @@
-libetonyek 0.0.4
+libetonyek 0.1.2
 
-- fix some build problems
-- avoid data loss in some cases
-- scale images properly
+- Use symbol visibility on Linux. The library only exports the two public
+  functions now.
+- Refactor the parser to allow sharing of code among Keynote, Pages and
+  Numbers parsers.
+- Add initial support for Pages (v. 4 only): text and text formatting,
+  tables.
+- Parse text language.
+- Parse links.
+- Fix parsing of tab stops.
+- Add dependency on glm.
+- Add initial support for Numbers (v. 2 only): sheets and cell content.
+- Fix parsing of simple cell text content, which was ignored previously.
+- Various small bugfixes and improvements.
+
+libetonyek 0.1.1
+
+- Fix detection of Keynote 3 documents.
+
+libetonyek 0.1.0
+
+- switch to librevenge
+- add BIPU support for import of Pages documents
+- add skeleton for (future) import of Numbers spreadsheets
 
 libetonyek 0.0.3
 

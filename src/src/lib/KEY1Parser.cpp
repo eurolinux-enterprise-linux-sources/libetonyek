@@ -8,14 +8,15 @@
  */
 
 #include "KEY1Parser.h"
+
 #include "KEY1Token.h"
-#include "KEYXMLReader.h"
+#include "KEYCollector.h"
 
 namespace libetonyek
 {
 
-KEY1Parser::KEY1Parser(const WPXInputStreamPtr_t &input, const WPXInputStreamPtr_t &, KEYCollector *const collector, const KEYDefaults &defaults)
-  : KEYParser(input, collector, defaults)
+KEY1Parser::KEY1Parser(const RVNGInputStreamPtr_t &input, const RVNGInputStreamPtr_t &package, KEYCollector *const /*collector*/)
+  : IWORKParser(input, package)
 {
 }
 
@@ -23,15 +24,15 @@ KEY1Parser::~KEY1Parser()
 {
 }
 
-void KEY1Parser::processXmlNode(const KEYXMLReader &reader)
+IWORKXMLContextPtr_t KEY1Parser::createDocumentContext()
 {
   // TODO: implement me
-  (void) reader;
+  return IWORKXMLContextPtr_t();
 }
 
-KEYXMLReader::TokenizerFunction_t KEY1Parser::getTokenizer() const
+const IWORKTokenizer &KEY1Parser::getTokenizer() const
 {
-  return KEY1Tokenizer();
+  return KEY1Token::getTokenizer();
 }
 
 }

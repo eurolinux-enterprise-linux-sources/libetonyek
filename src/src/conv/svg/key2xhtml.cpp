@@ -13,11 +13,11 @@
 #include <sstream>
 #include <stdio.h>
 #include <string.h>
-#include <libwpd-stream/libwpd-stream.h>
-#include <libwpd/libwpd.h>
-#include <libetonyek/libetonyek.h>
 
-#include "KEYDirectoryStream.h"
+#include <librevenge-generators/librevenge-generators.h>
+#include <librevenge-stream/librevenge-stream.h>
+#include <librevenge/librevenge.h>
+#include <libetonyek/libetonyek.h>
 
 namespace
 {
@@ -52,30 +52,28 @@ int main(int argc, char *argv[]) try
     return printUsage();
 
   using boost::shared_ptr;
-  namespace fs = boost::filesystem;
+  using libetonyek::EtonyekDocument;
 
-  fs::path path(file);
-  shared_ptr<WPXInputStream> input;
-  if (is_directory(path))
-    input.reset(new conv::KEYDirectoryStream(path));
+  shared_ptr<librevenge::RVNGInputStream> input;
+  if (librevenge::RVNGDirectoryStream::isDirectory(file))
+    input.reset(new librevenge::RVNGDirectoryStream(file));
   else
-    input.reset(new WPXFileStream(file));
+    input.reset(new librevenge::RVNGFileStream(file));
 
-  libetonyek::KEYDocumentType type = libetonyek::KEY_DOCUMENT_TYPE_UNKNOWN;
-  if (!libetonyek::KEYDocument::isSupported(input.get(), &type))
+  EtonyekDocument::Type type = EtonyekDocument::TYPE_UNKNOWN;
+  const EtonyekDocument::Confidence confidence = EtonyekDocument::isSupported(input.get(), &type);
+  if ((EtonyekDocument::CONFIDENCE_NONE == confidence) || (EtonyekDocument::TYPE_KEYNOTE != type))
   {
     std::cerr << "ERROR: Unsupported file format!" << std::endl;
     return 1;
   }
 
-  if (libetonyek::KEY_DOCUMENT_TYPE_APXL_FILE == type)
-  {
-    path.remove_filename();
-    input.reset(new conv::KEYDirectoryStream(path));
-  }
+  if (EtonyekDocument::CONFIDENCE_SUPPORTED_PART == confidence)
+    input.reset(librevenge::RVNGDirectoryStream::createForParent(file));
 
-  libetonyek::KEYStringVector output;
-  if (!libetonyek::KEYDocument::generateSVG(input.get(), output))
+  librevenge::RVNGStringVector output;
+  librevenge::RVNGSVGPresentationGenerator generator(output);
+  if (!EtonyekDocument::parse(input.get(), &generator))
   {
     std::cerr << "ERROR: SVG Generation failed!" << std::endl;
     return 1;

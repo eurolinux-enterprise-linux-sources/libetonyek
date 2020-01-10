@@ -14,10 +14,13 @@
 #include <stdio.h>
 #include <string>
 
+#include <boost/function.hpp>
+#include <boost/optional.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/unordered_map.hpp>
 
-#include <libwpd/libwpd.h>
-#include <libwpd-stream/libwpd-stream.h>
+#include <librevenge/librevenge.h>
+#include <librevenge-stream/librevenge-stream.h>
 
 #ifdef _MSC_VER
 
@@ -54,43 +57,51 @@ typedef __int64 int64_t;
 
 #endif
 
-#define KEY_EPSILON 1e-9
-#define KEY_ALMOST_ZERO(x) (std::fabs(x) < KEY_EPSILON)
+#define ETONYEK_EPSILON 1e-9
+#define ETONYEK_ALMOST_ZERO(x) (std::fabs(x) < ETONYEK_EPSILON)
 
-#define KEY_NUM_ELEMENTS(array) (sizeof(array) / sizeof((array)[0]))
+#define ETONYEK_NUM_ELEMENTS(array) (sizeof(array) / sizeof((array)[0]))
 
 // debug message includes source file and line number
 //#define VERBOSE_DEBUG 1
 
-#undef DEBUG
 // do nothing with debug messages in a release compile
 #ifdef DEBUG
 #ifdef VERBOSE_DEBUG
-#define KEY_DEBUG_MSG(M) printf("%15s:%5d: ", FILE, LINE); printf M
-#define KEY_DEBUG(M) M
+#define ETONYEK_DEBUG_MSG(M) printf("%15s:%5d: ", FILE, LINE); printf M
+#define ETONYEK_DEBUG(M) M
 #else
-#define KEY_DEBUG_MSG(M) printf M
-#define KEY_DEBUG(M) M
+#define ETONYEK_DEBUG_MSG(M) printf M
+#define ETONYEK_DEBUG(M) M
 #endif
 #else
-#define KEY_DEBUG_MSG(M)
-#define KEY_DEBUG(M)
+#define ETONYEK_DEBUG_MSG(M)
+#define ETONYEK_DEBUG(M)
 #endif
 
 namespace libetonyek
 {
 
-struct KEYDummyDeleter
+/* Constants */
+const double etonyek_half_pi(1.57079632679489661923132169163975144209858469968755291048747229615390820314310449931401741267105853399107404326e+00);
+const double etonyek_third_pi(1.04719755119659774615421446109316762806572313312503527365831486410260546876206966620934494178070568932738269550e+00);
+const double etonyek_pi(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651e+00);
+const double etonyek_two_pi(6.28318530717958647692528676655900576839433879875021164194988918461563281257241799725606965068423413596429617303e+00);
+
+const double etonyek_root_three(1.73205080756887729352744634150587236694280525381038062805580697945193301690880003708114618675724857567562614142e+00);
+const double etonyek_root_two(1.41421356237309504880168872420969807856967187537694807317667973799073247846210703885038753432764157273501384623e+00);
+
+struct EtonyekDummyDeleter
 {
   void operator()(void *) {}
 };
 
-typedef boost::shared_ptr<WPXInputStream> WPXInputStreamPtr_t;
+typedef boost::shared_ptr<librevenge::RVNGInputStream> RVNGInputStreamPtr_t;
 
-uint8_t readU8(const WPXInputStreamPtr_t &input, bool = false);
-uint16_t readU16(const WPXInputStreamPtr_t &input, bool bigEndian=false);
-uint32_t readU32(const WPXInputStreamPtr_t &input, bool bigEndian=false);
-uint64_t readU64(const WPXInputStreamPtr_t &input, bool bigEndian=false);
+uint8_t readU8(const RVNGInputStreamPtr_t &input, bool = false);
+uint16_t readU16(const RVNGInputStreamPtr_t &input, bool bigEndian=false);
+uint32_t readU32(const RVNGInputStreamPtr_t &input, bool bigEndian=false);
+uint64_t readU64(const RVNGInputStreamPtr_t &input, bool bigEndian=false);
 
 /** Test two floating point numbers for equality.
   *
@@ -98,7 +109,20 @@ uint64_t readU64(const WPXInputStreamPtr_t &input, bool bigEndian=false);
   * @arg[in] y second number
   * @arg[in] eps precision
   */
-bool approxEqual(double x, double y, double eps = KEY_EPSILON);
+bool approxEqual(double x, double y, double eps = ETONYEK_EPSILON);
+
+template<class T>
+bool approxEqual(const T &left, const T &right, const double eps = ETONYEK_EPSILON)
+{
+  assert(left.length() == right.length());
+
+  for (int i = 0; i != left.length(); ++i)
+  {
+    if (!approxEqual(left[i], right[i], eps))
+      return false;
+  }
+  return true;
+}
 
 /** Convert a length from points to inches.
   *
@@ -106,6 +130,13 @@ bool approxEqual(double x, double y, double eps = KEY_EPSILON);
   * @returns length in inches
   */
 double pt2in(double d);
+
+/** Convert an angle from degrees to radians.
+  *
+  * @arg[in] value angle in degrees
+  * @returns the same angle in radians
+  */
+double deg2rad(double value);
 
 class EndOfStreamException
 {

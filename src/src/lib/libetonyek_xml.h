@@ -14,28 +14,25 @@
 
 #include "libetonyek_utils.h"
 
-#define KEY_DEBUG_XML_NOT_EMPTY(name, ns) KEY_DEBUG_MSG(("element %s%s%s%s is not empty, skipping content...\n", ns ? "{" : "", ns, ns ? "}" : "", name))
-#define KEY_DEBUG_XML_UNKNOWN(type, name, ns) KEY_DEBUG_MSG(("unknown %s %s%s%s%s\n", type, ns ? "{" : "", ns, ns ? "}" : "", name))
-#define KEY_DEBUG_XML_TODO(type, name, ns) KEY_DEBUG_MSG(("TODO: unprocessed %s %s%s%s%s\n", type, ns ? "{" : "", ns, ns ? "}" : "", name))
+extern "C" int readFromStream(void *context, char *buffer, int len);
 
-#define KEY_DEBUG_XML_TODO_ELEMENT(element) KEY_DEBUG_XML_TODO("element", (element).getName(), (element).getNamespace())
-#define KEY_DEBUG_XML_TODO_ATTRIBUTE(attr) KEY_DEBUG_XML_TODO("attribute", (attr).getName(), (attr).getNamespace())
-#define KEY_DEBUG_XML_UNKNOWN_ELEMENT(element) KEY_DEBUG_XML_UNKNOWN("element", (element).getName(), (element).getNamespace())
-#define KEY_DEBUG_XML_UNKNOWN_ATTRIBUTE(attr) KEY_DEBUG_XML_UNKNOWN("attribute", (attr).getName(), (attr).getNamespace())
+extern "C" int closeStream(void * /* context */);
 
 namespace libetonyek
 {
 
-class KEYXMLReader;
+/** Convert string value to bool.
+  *
+  * @arg value the string
+  * @returns the boolean value of the string
+  */
+bool bool_cast(const char *value);
+double double_cast(const char *value);
+int int_cast(const char *value);
 
-void skipElement(const KEYXMLReader &reader);
-
-bool checkElement(const KEYXMLReader &reader, int name, int ns);
-bool checkEmptyElement(const KEYXMLReader &reader);
-bool checkNoAttributes(const KEYXMLReader &reader);
-
-std::string readOnlyAttribute(const KEYXMLReader &reader, int name, int ns);
-std::string readOnlyElementAttribute(const KEYXMLReader &reader, int name, int ns);
+const char *char_cast(const char *c);
+const char *char_cast(const signed char *c);
+const char *char_cast(const unsigned char *c);
 
 }
 

@@ -1,5 +1,3 @@
 EXTRA_DIST = \
-	KEYDocument.h \
-	KEYPresentationInterface.h \
-	KEYStringVector.h \
-	libetonyek.h
+	libetonyek.h \
+	EtonyekDocument.h

@@ -1,0 +1,90 @@
+From 38a5fdf1cb946257d0dd2eb7361a8f3bb3101086 Mon Sep 17 00:00:00 2001
+From: David Tardon <dtardon@redhat.com>
+Date: Fri, 12 Jun 2015 15:45:21 +0200
+Subject: [PATCH] get rid of last remains of libwpg
+
+This fixes output of shapes and images.
+
+Change-Id: I85302c72005cbb5a5a378fa8ac15666d2918c3b6
+---
+ src/lib/IWORKCollector.cpp | 2 +-
+ src/lib/IWORKPath.cpp      | 8 ++++----
+ src/test/IWORKPathTest.cpp | 4 ++--
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/src/lib/IWORKCollector.cpp b/src/lib/IWORKCollector.cpp
+index e4e0a8d..242f48b 100644
+--- a/src/lib/IWORKCollector.cpp
++++ b/src/lib/IWORKCollector.cpp
+@@ -108,7 +108,7 @@ void drawMedia(const IWORKMediaPtr_t &media, const glm::dmat3 &trafo, IWORKOutpu
+ 
+       librevenge::RVNGPropertyList props;
+ 
+-      props.insert("libwpg:mime-type", get(mimetype).c_str());
++      props.insert("librevenge:mime-type", get(mimetype).c_str());
+       props.insert("office:binary-data", librevenge::RVNGBinaryData(bytes, size));
+ 
+       glm::dvec3 vec = trafo * glm::dvec3(0, 0, 1);
+diff --git a/src/lib/IWORKPath.cpp b/src/lib/IWORKPath.cpp
+index 968a14e..b1b53a8 100644
+--- a/src/lib/IWORKPath.cpp
++++ b/src/lib/IWORKPath.cpp
+@@ -114,7 +114,7 @@ librevenge::RVNGPropertyList MoveTo::toWPG() const
+ {
+   librevenge::RVNGPropertyList element;
+ 
+-  element.insert("libwpg:path-action", "M");
++  element.insert("librevenge:path-action", "M");
+   element.insert("svg:x", pt2in(m_x));
+   element.insert("svg:y", pt2in(m_y));
+ 
+@@ -177,7 +177,7 @@ librevenge::RVNGPropertyList LineTo::toWPG() const
+ {
+   librevenge::RVNGPropertyList element;
+ 
+-  element.insert("libwpg:path-action", "L");
++  element.insert("librevenge:path-action", "L");
+   element.insert("svg:x", pt2in(m_x));
+   element.insert("svg:y", pt2in(m_y));
+ 
+@@ -262,7 +262,7 @@ librevenge::RVNGPropertyList CurveTo::toWPG() const
+ {
+   librevenge::RVNGPropertyList element;
+ 
+-  element.insert("libwpg:path-action", "C");
++  element.insert("librevenge:path-action", "C");
+   element.insert("svg:x", pt2in(m_x));
+   element.insert("svg:y", pt2in(m_y));
+   element.insert("svg:x1", pt2in(m_x1));
+@@ -404,7 +404,7 @@ librevenge::RVNGPropertyListVector IWORKPath::toWPG() const
+   if (m_closed)
+   {
+     librevenge::RVNGPropertyList element;
+-    element.insert("libwpg:path-action", "Z");
++    element.insert("librevenge:path-action", "Z");
+     vec.append(element);
+   }
+ 
+diff --git a/src/test/IWORKPathTest.cpp b/src/test/IWORKPathTest.cpp
+index 050f3f8..2ddf4db 100644
+--- a/src/test/IWORKPathTest.cpp
++++ b/src/test/IWORKPathTest.cpp
+@@ -43,13 +43,13 @@ string toSVG(const IWORKPath &path)
+   {
+     const librevenge::RVNGPropertyList &element = it();
+ 
+-    CPPUNIT_ASSERT(0 != element["libwpg:path-action"]);
++    CPPUNIT_ASSERT(0 != element["librevenge:path-action"]);
+ 
+     if (first)
+       first = false;
+     else
+       output << ' ';
+-    output << element["libwpg:path-action"]->getStr().cstr();
++    output << element["librevenge:path-action"]->getStr().cstr();
+     if (element["svg:x1"])
+       output << ' ' << in2pt(element["svg:x1"]->getDouble());
+     if (element["svg:y1"])
+-- 
+2.4.2
+

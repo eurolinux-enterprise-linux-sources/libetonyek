@@ -10,20 +10,22 @@
 #ifndef KEY1PARSER_H_INCLUDED
 #define KEY1PARSER_H_INCLUDED
 
-#include "KEYParser.h"
+#include "IWORKParser.h"
 
 namespace libetonyek
 {
 
-class KEY1Parser : public KEYParser
+class KEYCollector;
+
+class KEY1Parser : public IWORKParser
 {
 public:
-  KEY1Parser(const WPXInputStreamPtr_t &input, const WPXInputStreamPtr_t &package, KEYCollector *collector, const KEYDefaults &defaults);
+  KEY1Parser(const RVNGInputStreamPtr_t &input, const RVNGInputStreamPtr_t &package, KEYCollector *collector);
   virtual ~KEY1Parser();
 
 private:
-  virtual void processXmlNode(const KEYXMLReader &reader);
-  virtual KEYXMLReader::TokenizerFunction_t getTokenizer() const;
+  virtual IWORKXMLContextPtr_t createDocumentContext();
+  virtual const IWORKTokenizer &getTokenizer() const;
 };
 
 }

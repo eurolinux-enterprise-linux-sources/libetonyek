@@ -1,36 +1,38 @@
-%global apiversion 0.0
+%global apiversion 0.1
 
 Name: libetonyek
-Version: 0.0.4
-Release: 2%{?dist}
-Summary: A library for import of Apple Keynote presentations
+Version: 0.1.2
+Release: 4%{?dist}
+Summary: A library for import of Apple iWork documents
 
-Group: System Environment/Libraries
 License: MPLv2.0
 URL: http://wiki.documentfoundation.org/DLP/Libraries/libetonyek
 Source: http://dev-www.libreoffice.org/src/%{name}/%{name}-%{version}.tar.xz
 
 BuildRequires: boost-devel
 BuildRequires: doxygen
+BuildRequires: glm-devel
 BuildRequires: gperf
 BuildRequires: help2man
 BuildRequires: pkgconfig(cppunit)
-BuildRequires: pkgconfig(libwpd-0.9)
+BuildRequires: pkgconfig(librevenge-0.0)
 BuildRequires: pkgconfig(libxml-2.0)
 BuildRequires: pkgconfig(zlib)
 
-Patch0: 0001-add-support-for-ppc64le.patch
-Patch1: 0001-make-sure-this-is-never-called-with-0-length.patch
-Patch2: 0001-CID-1130378-rearrange-a-bit.patch
+Patch0: 0001-fix-test-on-i386.patch
+Patch1: 0001-add-missing-breaks.patch
+Patch2: 0002-remove-surplus-breaks.patch
+Patch3: 0001-avoid-use-of-uninitialized-value.patch
+Patch4: 0001-get-rid-of-last-remains-of-libwpg.patch
 
 %description
-libetonyek is library providing ability to interpret and import Apple
-Keynote presentations into various applications. Only version 5 is
-supported at the moment, although versions 2-4 should work.
+%{name} is library for import of documents from Apple iWork applications
+(Keynote, Pages and Numbers). It can only import the older format
+(Keynote 2-5, Pages 4, Numbers 2). The support for Pages and Numbers is
+only minimal at the moment.
 
 %package devel
 Summary: Development files for %{name}
-Group: Development/Libraries
 Requires: %{name}%{?_isa} = %{version}-%{release}
 
 %description devel
@@ -39,20 +41,18 @@ developing applications that use %{name}.
 
 %package doc
 Summary: Documentation of %{name} API
-Group: Documentation
 BuildArch: noarch
 
 %description doc
 The %{name}-doc package contains documentation files for %{name}.
 
 %package tools
-Summary: Tools to transform Apple Keynote presentations into other formats
-Group: Applications/Publishing
+Summary: Tools to transform Apple iWork documents into other formats
 Requires: %{name}%{?_isa} = %{version}-%{release}
 
 %description tools
-Tools to transform Apple Keynote presentations into other formats.
-Currently supported: XHTML, raw, text.
+Tools to transform Apple iWork documents into other formats. Currently
+supported: CSV, HTML, SVG, text, and raw.
 
 %prep
 %autosetup -p1
@@ -67,8 +67,14 @@ make %{?_smp_mflags}
 
 export LD_LIBRARY_PATH=`pwd`/src/lib/.libs${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 help2man -N -n 'debug the conversion library' -o key2raw.1 ./src/conv/raw/.libs/key2raw
+help2man -N -n 'debug the conversion library' -o numbers2raw.1 ./src/conv/raw/.libs/numbers2raw
+help2man -N -n 'debug the conversion library' -o pages2raw.1 ./src/conv/raw/.libs/pages2raw
+help2man -N -n 'convert Numbers spreadsheet into CSV' -o numbers2csv.1 ./src/conv/csv/.libs/numbers2csv
+help2man -N -n 'convert Pages document into HTML' -o pages2html.1 ./src/conv/html/.libs/pages2html
 help2man -N -n 'convert Keynote presentation into SVG' -o key2xhtml.1 ./src/conv/svg/.libs/key2xhtml
 help2man -N -n 'convert Keynote presentation into plain text' -o key2text.1 ./src/conv/text/.libs/key2text
+help2man -N -n 'convert Numbers spreadsheet into plain text' -o numbers2text.1 ./src/conv/text/.libs/numbers2text
+help2man -N -n 'convert Pages document into plain text' -o pages2text.1 ./src/conv/text/.libs/pages2text
 
 %install
 make install DESTDIR=%{buildroot}
@@ -77,10 +83,9 @@ rm -f %{buildroot}/%{_libdir}/*.la
 rm -rf %{buildroot}/%{_docdir}/%{name}
 
 install -m 0755 -d %{buildroot}/%{_mandir}/man1
-install -m 0644 key2*.1 %{buildroot}/%{_mandir}/man1
+install -m 0644 key2*.1 numbers2*.1 pages2*.1 %{buildroot}/%{_mandir}/man1
 
 %post -p /sbin/ldconfig
-
 %postun -p /sbin/ldconfig
 
 %check
@@ -105,11 +110,38 @@ make %{?_smp_mflags} check
 %{_bindir}/key2raw
 %{_bindir}/key2text
 %{_bindir}/key2xhtml
+%{_bindir}/numbers2csv
+%{_bindir}/numbers2raw
+%{_bindir}/numbers2text
+%{_bindir}/pages2html
+%{_bindir}/pages2raw
+%{_bindir}/pages2text
 %{_mandir}/man1/key2raw.1*
 %{_mandir}/man1/key2text.1*
 %{_mandir}/man1/key2xhtml.1*
+%{_mandir}/man1/numbers2csv.1*
+%{_mandir}/man1/numbers2raw.1*
+%{_mandir}/man1/numbers2text.1*
+%{_mandir}/man1/pages2html.1*
+%{_mandir}/man1/pages2raw.1*
+%{_mandir}/man1/pages2text.1*
 
 %changelog
+* Fri Jun 12 2015 David Tardon <dtardon@redhat.com> - 0.1.2-4
+- Related: rhbz#1207752 fix output of shapes
+
+* Sun May 31 2015 David Tardon <dtardon@redhat.com> - 0.1.2-3
+- Related: rhbz#1207752 avoid use of uninitialized value
+
+* Tue May 26 2015 David Tardon <dtardon@redhat.com> - 0.1.2-2
+- Related: rhbz#1207752 fix some problems found by coverity
+
+* Tue May 26 2015 David Tardon <dtardon@redhat.com> - 0.1.2-1
+- Resolves: rhbz#1207752 rebase to 0.1.2
+
+* Fri Apr 17 2015 David Tardon <dtardon@redhat.com> - 0.1.1-1
+- Resolves: rhbz#1207752 rebase to 0.1.1
+
 * Fri Sep 12 2014 David Tardon <dtardon@redhat.com> - 0.0.4-2
 - Related: rhbz#1130553 fix coverity issue
 

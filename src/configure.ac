@@ -6,8 +6,8 @@ AC_PREREQ([2.65])
 # Version informations
 # ====================
 m4_define([libetonyek_version_major],[0])
-m4_define([libetonyek_version_minor],[0])
-m4_define([libetonyek_version_micro],[4])
+m4_define([libetonyek_version_minor],[1])
+m4_define([libetonyek_version_micro],[2])
 m4_define([libetonyek_version],[libetonyek_version_major.libetonyek_version_minor.libetonyek_version_micro])
 
 # =============
@@ -16,7 +16,7 @@ m4_define([libetonyek_version],[libetonyek_version_major.libetonyek_version_mino
 AC_INIT([libetonyek],[libetonyek_version])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADER([config.h])
-AM_INIT_AUTOMAKE([1.11 foreign dist-xz dist-bzip2])
+AM_INIT_AUTOMAKE([1.11 foreign dist-xz dist-bzip2 subdir-objects])
 AM_SILENT_RULES([yes])
 AC_LANG([C++])
 
@@ -43,15 +43,14 @@ if test -z "$GPERF"; then
     AC_MSG_ERROR([gperf not found but needed. Install it.])
 fi
 
-# ===========
-# Find libwpd
-# ===========
-PKG_CHECK_MODULES([WPD],[
-	libwpd-0.9
-	libwpd-stream-0.9
+# ===============
+# Find librevenge
+# ===============
+PKG_CHECK_MODULES([REVENGE],[
+	librevenge-0.0
 ])
-AC_SUBST(WPD_CFLAGS)
-AC_SUBST(WPD_LIBS)
+AC_SUBST([REVENGE_CFLAGS])
+AC_SUBST([REVENGE_LIBS])
 
 # ============
 # Find libxml2
@@ -78,11 +77,15 @@ AC_SUBST(ZLIB_LIBS)
 saved_CPPFLAGS="${CPPFLAGS}"
 CPPFLAGS="${BOOST_CFLAGS} ${CPPFLAGS}"
 AC_CHECK_HEADERS(
+        boost/algorithm/string/classification.hpp \
+        boost/algorithm/string/predicate.hpp \
+        boost/algorithm/string/split.hpp \
         boost/any.hpp \
         boost/bind.hpp \
         boost/function.hpp \
         boost/lexical_cast.hpp \
-        boost/math/constants/constants.hpp \
+        boost/logic/tribool.hpp \
+        boost/make_shared.hpp \
         boost/numeric/conversion/cast.hpp \
         boost/optional.hpp \
         boost/ref.hpp \
@@ -96,6 +99,20 @@ AC_CHECK_HEADERS(
 )
 CPPFLAGS="${saved_CPPFLAGS}"
 AC_SUBST([BOOST_CFLAGS])
+
+# ================
+# Find glm headers
+# ================
+saved_CPPFLAGS="${CPPFLAGS}"
+CPPFLAGS="${GLM_CFLAGS} ${CPPFLAGS}"
+AC_CHECK_HEADERS(
+        glm/glm.hpp,
+    [],
+    [AC_MSG_ERROR([Required boost headers not found.])],
+    []
+)
+CPPFLAGS="${saved_CPPFLAGS}"
+AC_SUBST([GLM_CFLAGS])
 
 # =================================
 # Libtool/Version Makefile settings
@@ -122,19 +139,40 @@ AS_CASE([$host],
 		native_win32=yes
 		LIBETONYEK_WIN32_RESOURCE=libetonyek-win32res.lo
 		KEY2RAW_WIN32_RESOURCE=key2raw-win32res.lo
+		KEY2TEXT_WIN32_RESOURCE=key2text-win32res.lo
 		KEY2XHTML_WIN32_RESOURCE=key2xhtml-win32res.lo
+		NUMBERS2CSV_WIN32_RESOURCE=numbers2csv-win32res.lo
+		NUMBERS2RAW_WIN32_RESOURCE=numbers2raw-win32res.lo
+		NUMBERS2TEXT_WIN32_RESOURCE=numbers2text-win32res.lo
+		PAGES2HTML_WIN32_RESOURCE=pages2html-win32res.lo
+		PAGES2RAW_WIN32_RESOURCE=pages2raw-win32res.lo
+		PAGES2TEXT_WIN32_RESOURCE=pages2text-win32res.lo
 	], [
 		native_win32=no
 		LIBETONYEK_WIN32_RESOURCE=
 		KEY2RAW_WIN32_RESOURCE=
+		KEY2TEXT_WIN32_RESOURCE=
 		KEY2XHTML_WIN32_RESOURCE=
+		NUMBERS2CSV_WIN32_RESOURCE=
+		NUMBERS2RAW_WIN32_RESOURCE=
+		NUMBERS2TEXT_WIN32_RESOURCE=
+		PAGES2HTML_WIN32_RESOURCE=
+		PAGES2RAW_WIN32_RESOURCE=
+		PAGES2TEXT_WIN32_RESOURCE=
 	]
 )
 AC_MSG_RESULT([$native_win32])
 AM_CONDITIONAL(OS_WIN32, [test "x$native_win32" = "xyes"])
 AC_SUBST(LIBETONYEK_WIN32_RESOURCE)
 AC_SUBST(KEY2RAW_WIN32_RESOURCE)
+AC_SUBST(KEY2TEXT_WIN32_RESOURCE)
 AC_SUBST(KEY2XHTML_WIN32_RESOURCE)
+AC_SUBST(NUMBERS2CSV_WIN32_RESOURCE)
+AC_SUBST(NUMBERS2RAW_WIN32_RESOURCE)
+AC_SUBST(NUMBERS2TEXT_WIN32_RESOURCE)
+AC_SUBST(PAGES2HTML_WIN32_RESOURCE)
+AC_SUBST(PAGES2RAW_WIN32_RESOURCE)
+AC_SUBST(PAGES2TEXT_WIN32_RESOURCE)
 
 AC_MSG_CHECKING([for Win32 platform in general])
 AS_CASE([$host],
@@ -144,6 +182,24 @@ AS_CASE([$host],
 AC_MSG_RESULT([$platform_win32])
 AM_CONDITIONAL([PLATFORM_WIN32], [test "x$platform_win32" = "xyes"])
 
+AS_IF([test "x$platform_win32" = "xyes"],
+    [],
+    [
+        AC_MSG_CHECKING([for -fvisibility=hidden compiler flag])
+        saved_CXXFLAGS="$CXXFLAGS"
+        CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
+        AC_TRY_COMPILE([], [],
+            [
+                AC_MSG_RESULT([yes])
+                CXXFLAGS="$CXXFLAGS -DLIBETONYEK_VISIBILITY"
+            ],
+            [
+                AC_MSG_RESULT([no])
+                CXXFLAGS="$saved_CXXFLAGS"
+            ]
+        )
+    ]
+)
 
 # ================
 # Check for cflags
@@ -276,12 +332,21 @@ AC_ARG_WITH(tools,
 	[with_tools="$withval"],
 	[]
 )
-AS_IF([test "x$with_tools" != "xno"], [
-	AX_BOOST_BASE
-	AX_BOOST_FILESYSTEM
-	build_tools=yes
-], [build_tools=no])
+AS_IF([test "x$with_tools" != "xno"], [build_tools=yes], [build_tools=no])
 AM_CONDITIONAL([WITH_LIBETONYEK_TOOLS], [test "x$build_tools" != "xno"])
+
+AS_IF([test "x$build_tools" != "xno"], [
+    PKG_CHECK_MODULES([REVENGE_GENERATORS],[
+        librevenge-generators-0.0
+    ])
+    PKG_CHECK_MODULES([REVENGE_STREAM],[
+        librevenge-stream-0.0
+    ])
+])
+AC_SUBST([REVENGE_GENERATORS_CFLAGS])
+AC_SUBST([REVENGE_GENERATORS_LIBS])
+AC_SUBST([REVENGE_STREAM_CFLAGS])
+AC_SUBST([REVENGE_STREAM_LIBS])
 
 # =====================
 # Prepare all .in files
@@ -290,13 +355,20 @@ AC_CONFIG_FILES([
 Makefile
 src/Makefile
 src/conv/Makefile
-src/conv/common/Makefile
+src/conv/csv/numbers2csv.rc
+src/conv/csv/Makefile
+src/conv/html/Makefile
+src/conv/html/pages2html.rc
 src/conv/raw/Makefile
 src/conv/raw/key2raw.rc
+src/conv/raw/numbers2raw.rc
+src/conv/raw/pages2raw.rc
 src/conv/svg/Makefile
 src/conv/svg/key2xhtml.rc
 src/conv/text/Makefile
 src/conv/text/key2text.rc
+src/conv/text/numbers2text.rc
+src/conv/text/pages2text.rc
 src/lib/Makefile
 src/lib/libetonyek.rc
 src/test/Makefile

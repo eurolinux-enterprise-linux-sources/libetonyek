@@ -10,88 +10,27 @@
 #ifndef KEY2PARSER_H_INCLUDED
 #define KEY2PARSER_H_INCLUDED
 
-#include "KEY2ParserUtils.h"
-#include "KEYParser.h"
-#include "KEYTypes.h"
+#include "IWORKParser.h"
+#include "KEY2ParserState.h"
 
 namespace libetonyek
 {
 
-class KEYStyle;
+class KEYCollector;
+struct KEYDictionary;
 
-class KEY2Parser : public KEYParser, private KEY2ParserUtils
+class KEY2Parser : public IWORKParser
 {
 public:
-  KEY2Parser(const WPXInputStreamPtr_t &input, const WPXInputStreamPtr_t &package, KEYCollector *collector, const KEYDefaults &defaults);
+  KEY2Parser(const RVNGInputStreamPtr_t &input, const RVNGInputStreamPtr_t &package, KEYCollector *collector, KEYDictionary &dict);
   virtual ~KEY2Parser();
 
-  // NOTE: KEY2TableParser uses these to avoid code duplication
-  void parseGeometry(const KEYXMLReader &reader);
-  void parseTextBody(const KEYXMLReader &reader);
+private:
+  virtual IWORKXMLContextPtr_t createDocumentContext();
+  virtual const IWORKTokenizer &getTokenizer() const;
 
 private:
-  virtual void processXmlNode(const KEYXMLReader &reader);
-  virtual KEYXMLReader::TokenizerFunction_t getTokenizer() const;
-
-  void parseDrawables(const KEYXMLReader &reader);
-  void parseLayer(const KEYXMLReader &reader);
-  void parseLayers(const KEYXMLReader &reader);
-  void parseMasterSlide(const KEYXMLReader &reader);
-  void parseMasterSlides(const KEYXMLReader &reader);
-  void parseMetadata(const KEYXMLReader &reader);
-  void parseNotes(const KEYXMLReader &reader);
-  void parsePage(const KEYXMLReader &reader);
-  void parseProxyMasterLayer(const KEYXMLReader &reader);
-  void parseSlide(const KEYXMLReader &reader);
-  void parseSlideList(const KEYXMLReader &reader);
-  void parseStickyNotes(const KEYXMLReader &reader);
-  void parseStyles(const KEYXMLReader &reader, bool anonymous);
-  void parseStylesheet(const KEYXMLReader &reader);
-  void parseTheme(const KEYXMLReader &reader);
-  void parseThemeList(const KEYXMLReader &reader);
-
-  void parseBezier(const KEYXMLReader &reader);
-  void parseConnectionLine(const KEYXMLReader &reader);
-  void parseGroup(const KEYXMLReader &reader);
-  void parseImage(const KEYXMLReader &reader);
-  void parseLine(const KEYXMLReader &reader);
-  void parseMedia(const KEYXMLReader &reader);
-  void parsePath(const KEYXMLReader &reader);
-  void parseShape(const KEYXMLReader &reader);
-  void parseStickyNote(const KEYXMLReader &reader);
-  void parsePlaceholder(const KEYXMLReader &reader, bool title = false);
-
-  void parseBezierPath(const KEYXMLReader &reader);
-  void parseCallout2Path(const KEYXMLReader &reader);
-  void parseConnectionPath(const KEYXMLReader &reader);
-  void parsePointPath(const KEYXMLReader &reader);
-  void parseScalarPath(const KEYXMLReader &reader);
-
-  void parseContent(const KEYXMLReader &reader);
-  void parseData(const KEYXMLReader &reader);
-  void parseFiltered(const KEYXMLReader &reader);
-  void parseFilteredImage(const KEYXMLReader &reader);
-  void parseImageMedia(const KEYXMLReader &reader);
-  void parseLeveled(const KEYXMLReader &reader);
-  void parseUnfiltered(const KEYXMLReader &reader);
-  void parseMovieMedia(const KEYXMLReader &reader);
-  void parseSelfContainedMovie(const KEYXMLReader &reader);
-  void parseOtherDatas(const KEYXMLReader &reader);
-
-  void parseBr(const KEYXMLReader &reader);
-  void parseLayout(const KEYXMLReader &reader);
-  void parseLink(const KEYXMLReader &reader);
-  void parseP(const KEYXMLReader &reader);
-  void parseSpan(const KEYXMLReader &reader);
-  void parseTab(const KEYXMLReader &reader);
-  void parseText(const KEYXMLReader &reader);
-  void parseTextStorage(const KEYXMLReader &reader);
-
-  void emitLayoutStyle(const ID_t &id);
-
-private:
-  WPXInputStreamPtr_t m_package;
-  unsigned m_version;
+  KEY2ParserState m_state;
 };
 
 }

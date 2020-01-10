@@ -10,158 +10,60 @@
 #ifndef KEYCOLLECTOR_H_INCLUDED
 #define KEYCOLLECTOR_H_INCLUDED
 
-#include <string>
-
-#include <boost/optional.hpp>
-
-#include "libetonyek_utils.h"
-#include "KEYPath_fwd.h"
-#include "KEYTable.h"
+#include "IWORKCollector.h"
+#include "IWORKPath_fwd.h"
+#include "KEYTypes.h"
 #include "KEYTypes_fwd.h"
 
 namespace libetonyek
 {
 
-class KEYDefaults;
-class KEYPropertyMap;
-struct KEYSize;
-
-class KEYCollector
+class KEYCollector : public IWORKCollector
 {
 public:
-  virtual ~KEYCollector() = 0;
+  explicit KEYCollector(IWORKDocumentInterface *document);
+  ~KEYCollector();
 
   // collector functions
 
-  virtual void collectCellStyle(const boost::optional<ID_t> &id,
-                                const boost::optional<KEYPropertyMap> &props,
-                                const boost::optional<std::string> &ident, const boost::optional<std::string> &parentIdent,
-                                bool ref, bool anonymous) = 0;
-  virtual void collectCharacterStyle(const boost::optional<ID_t> &id,
-                                     const boost::optional<KEYPropertyMap> &props,
-                                     const boost::optional<std::string> &ident, const boost::optional<std::string> &parentIdent,
-                                     bool ref, bool anonymous) = 0;
-  virtual void collectConnectionStyle(const boost::optional<ID_t> &id,
-                                      const boost::optional<KEYPropertyMap> &props,
-                                      const boost::optional<std::string> &ident, const boost::optional<std::string> &parentIdent,
-                                      bool ref, bool anonymous) = 0;
-  virtual void collectGraphicStyle(const boost::optional<ID_t> &id,
-                                   const boost::optional<KEYPropertyMap> &props,
-                                   const boost::optional<std::string> &ident, const boost::optional<std::string> &parentIdent,
-                                   bool ref, bool anonymous) = 0;
-  virtual void collectLayoutStyle(const boost::optional<ID_t> &id,
-                                  const boost::optional<KEYPropertyMap> &props,
-                                  const boost::optional<std::string> &ident, const boost::optional<std::string> &parentIdent,
-                                  bool ref, bool anonymous) = 0;
-  virtual void collectListStyle(const boost::optional<ID_t> &id,
-                                const boost::optional<KEYPropertyMap> &props,
-                                const boost::optional<std::string> &ident, const boost::optional<std::string> &parentIdent,
-                                bool ref, bool anonymous) = 0;
-  virtual void collectParagraphStyle(const boost::optional<ID_t> &id,
-                                     const boost::optional<KEYPropertyMap> &props,
-                                     const boost::optional<std::string> &ident, const boost::optional<std::string> &parentIdent,
-                                     bool ref, bool anonymous) = 0;
-  virtual void collectPlaceholderStyle(const boost::optional<ID_t> &id,
-                                       const boost::optional<KEYPropertyMap> &props,
-                                       const boost::optional<std::string> &ident, const boost::optional<std::string> &parentIdent,
-                                       bool ref, bool anonymous) = 0;
-  virtual void collectSlideStyle(const boost::optional<ID_t> &id,
-                                 const boost::optional<KEYPropertyMap> &props,
-                                 const boost::optional<std::string> &ident, const boost::optional<std::string> &parentIdent,
-                                 bool ref, bool anonymous) = 0;
-  virtual void collectTabularStyle(const boost::optional<ID_t> &id,
-                                   const boost::optional<KEYPropertyMap> &props,
-                                   const boost::optional<std::string> &ident, const boost::optional<std::string> &parentIdent,
-                                   bool ref, bool anonymous) = 0;
-  virtual void collectVectorStyle(const boost::optional<ID_t> &id,
-                                  const boost::optional<KEYPropertyMap> &props,
-                                  const boost::optional<std::string> &ident, const boost::optional<std::string> &parentIdent,
-                                  bool ref, bool anonymous) = 0;
+  void collectPresentationSize(const IWORKSize &size);
 
-  virtual void collectGeometry(boost::optional<ID_t> &id,
-                               boost::optional<KEYSize> &naturalSize, boost::optional<KEYSize> &size,
-                               boost::optional<KEYPosition> &position, boost::optional<double> &angle,
-                               boost::optional<double> &shearXAngle, boost::optional<double> &shearYAngle,
-                               boost::optional<bool> &horizontalFlip, boost::optional<bool> &verticalFlip,
-                               boost::optional<bool> &aspectRatioLocked, boost::optional<bool> &sizesLocked) = 0;
+  KEYLayerPtr_t collectLayer();
+  void insertLayer(const KEYLayerPtr_t &layer);
+  void collectPage();
 
-  virtual void collectBezier(const boost::optional<ID_t> &id, const KEYPathPtr_t &path, bool ref) = 0;
-  virtual void collectGroup(const boost::optional<ID_t> &id, const KEYGroupPtr_t &group) = 0;
-  virtual void collectImage(const boost::optional<ID_t> &id, const KEYImagePtr_t &image) = 0;
-  virtual void collectLine(const boost::optional<ID_t> &id, const KEYLinePtr_t &line) = 0;
-  virtual void collectShape(const boost::optional<ID_t> &id) = 0;
+  KEYPlaceholderPtr_t collectTextPlaceholder(const IWORKStylePtr_t &style, bool title);
+  void insertTextPlaceholder(const KEYPlaceholderPtr_t &placeholder);
 
-  virtual void collectBezierPath(const boost::optional<ID_t> &id) = 0;
-  virtual void collectPolygonPath(const boost::optional<ID_t> &id, const KEYSize &size, unsigned edges) = 0;
-  virtual void collectRoundedRectanglePath(const boost::optional<ID_t> &id, const KEYSize &size, double radius) = 0;
-  virtual void collectArrowPath(const boost::optional<ID_t> &id, const KEYSize &size, double headWidth, double stemRelYPos, bool doubleSided) = 0;
-  virtual void collectStarPath(const boost::optional<ID_t> &id, const KEYSize &size, unsigned points, double innerRadius) = 0;
-  virtual void collectConnectionPath(const boost::optional<ID_t> &id, const KEYSize &size, double middleX, double middleY) = 0;
-  virtual void collectCalloutPath(const boost::optional<ID_t> &id, const KEYSize &size, double radius, double tailSize, double tailX, double tailY, bool quoteBubble) = 0;
+  void collectNote();
 
-  virtual void collectData(const boost::optional<ID_t> &id, const WPXInputStreamPtr_t &stream, const boost::optional<std::string> &displayName, const boost::optional<unsigned> &type, bool ref) = 0;
-  virtual void collectUnfiltered(const boost::optional<ID_t> &id, const boost::optional<KEYSize> &size, bool ref) = 0;
-  virtual void collectFiltered(const boost::optional<ID_t> &id, const boost::optional<KEYSize> &size) = 0;
-  virtual void collectLeveled(const boost::optional<ID_t> &id, const boost::optional<KEYSize> &size) = 0;
-  virtual void collectFilteredImage(const boost::optional<ID_t> &id, bool ref) = 0;
-  virtual void collectMovieMedia(const boost::optional<ID_t> &id) = 0;
-  virtual void collectMedia(const boost::optional<ID_t> &id) = 0;
+  void collectStickyNote();
 
-  virtual void collectPresentation(const boost::optional<KEYSize> &size) = 0;
+  void startSlides();
+  void endSlides();
+  void startThemes();
+  void endThemes();
 
-  virtual void collectLayer(const boost::optional<ID_t> &id, bool ref) = 0;
-  virtual void collectPage(const boost::optional<ID_t> &id) = 0;
-  virtual void collectStylesheet(const boost::optional<ID_t> &id, const boost::optional<ID_t> &parent) = 0;
+  void startPage();
+  void endPage();
+  void startLayer();
+  void endLayer();
 
-  virtual void collectText(const boost::optional<ID_t> &style, const std::string &text) = 0;
-  virtual void collectTab() = 0;
-  virtual void collectLineBreak() = 0;
+private:
+  void drawNotes();
+  void drawStickyNotes();
 
-  virtual void collectTextPlaceholder(const boost::optional<ID_t> &id, bool title, bool ref) = 0;
+private:
+  IWORKSize m_size;
 
-  virtual void collectTableSizes(const KEYTable::RowSizes_t &rowSizes, const KEYTable::ColumnSizes_t &columnSizes) = 0;
-  virtual void collectTableCell(unsigned row, unsigned column, const boost::optional<std::string> &content, unsigned rowSpan, unsigned columnSpan) = 0;
-  virtual void collectCoveredTableCell(unsigned row, unsigned column) = 0;
-  virtual void collectTableRow() = 0;
-  virtual void collectTable() = 0;
+  IWORKOutputElements m_notes;
+  KEYStickyNotes_t m_stickyNotes;
 
-  virtual void collectNote() = 0;
+  bool m_pageOpened;
+  bool m_layerOpened;
+  int m_layerCount;
 
-  virtual void collectStickyNote() = 0;
-
-  virtual void startPage() = 0;
-  virtual void endPage() = 0;
-  virtual void startLayer() = 0;
-  virtual void endLayer() = 0;
-  virtual void startGroup() = 0;
-  virtual void endGroup() = 0;
-
-  virtual void startParagraph(const boost::optional<ID_t> &style) = 0;
-  virtual void endParagraph() = 0;
-
-  /** Start of a block that can contain text.
-    *
-    * This can be:
-    * * a text shape
-    * * a sticky note
-    * * a placeholder
-    * * a note.
-    */
-  virtual void startText(bool object) = 0;
-
-  /** End of a text block.
-    */
-  virtual void endText() = 0;
-
-  // helper functions
-
-  virtual void startSlides() = 0;
-  virtual void endSlides() = 0;
-  virtual void startThemes() = 0;
-  virtual void endThemes() = 0;
-
-  virtual void startLevel() = 0;
-  virtual void endLevel() = 0;
+  bool m_paint;
 };
 
 } // namespace libetonyek

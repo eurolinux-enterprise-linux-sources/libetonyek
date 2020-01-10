@@ -7,6 +7,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include "KEY2Parser.h"
+
 #include <cassert>
 #include <utility>
 
@@ -15,15 +17,28 @@
 
 #include "libetonyek_utils.h"
 #include "libetonyek_xml.h"
-#include "KEY2Parser.h"
-#include "KEY2StyleParser.h"
-#include "KEY2TableParser.h"
+#include "IWORKChainedTokenizer.h"
+#include "IWORKGeometryElement.h"
+#include "IWORKMediaElement.h"
+#include "IWORKPath.h"
+#include "IWORKPositionElement.h"
+#include "IWORKRefContext.h"
+#include "IWORKStyle.h"
+#include "IWORKSizeElement.h"
+#include "IWORKStylesContext.h"
+#include "IWORKTabularInfoElement.h"
+#include "IWORKTextBodyElement.h"
+#include "IWORKTextStorageElement.h"
+#include "IWORKToken.h"
+#include "IWORKTypes.h"
+#include "KEY2ParserState.h"
+#include "KEY2StyleContext.h"
+#include "KEY2StyleRefContext.h"
 #include "KEY2Token.h"
+#include "KEY2XMLContextBase.h"
 #include "KEYCollector.h"
-#include "KEYPath.h"
-#include "KEYStyle.h"
+#include "KEYDictionary.h"
 #include "KEYTypes.h"
-#include "KEYXMLReader.h"
 
 using boost::get_optional_value_or;
 using boost::lexical_cast;
@@ -58,11 +73,1741 @@ unsigned getVersion(const int token)
 
 }
 
-KEY2Parser::KEY2Parser(const WPXInputStreamPtr_t &input, const WPXInputStreamPtr_t &package, KEYCollector *const collector, const KEYDefaults &defaults)
-  : KEYParser(input, collector, defaults)
-  , KEY2ParserUtils()
-  , m_package(package)
-  , m_version(0)
+namespace
+{
+
+class MetadataElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit MetadataElement(KEY2ParserState &state);
+
+private:
+  virtual IWORKXMLContextPtr_t element(int name);
+};
+
+MetadataElement::MetadataElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+IWORKXMLContextPtr_t MetadataElement::element(int)
+{
+  // TODO: parse
+  return IWORKXMLContextPtr_t();
+}
+
+}
+
+namespace
+{
+
+class StylesContext : public KEY2XMLContextBase<IWORKStylesContext>
+{
+public:
+  StylesContext(KEY2ParserState &state, bool anonymous);
+
+private:
+  virtual IWORKXMLContextPtr_t element(int name);
+};
+
+StylesContext::StylesContext(KEY2ParserState &state, const bool anonymous)
+  : KEY2XMLContextBase<IWORKStylesContext>(state, anonymous)
+{
+}
+
+IWORKXMLContextPtr_t StylesContext::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::layoutstyle :
+  case IWORKToken::NS_URI_SF | IWORKToken::placeholder_style :
+    return makeContext<KEY2StyleContext>(getState(), name);
+
+  case IWORKToken::NS_URI_SF | IWORKToken::layoutstyle_ref :
+    break;
+    return makeContext<KEY2StyleRefContext>(getState(), name, false, m_anonymous);
+  }
+
+  return KEY2XMLContextBase<IWORKStylesContext>::element(name);
+}
+
+}
+
+namespace
+{
+
+class StylesheetElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit StylesheetElement(KEY2ParserState &state);
+
+private:
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+
+private:
+  optional<ID_t> m_parent;
+};
+
+StylesheetElement::StylesheetElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+IWORKXMLContextPtr_t StylesheetElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::styles :
+    return makeContext<StylesContext>(getState(), false);
+  case IWORKToken::NS_URI_SF | IWORKToken::anon_styles :
+    return makeContext<StylesContext>(getState(), false);
+  case IWORKToken::NS_URI_SF | IWORKToken::parent_ref :
+    return makeContext<IWORKRefContext>(getState(), m_parent);
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void StylesheetElement::endOfElement()
+{
+  IWORKStylesheetPtr_t parent;
+
+  if (m_parent)
+  {
+    assert(getId() != m_parent);
+
+    const IWORKStylesheetMap_t::const_iterator it = getState().getDictionary().m_stylesheets.find(get(m_parent));
+    if (getState().getDictionary().m_stylesheets.end() != it)
+      parent = it->second;
+  }
+
+  const IWORKStylesheetPtr_t stylesheet = getCollector()->collectStylesheet(parent);
+  if (bool(stylesheet) && getId())
+    getState().getDictionary().m_stylesheets[get(getId())] = stylesheet;
+}
+
+}
+
+namespace
+{
+
+class ProxyMasterLayerElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit ProxyMasterLayerElement(KEY2ParserState &state);
+
+private:
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+
+private:
+  optional<ID_t> m_ref;
+};
+
+ProxyMasterLayerElement::ProxyMasterLayerElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+  , m_ref()
+{
+}
+
+IWORKXMLContextPtr_t ProxyMasterLayerElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::layer_ref :
+    return makeContext<IWORKRefContext>(getState(), m_ref);
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void ProxyMasterLayerElement::endOfElement()
+{
+  if (m_ref)
+  {
+    const KEYLayerMap_t::const_iterator it = getState().getDictionary().m_layers.find(get(m_ref));
+    if (getState().getDictionary().m_layers.end() != it)
+      getCollector()->insertLayer(it->second);
+  }
+}
+
+}
+
+namespace
+{
+
+class PointElement : public KEY2XMLEmptyContextBase
+{
+public:
+  PointElement(KEY2ParserState &state, pair<optional<double>, optional<double> > &point);
+
+private:
+  virtual void attribute(int name, const char *value);
+
+private:
+  pair<optional<double>, optional<double> > &m_point;
+};
+
+PointElement::PointElement(KEY2ParserState &state, pair<optional<double>, optional<double> > &point)
+  : KEY2XMLEmptyContextBase(state)
+  , m_point(point)
+{
+}
+
+void PointElement::attribute(const int name, const char *const value)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SFA | IWORKToken::x :
+    m_point.first = lexical_cast<double>(value);
+  case IWORKToken::NS_URI_SFA | IWORKToken::y :
+    m_point.second = lexical_cast<double>(value);
+  }
+}
+
+}
+
+namespace
+{
+
+class ConnectionPathElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit ConnectionPathElement(KEY2ParserState &state);
+
+private:
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+
+private:
+  optional<IWORKSize> m_size;
+  pair<optional<double>, optional<double> > m_point;
+};
+
+ConnectionPathElement::ConnectionPathElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+IWORKXMLContextPtr_t ConnectionPathElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::point :
+    return makeContext<PointElement>(getState(), m_point);
+  case IWORKToken::NS_URI_SF | IWORKToken::size :
+    return makeContext<IWORKSizeElement>(getState(), m_size);
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void ConnectionPathElement::endOfElement()
+{
+  if (m_size)
+    getCollector()->collectConnectionPath(get(m_size), get_optional_value_or(m_point.first, 0), get_optional_value_or(m_point.second, 0));
+}
+
+}
+
+namespace
+{
+
+class PointPathElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit PointPathElement(KEY2ParserState &state);
+
+private:
+  virtual void attribute(int name, const char *value);
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+
+private:
+  bool m_star;
+  bool m_doubleArrow;
+  optional<IWORKSize> m_size;
+  pair<optional<double>, optional<double> > m_point;
+};
+
+PointPathElement::PointPathElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+  , m_star(false)
+  , m_doubleArrow(false) // right arrow is the default (by my decree .-)
+{
+}
+
+void PointPathElement::attribute(const int name, const char *const value)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::type :
+  {
+    switch (getToken(value))
+    {
+    case KEY2Token::double_ :
+      m_doubleArrow = true;
+      break;
+    case KEY2Token::right :
+      break;
+    case KEY2Token::star :
+      m_star = true;
+      break;
+    default :
+      ETONYEK_DEBUG_MSG(("unknown point path type: %s\n", value));
+      break;
+    }
+  }
+  default :
+    KEY2XMLElementContextBase::attribute(name, value);
+    break;
+  }
+}
+
+IWORKXMLContextPtr_t PointPathElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::point :
+    return makeContext<PointElement>(getState(), m_point);
+  case IWORKToken::NS_URI_SF | IWORKToken::size :
+    return makeContext<IWORKSizeElement>(getState(), m_size);
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void PointPathElement::endOfElement()
+{
+  IWORKSize size;
+  if (m_size)
+    size = get(m_size);
+
+  if (m_star)
+    getCollector()->collectStarPath(size, numeric_cast<unsigned>(get_optional_value_or(m_point.first, 0.0)), get_optional_value_or(m_point.second, 0));
+  else
+    getCollector()->collectArrowPath(size, get_optional_value_or(m_point.first, 0), get_optional_value_or(m_point.second, 0), m_doubleArrow);
+}
+
+}
+
+namespace
+{
+
+class ScalarPathElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit ScalarPathElement(KEY2ParserState &state);
+
+private:
+  virtual void attribute(int name, const char *value);
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+
+private:
+  optional<IWORKSize> m_size;
+  bool m_polygon;
+  double m_value;
+};
+
+ScalarPathElement::ScalarPathElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+  , m_size()
+  , m_polygon(false)
+  , m_value(0)
+{
+}
+
+void ScalarPathElement::attribute(const int name, const char *const value)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::scalar :
+    m_value = lexical_cast<double>(value);
+    break;
+  case IWORKToken::NS_URI_SF | IWORKToken::type :
+  {
+    switch (getToken(value))
+    {
+    case IWORKToken::_0 :
+      break;
+    case IWORKToken::_1 :
+      m_polygon = true;
+      break;
+    default :
+      ETONYEK_DEBUG_MSG(("unknown scalar path type: %s\n", value));
+      break;
+    }
+    break;
+  }
+  default :
+    KEY2XMLElementContextBase::attribute(name, value);
+    break;
+  }
+}
+
+IWORKXMLContextPtr_t ScalarPathElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::size :
+    return makeContext<IWORKSizeElement>(getState(), m_size);
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void ScalarPathElement::endOfElement()
+{
+  IWORKSize size;
+  if (m_size)
+    size = get(m_size);
+
+  if (m_polygon)
+    getCollector()->collectPolygonPath(size, numeric_cast<unsigned>(m_value));
+  else
+    getCollector()->collectRoundedRectanglePath(size, m_value);
+}
+
+}
+
+namespace
+{
+
+class BezierElement : public KEY2XMLEmptyContextBase
+{
+public:
+  explicit BezierElement(KEY2ParserState &state);
+
+private:
+  virtual void attribute(int name, const char *value);
+  virtual void endOfElement();
+
+private:
+  IWORKPathPtr_t m_path;
+};
+
+BezierElement::BezierElement(KEY2ParserState &state)
+  : KEY2XMLEmptyContextBase(state)
+  , m_path()
+{
+}
+
+void BezierElement::attribute(const int name, const char *const value)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SFA | IWORKToken::path :
+    m_path.reset(new IWORKPath(value));
+    break;
+  default :
+    KEY2XMLEmptyContextBase::attribute(name, value);
+    break;
+  }
+}
+
+void BezierElement::endOfElement()
+{
+  if (getId())
+    getState().getDictionary().m_beziers[get(getId())] = m_path;
+  getCollector()->collectBezier(m_path);
+}
+
+}
+
+namespace
+{
+
+class BezierRefElement : public KEY2XMLEmptyContextBase
+{
+public:
+  explicit BezierRefElement(KEY2ParserState &state);
+
+private:
+  virtual void endOfElement();
+};
+
+BezierRefElement::BezierRefElement(KEY2ParserState &state)
+  : KEY2XMLEmptyContextBase(state)
+{
+}
+
+void BezierRefElement::endOfElement()
+{
+  if (getRef())
+  {
+    const IWORKPathMap_t::const_iterator it = getState().getDictionary().m_beziers.find(get(getRef()));
+    if (getState().getDictionary().m_beziers.end() != it)
+      getCollector()->collectBezier(it->second);
+  }
+}
+
+}
+
+namespace
+{
+
+class BezierPathElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit BezierPathElement(KEY2ParserState &state);
+
+private:
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+};
+
+BezierPathElement::BezierPathElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+IWORKXMLContextPtr_t BezierPathElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::bezier :
+    return makeContext<BezierElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::bezier_ref :
+    return makeContext<BezierRefElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void BezierPathElement::endOfElement()
+{
+  getCollector()->collectBezierPath();
+}
+
+}
+
+namespace
+{
+
+class Callout2PathElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit Callout2PathElement(KEY2ParserState &state);
+
+private:
+  virtual void attribute(int name, const char *value);
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+
+private:
+  optional<IWORKSize> m_size;
+  double m_cornerRadius;
+  bool m_tailAtCenter;
+  double m_tailPosX;
+  double m_tailPosY;
+  double m_tailSize;
+};
+
+Callout2PathElement::Callout2PathElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+  , m_size()
+  , m_cornerRadius(0)
+  , m_tailAtCenter(false)
+  , m_tailPosX(0)
+  , m_tailPosY(0)
+  , m_tailSize(0)
+{
+}
+
+void Callout2PathElement::attribute(const int name, const char *const value)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::cornerRadius :
+    m_cornerRadius = lexical_cast<double>(value);
+    break;
+  case IWORKToken::NS_URI_SF | IWORKToken::tailAtCenter :
+    m_tailAtCenter = bool_cast(value);
+    break;
+  case IWORKToken::NS_URI_SF | IWORKToken::tailPositionX :
+    m_tailPosX = lexical_cast<double>(value);
+    break;
+  case IWORKToken::NS_URI_SF | IWORKToken::tailPositionY :
+    m_tailPosY = lexical_cast<double>(value);
+    break;
+  case IWORKToken::NS_URI_SF | IWORKToken::tailSize :
+    m_tailSize = lexical_cast<double>(value);
+    break;
+  default :
+    KEY2XMLElementContextBase::attribute(name, value);
+    break;
+  }
+}
+
+IWORKXMLContextPtr_t Callout2PathElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::size :
+    return makeContext<IWORKSizeElement>(getState(), m_size);
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void Callout2PathElement::endOfElement()
+{
+  getCollector()->collectCalloutPath(get_optional_value_or(m_size, IWORKSize()), m_cornerRadius, m_tailSize, m_tailPosX, m_tailPosY, m_tailAtCenter);
+}
+
+}
+
+namespace
+{
+
+class PathElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit PathElement(KEY2ParserState &state);
+
+private:
+  virtual IWORKXMLContextPtr_t element(int name);
+};
+
+PathElement::PathElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+IWORKXMLContextPtr_t PathElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::bezier_path :
+  case IWORKToken::NS_URI_SF | IWORKToken::editable_bezier_path :
+    return makeContext<BezierPathElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::callout2_path :
+    return makeContext<Callout2PathElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::connection_path :
+    return makeContext<ConnectionPathElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::point_path :
+    return makeContext<PointPathElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::scalar_path :
+    return makeContext<ScalarPathElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+}
+
+namespace
+{
+
+// NOTE: isn't it wonderful that there are two text elements in two
+// different namespaces, but with the same schema?
+class TextElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit TextElement(KEY2ParserState &state);
+
+private:
+  virtual void attribute(int name, const char *value);
+  virtual IWORKXMLContextPtr_t element(int name);
+};
+
+TextElement::TextElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+void TextElement::attribute(const int name, const char *)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::layoutstyle :
+    // TODO: handle
+    getCollector()->collectStyle(IWORKStylePtr_t(), false);
+    break;
+  }
+}
+
+IWORKXMLContextPtr_t TextElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::text_storage :
+    return makeContext<IWORKTextStorageElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+}
+
+namespace
+{
+
+class ShapeElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit ShapeElement(KEY2ParserState &state);
+
+private:
+  virtual void startOfElement();
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+};
+
+ShapeElement::ShapeElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+void ShapeElement::startOfElement()
+{
+  getCollector()->startLevel();
+  getCollector()->startText();
+}
+
+IWORKXMLContextPtr_t ShapeElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::geometry :
+    return makeContext<IWORKGeometryElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::path :
+    return makeContext<PathElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::text :
+    return makeContext<TextElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void ShapeElement::endOfElement()
+{
+  getCollector()->collectShape();
+  getCollector()->endText();
+  getCollector()->endLevel();
+}
+
+}
+
+namespace
+{
+
+class ImageElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit ImageElement(KEY2ParserState &state);
+
+private:
+  virtual void startOfElement();
+  virtual void attribute(int name, const char *value);
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+
+private:
+  IWORKImagePtr_t m_image;
+};
+
+ImageElement::ImageElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+  , m_image(new IWORKImage())
+{
+}
+
+void ImageElement::startOfElement()
+{
+  getCollector()->startLevel();
+}
+
+void ImageElement::attribute(const int name, const char *const value)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::locked :
+    m_image->m_locked = bool_cast(value);
+    break;
+  default :
+    KEY2XMLElementContextBase::attribute(name, value);
+    break;
+  }
+}
+
+IWORKXMLContextPtr_t ImageElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::geometry :
+    return makeContext<IWORKGeometryElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void ImageElement::endOfElement()
+{
+  if (getId())
+    getState().getDictionary().m_images[get(getId())] = m_image;
+  getCollector()->collectImage(m_image);
+  getCollector()->endLevel();
+}
+
+}
+
+namespace
+{
+
+class LineElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit LineElement(KEY2ParserState &state);
+
+private:
+  virtual void startOfElement();
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+
+private:
+  optional<IWORKPosition> m_head;
+  optional<IWORKPosition> m_tail;
+};
+
+LineElement::LineElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+void LineElement::startOfElement()
+{
+  getCollector()->startLevel();
+}
+
+IWORKXMLContextPtr_t LineElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::geometry :
+    return makeContext<IWORKGeometryElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::head :
+    return makeContext<IWORKPositionElement>(getState(), m_head);
+  case IWORKToken::NS_URI_SF | IWORKToken::tail :
+    return makeContext<IWORKPositionElement>(getState(), m_tail);
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void LineElement::endOfElement()
+{
+  IWORKLinePtr_t line(new IWORKLine());
+  if (m_head)
+  {
+    line->m_x1 = get(m_head).m_x;
+    line->m_y1 = get(m_head).m_y;
+  }
+  if (m_tail)
+  {
+    line->m_x2 = get(m_tail).m_x;
+    line->m_y2 = get(m_tail).m_y;
+  }
+  getCollector()->collectLine(line);
+  getCollector()->endLevel();
+}
+
+}
+
+namespace
+{
+
+class GroupElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit GroupElement(KEY2ParserState &state);
+
+private:
+  virtual void startOfElement();
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+};
+
+GroupElement::GroupElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+void GroupElement::startOfElement()
+{
+  getCollector()->startLevel();
+  getCollector()->startGroup();
+}
+
+IWORKXMLContextPtr_t GroupElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::geometry :
+    return makeContext<IWORKGeometryElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::group :
+    return makeContext<GroupElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::image :
+    return makeContext<ImageElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::line :
+    return makeContext<LineElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::media :
+    return makeContext<IWORKMediaElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::shape :
+    return makeContext<ShapeElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void GroupElement::endOfElement()
+{
+  getCollector()->endGroup();
+  getCollector()->endLevel();
+}
+
+}
+
+namespace
+{
+
+class PlaceholderRefContext : public KEY2XMLEmptyContextBase
+{
+public:
+  PlaceholderRefContext(KEY2ParserState &state, bool title);
+
+private:
+  virtual void endOfElement();
+
+private:
+  const bool m_title;
+};
+
+PlaceholderRefContext::PlaceholderRefContext(KEY2ParserState &state, const bool title)
+  : KEY2XMLEmptyContextBase(state)
+  , m_title(title)
+{
+}
+
+void PlaceholderRefContext::endOfElement()
+{
+  if (getRef())
+  {
+    KEYDictionary &dict = getState().getDictionary();
+    KEYPlaceholderMap_t &placeholderMap = m_title ? dict.m_titlePlaceholders : dict.m_bodyPlaceholders;
+    const KEYPlaceholderMap_t::const_iterator it = placeholderMap.find(get(getRef()));
+    if (placeholderMap.end() != it)
+      getCollector()->insertTextPlaceholder(it->second);
+  }
+}
+
+}
+
+namespace
+{
+
+class ConnectionLineElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit ConnectionLineElement(KEY2ParserState &state);
+
+private:
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+};
+
+ConnectionLineElement::ConnectionLineElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+IWORKXMLContextPtr_t ConnectionLineElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::geometry :
+    return makeContext<IWORKGeometryElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::path :
+    return makeContext<PathElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void ConnectionLineElement::endOfElement()
+{
+  getCollector()->collectShape();
+}
+
+}
+
+namespace
+{
+
+class StickyNoteElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit StickyNoteElement(KEY2ParserState &state);
+
+private:
+  virtual void startOfElement();
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+};
+
+StickyNoteElement::StickyNoteElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+void StickyNoteElement::startOfElement()
+{
+  getCollector()->startText();
+  getCollector()->startLevel();
+}
+
+IWORKXMLContextPtr_t StickyNoteElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::geometry :
+    return makeContext<IWORKGeometryElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::text :
+    return makeContext<TextElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void StickyNoteElement::endOfElement()
+{
+  getCollector()->collectStickyNote();
+
+  getCollector()->endLevel();
+  getCollector()->endText();
+}
+
+}
+
+namespace
+{
+
+class DrawablesElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit DrawablesElement(KEY2ParserState &state);
+
+private:
+  virtual void startOfElement();
+  virtual void attribute(int name, const char *value);
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+};
+
+DrawablesElement::DrawablesElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+void DrawablesElement::startOfElement()
+{
+  getCollector()->startLevel();
+}
+
+void DrawablesElement::attribute(int, const char *)
+{
+}
+
+IWORKXMLContextPtr_t DrawablesElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::body_placeholder_ref :
+    return makeContext<PlaceholderRefContext>(getState(), false);
+  case IWORKToken::NS_URI_SF | IWORKToken::connection_line :
+    return makeContext<ConnectionLineElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::group :
+    return makeContext<GroupElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::image :
+    return makeContext<ImageElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::line :
+    return makeContext<LineElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::media :
+    return makeContext<IWORKMediaElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::shape :
+    return makeContext<ShapeElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::sticky_note :
+    return makeContext<StickyNoteElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::tabular_info :
+    return makeContext<IWORKTabularInfoElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::title_placeholder_ref :
+    return makeContext<PlaceholderRefContext>(getState(), true);
+  case KEY2Token::NS_URI_KEY | KEY2Token::sticky_note :
+    return makeContext<StickyNoteElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void DrawablesElement::endOfElement()
+{
+  getCollector()->endLevel();
+}
+
+}
+
+namespace
+{
+
+class LayerElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit LayerElement(KEY2ParserState &state);
+
+private:
+  virtual void startOfElement();
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+};
+
+LayerElement::LayerElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+void LayerElement::startOfElement()
+{
+  getCollector()->startLayer();
+}
+
+IWORKXMLContextPtr_t LayerElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::drawables :
+    return makeContext<DrawablesElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void LayerElement::endOfElement()
+{
+  const KEYLayerPtr_t layer(getCollector()->collectLayer());
+  getCollector()->endLayer();
+  if (bool(layer))
+  {
+    if (bool(layer) && getId())
+      getState().getDictionary().m_layers[get(getId())] = layer;
+    getCollector()->insertLayer(layer);
+  }
+}
+
+}
+
+namespace
+{
+
+class LayersElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit LayersElement(KEY2ParserState &state);
+
+private:
+  virtual IWORKXMLContextPtr_t element(int name);
+};
+
+LayersElement::LayersElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+IWORKXMLContextPtr_t LayersElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::layer :
+    return makeContext<LayerElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::proxy_master_layer :
+    return makeContext<ProxyMasterLayerElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+}
+
+namespace
+{
+
+class PageElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit PageElement(KEY2ParserState &state);
+
+private:
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+
+private:
+  // TODO: use size
+  optional<IWORKSize> m_size;
+};
+
+PageElement::PageElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+IWORKXMLContextPtr_t PageElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::size :
+    return makeContext<IWORKSizeElement>(getState(), m_size);
+  case IWORKToken::NS_URI_SF | IWORKToken::layers :
+    return makeContext<LayersElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void PageElement::endOfElement()
+{
+}
+
+}
+
+namespace
+{
+
+class StyleElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit StyleElement(KEY2ParserState &state, optional<ID_t> &ref);
+
+private:
+  virtual IWORKXMLContextPtr_t element(int name);
+
+private:
+  optional<ID_t> &m_ref;
+};
+
+StyleElement::StyleElement(KEY2ParserState &state, optional<ID_t> &ref)
+  : KEY2XMLElementContextBase(state)
+  , m_ref(ref)
+{
+}
+
+IWORKXMLContextPtr_t StyleElement::element(const int name)
+{
+  if ((IWORKToken::NS_URI_SF | IWORKToken::placeholder_style_ref) == name)
+    return makeContext<IWORKRefContext>(getState(), m_ref);
+
+  return IWORKXMLContextPtr_t();
+}
+
+}
+
+namespace
+{
+
+class PlaceholderContext : public KEY2XMLElementContextBase
+{
+public:
+  PlaceholderContext(KEY2ParserState &state, bool title);
+
+private:
+  virtual void startOfElement();
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+
+private:
+  const bool m_title;
+  optional<ID_t> m_ref;
+};
+
+PlaceholderContext::PlaceholderContext(KEY2ParserState &state, const bool title)
+  : KEY2XMLElementContextBase(state)
+  , m_title(title)
+  , m_ref()
+{
+}
+
+void PlaceholderContext::startOfElement()
+{
+  getCollector()->startText();
+}
+
+IWORKXMLContextPtr_t PlaceholderContext::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::geometry :
+    // ignore; the real geometry comes from style
+    break;
+  case IWORKToken::NS_URI_SF | IWORKToken::style :
+    return makeContext<StyleElement>(getState(), m_ref);
+  case KEY2Token::NS_URI_KEY | KEY2Token::text :
+    return makeContext<TextElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void PlaceholderContext::endOfElement()
+{
+  IWORKStylePtr_t style;
+  if (m_ref)
+  {
+    const IWORKStyleMap_t::const_iterator it = getState().getDictionary().m_placeholderStyles.find(get(m_ref));
+    if (getState().getDictionary().m_placeholderStyles.end() != it)
+      style = it->second;
+  }
+
+  const KEYPlaceholderPtr_t placeholder = getCollector()->collectTextPlaceholder(style, m_title);
+  if (bool(placeholder) && getId())
+  {
+    KEYDictionary &dict = getState().getDictionary();
+    KEYPlaceholderMap_t &placeholderMap = m_title ? dict.m_titlePlaceholders : dict.m_bodyPlaceholders;
+    placeholderMap[get(getId())] = placeholder;
+  }
+  getCollector()->endText();
+}
+
+}
+
+namespace
+{
+
+class MasterSlideElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit MasterSlideElement(KEY2ParserState &state);
+
+private:
+  virtual void startOfElement();
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+};
+
+MasterSlideElement::MasterSlideElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+void MasterSlideElement::startOfElement()
+{
+  getCollector()->startPage();
+}
+
+IWORKXMLContextPtr_t MasterSlideElement::element(const int name)
+{
+  switch (name)
+  {
+  case KEY2Token::NS_URI_KEY | KEY2Token::page :
+    return makeContext<PageElement>(getState());
+  case KEY2Token::NS_URI_KEY | KEY2Token::stylesheet :
+    return makeContext<StylesheetElement>(getState());
+  case KEY2Token::NS_URI_KEY | KEY2Token::title_placeholder :
+    return makeContext<PlaceholderContext>(getState(), true);
+  case KEY2Token::NS_URI_KEY | KEY2Token::body_placeholder :
+    return makeContext<PlaceholderContext>(getState(), false);
+  case KEY2Token::NS_URI_KEY | KEY2Token::sticky_notes :
+    return makeContext<StickyNoteElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void MasterSlideElement::endOfElement()
+{
+  getCollector()->collectPage();
+  getCollector()->endPage();
+}
+
+}
+
+namespace
+{
+
+class MasterSlidesElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit MasterSlidesElement(KEY2ParserState &state);
+
+private:
+  virtual IWORKXMLContextPtr_t element(int name);
+};
+
+MasterSlidesElement::MasterSlidesElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+IWORKXMLContextPtr_t MasterSlidesElement::element(const int name)
+{
+  switch (name)
+  {
+  case KEY2Token::NS_URI_KEY | KEY2Token::master_slide :
+    return makeContext<MasterSlideElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+}
+
+namespace
+{
+
+class ThemeElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit ThemeElement(KEY2ParserState &state);
+
+private:
+  virtual IWORKXMLContextPtr_t element(int name);
+
+private:
+  // TODO: use size
+  optional<IWORKSize> m_size;
+};
+
+ThemeElement::ThemeElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+IWORKXMLContextPtr_t ThemeElement::element(const int name)
+{
+  switch (name)
+  {
+  case KEY2Token::NS_URI_KEY | IWORKToken::size :
+    return makeContext<IWORKSizeElement>(getState(), m_size);
+  case KEY2Token::NS_URI_KEY | KEY2Token::stylesheet :
+    return makeContext<StylesheetElement>(getState());
+  case KEY2Token::NS_URI_KEY | KEY2Token::master_slides :
+    return makeContext<MasterSlidesElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+}
+
+namespace
+{
+
+class ThemeListElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit ThemeListElement(KEY2ParserState &state);
+
+private:
+  virtual void startOfElement();
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+};
+
+ThemeListElement::ThemeListElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+void ThemeListElement::startOfElement()
+{
+  getCollector()->startThemes();
+}
+
+IWORKXMLContextPtr_t ThemeListElement::element(const int name)
+{
+  switch (name)
+  {
+  case KEY2Token::NS_URI_KEY | KEY2Token::theme :
+    return makeContext<ThemeElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void ThemeListElement::endOfElement()
+{
+  getCollector()->endThemes();
+}
+
+}
+
+namespace
+{
+
+class NotesElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit NotesElement(KEY2ParserState &state);
+
+private:
+  virtual void startOfElement();
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+};
+
+NotesElement::NotesElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+void NotesElement::startOfElement()
+{
+  getCollector()->startText();
+}
+
+IWORKXMLContextPtr_t NotesElement::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::text_storage | IWORKToken::NS_URI_SF :
+    return makeContext<IWORKTextStorageElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void NotesElement::endOfElement()
+{
+  getCollector()->collectNote();
+  getCollector()->endText();
+}
+
+}
+
+namespace
+{
+
+class StickyNotesElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit StickyNotesElement(KEY2ParserState &state);
+
+private:
+  virtual IWORKXMLContextPtr_t element(int name);
+};
+
+StickyNotesElement::StickyNotesElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+IWORKXMLContextPtr_t StickyNotesElement::element(const int name)
+{
+  switch (name)
+  {
+  case KEY2Token::NS_URI_KEY | KEY2Token::sticky_note :
+    return makeContext<StickyNoteElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+}
+
+namespace
+{
+
+class SlideElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit SlideElement(KEY2ParserState &state);
+
+private:
+  virtual void startOfElement();
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+};
+
+SlideElement::SlideElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+void SlideElement::startOfElement()
+{
+  getCollector()->startPage();
+}
+
+IWORKXMLContextPtr_t SlideElement::element(const int name)
+{
+  switch (name)
+  {
+  case KEY2Token::NS_URI_KEY | KEY2Token::notes :
+    return makeContext<NotesElement>(getState());
+  case KEY2Token::NS_URI_KEY | KEY2Token::page :
+    return makeContext<PageElement>(getState());
+  case KEY2Token::NS_URI_KEY | KEY2Token::stylesheet :
+    return makeContext<StylesheetElement>(getState());
+  case KEY2Token::NS_URI_KEY | KEY2Token::title_placeholder :
+    return makeContext<PlaceholderContext>(getState(), true);
+  case KEY2Token::NS_URI_KEY | KEY2Token::body_placeholder :
+    return makeContext<PlaceholderContext>(getState(), false);
+  case KEY2Token::NS_URI_KEY | KEY2Token::sticky_notes :
+    return makeContext<StickyNotesElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void SlideElement::endOfElement()
+{
+  getCollector()->collectPage();
+  getCollector()->endPage();
+}
+
+}
+
+namespace
+{
+
+class SlideListElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit SlideListElement(KEY2ParserState &state);
+
+private:
+  virtual void startOfElement();
+  virtual IWORKXMLContextPtr_t element(int name);
+  virtual void endOfElement();
+};
+
+SlideListElement::SlideListElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+void SlideListElement::startOfElement()
+{
+  getCollector()->startSlides();
+}
+
+IWORKXMLContextPtr_t SlideListElement::element(const int name)
+{
+  switch (name)
+  {
+  case KEY2Token::NS_URI_KEY | KEY2Token::slide :
+    return makeContext<SlideElement>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void SlideListElement::endOfElement()
+{
+  getCollector()->endSlides();
+}
+
+}
+
+namespace
+{
+
+class PresentationElement : public KEY2XMLElementContextBase
+{
+public:
+  explicit PresentationElement(KEY2ParserState &state);
+
+private:
+  virtual void attribute(int name, const char *value);
+  virtual IWORKXMLContextPtr_t element(int name);
+
+private:
+  optional<IWORKSize> m_size;
+  bool m_pendingSize;
+};
+
+PresentationElement::PresentationElement(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+  , m_size()
+  , m_pendingSize(false)
+{
+}
+
+void PresentationElement::attribute(const int name, const char *const value)
+{
+  switch (name)
+  {
+  case KEY2Token::NS_URI_KEY | KEY2Token::version :
+  {
+    const unsigned version = getVersion(getToken(value));
+    if (0 == version)
+    {
+      ETONYEK_DEBUG_MSG(("unknown version %s\n", value));
+    }
+  }
+  break;
+  }
+}
+
+IWORKXMLContextPtr_t PresentationElement::element(const int name)
+{
+  if (m_pendingSize)
+  {
+    if (m_size)
+      getCollector()->collectPresentationSize(get(m_size));
+    m_pendingSize = false;
+  }
+
+  switch (name)
+  {
+  case KEY2Token::NS_URI_KEY | KEY2Token::metadata :
+    return makeContext<MetadataElement>(getState());
+  case KEY2Token::NS_URI_KEY | KEY2Token::theme_list :
+    return makeContext<ThemeListElement>(getState());
+  case KEY2Token::NS_URI_KEY | KEY2Token::slide_list :
+    return makeContext<SlideListElement>(getState());
+  case KEY2Token::NS_URI_KEY | KEY2Token::size :
+    m_pendingSize = true;
+    return makeContext<IWORKSizeElement>(getState(), m_size);
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+}
+
+namespace
+{
+
+class XMLDocument : public KEY2XMLElementContextBase
+{
+public:
+  explicit XMLDocument(KEY2ParserState &state);
+
+private:
+  virtual IWORKXMLContextPtr_t element(int name);
+};
+
+XMLDocument::XMLDocument(KEY2ParserState &state)
+  : KEY2XMLElementContextBase(state)
+{
+}
+
+IWORKXMLContextPtr_t XMLDocument::element(const int name)
+{
+  switch (name)
+  {
+  case KEY2Token::NS_URI_KEY | KEY2Token::presentation :
+    return makeContext<PresentationElement>(m_state);
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+}
+
+KEY2Parser::KEY2Parser(const RVNGInputStreamPtr_t &input, const RVNGInputStreamPtr_t &package, KEYCollector *const collector, KEYDictionary &dict)
+  : IWORKParser(input, package)
+  , m_state(*this, collector, dict)
 {
 }
 
@@ -70,1930 +1815,15 @@ KEY2Parser::~KEY2Parser()
 {
 }
 
-void KEY2Parser::processXmlNode(const KEYXMLReader &reader)
+IWORKXMLContextPtr_t KEY2Parser::createDocumentContext()
 {
-  assert(checkElement(reader, KEY2Token::presentation, KEY2Token::NS_URI_KEY));
-
-  KEYXMLReader::AttributeIterator attr(reader);
-  while (attr.next())
-  {
-    if (attr.getNamespace())
-    {
-      switch (getNamespaceId(attr))
-      {
-      case KEY2Token::NS_URI_KEY :
-        switch (getNameId(attr))
-        {
-        case KEY2Token::version :
-          m_version = getVersion(getValueId(attr));
-          if (0 == m_version)
-          {
-            KEY_DEBUG_MSG(("unknown version %s\n", attr.getValue()));
-          }
-          break;
-        default :
-          break;
-        }
-        break;
-      default :
-        break;
-      }
-    }
-  }
-
-  optional<KEYSize> size;
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_KEY == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::size :
-        size = readSize(reader);
-        break;
-      case KEY2Token::theme_list :
-        parseThemeList(reader);
-        break;
-      case KEY2Token::slide_list :
-        parseSlideList(reader);
-        break;
-      case KEY2Token::metadata :
-        parseMetadata(reader);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else if ((KEY2Token::NS_URI_SF == getNamespaceId(element)) && (KEY2Token::calc_engine == getNameId(element)))
-    {
-      skipElement(element);
-    }
-    else
-    {
-      skipElement(element);
-    }
-  }
-
-  getCollector()->collectPresentation(size);
+  return makeContext<XMLDocument>(m_state);
 }
 
-KEYXMLReader::TokenizerFunction_t KEY2Parser::getTokenizer() const
+const IWORKTokenizer &KEY2Parser::getTokenizer() const
 {
-  return KEY2Tokenizer();
-}
-
-void KEY2Parser::parseDrawables(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::drawables, KEY2Token::NS_URI_SF));
-
-  getCollector()->startLevel();
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::connection_line :
-        parseConnectionLine(element);
-        break;
-      case KEY2Token::group :
-        parseGroup(element);
-        break;
-      case KEY2Token::image :
-        parseImage(element);
-        break;
-      case KEY2Token::line :
-        parseLine(element);
-        break;
-      case KEY2Token::media :
-        parseMedia(element);
-        break;
-      case KEY2Token::shape :
-        parseShape(element);
-        break;
-      case KEY2Token::sticky_note :
-        parseStickyNote(element);
-        break;
-      case KEY2Token::tabular_info :
-      {
-        KEY2TableParser parser(*this);
-        parser.parse(element);
-        break;
-      }
-      case KEY2Token::body_placeholder_ref :
-      {
-        const optional<ID_t> id = readRef(reader);
-        getCollector()->collectTextPlaceholder(id, false, true);
-        break;
-      }
-      case KEY2Token::title_placeholder_ref :
-      {
-        const optional<ID_t> id = readRef(reader);
-        getCollector()->collectTextPlaceholder(id, true, true);
-        break;
-      }
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->endLevel();
-}
-
-void KEY2Parser::parseLayer(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::layer, KEY2Token::NS_URI_SF));
-
-  const optional<ID_t> id = readID(reader);
-
-  getCollector()->startLayer();
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::drawables :
-        parseDrawables(reader);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectLayer(id, false);
-  getCollector()->endLayer();
-}
-
-void KEY2Parser::parseLayers(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::layers, KEY2Token::NS_URI_SF));
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::layer :
-        parseLayer(reader);
-        break;
-      case KEY2Token::proxy_master_layer :
-        parseProxyMasterLayer(reader);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-}
-
-void KEY2Parser::parseMasterSlide(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::master_slide, KEY2Token::NS_URI_KEY));
-
-  optional<ID_t> id;
-
-  KEYXMLReader::AttributeIterator attr(reader);
-  while (attr.next())
-  {
-    if ((KEY2Token::ID | KEY2Token::NS_URI_SFA) == getId(attr))
-      id = attr.getValue();
-  }
-
-  getCollector()->startPage();
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_KEY == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::page :
-        parsePage(reader);
-        break;
-      case KEY2Token::stylesheet :
-        parseStylesheet(reader);
-        break;
-      case KEY2Token::title_placeholder :
-        parsePlaceholder(element, true);
-        break;
-      case KEY2Token::body_placeholder :
-        parsePlaceholder(element);
-        break;
-      case KEY2Token::sticky_notes :
-        parseStickyNotes(element);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectPage(id);
-  getCollector()->endPage();
-}
-
-void KEY2Parser::parseMasterSlides(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::master_slides, KEY2Token::NS_URI_KEY));
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if ((KEY2Token::NS_URI_KEY == getNamespaceId(element)) && (KEY2Token::master_slide == getNameId(element)))
-      parseMasterSlide(reader);
-    else
-      skipElement(element);
-  }
-}
-
-void KEY2Parser::parseMetadata(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::metadata, KEY2Token::NS_URI_KEY));
-
-  skipElement(reader);
-}
-
-void KEY2Parser::parseNotes(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::notes, KEY2Token::NS_URI_KEY));
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if ((KEY2Token::text_storage | KEY2Token::NS_URI_SF) == getId(element))
-    {
-      getCollector()->startText(false);
-      parseTextStorage(element);
-      getCollector()->collectNote();
-      getCollector()->endText();
-    }
-    else
-    {
-      skipElement(reader);
-    }
-  }
-}
-
-void KEY2Parser::parsePage(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::page, KEY2Token::NS_URI_KEY));
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::size :
-      {
-        const KEYSize size = readSize(reader);
-        // TODO: use size
-        (void) size;
-        break;
-      }
-      case KEY2Token::layers :
-        parseLayers(reader);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-}
-
-void KEY2Parser::parseProxyMasterLayer(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::proxy_master_layer, KEY2Token::NS_URI_SF));
-
-  optional<ID_t> ref;
-
-  getCollector()->startLayer();
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::layer_ref :
-        ref = readOnlyElementAttribute(reader, KEY2Token::IDREF, KEY2Token::NS_URI_SFA);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectLayer(ref, true);
-  getCollector()->endLayer();
-}
-
-void KEY2Parser::parseSlide(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::slide, KEY2Token::NS_URI_KEY));
-
-  const optional<ID_t> id = readID(reader);
-
-  getCollector()->startPage();
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_KEY == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::notes :
-        parseNotes(reader);
-        break;
-      case KEY2Token::page :
-        parsePage(reader);
-        break;
-      case KEY2Token::stylesheet :
-        parseStylesheet(reader);
-        break;
-      case KEY2Token::title_placeholder :
-        parsePlaceholder(element, true);
-        break;
-      case KEY2Token::body_placeholder :
-        parsePlaceholder(element);
-        break;
-      case KEY2Token::sticky_notes :
-        parseStickyNotes(element);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectPage(id);
-  getCollector()->endPage();
-}
-
-void KEY2Parser::parseSlideList(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::slide_list, KEY2Token::NS_URI_KEY));
-
-  getCollector()->startSlides();
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if ((KEY2Token::NS_URI_KEY == getNamespaceId(element)) && (KEY2Token::slide == getNameId(element)))
-      parseSlide(reader);
-    else
-      skipElement(element);
-  }
-
-  getCollector()->endSlides();
-}
-
-void KEY2Parser::parseStickyNotes(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::sticky_notes, KEY2Token::NS_URI_KEY));
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if ((KEY2Token::NS_URI_KEY == getNamespaceId(element)) && (KEY2Token::sticky_note == getNameId(element)))
-      parseStickyNote(element);
-    else
-      skipElement(element);
-  }
-}
-
-void KEY2Parser::parseStyles(const KEYXMLReader &reader, const bool anonymous)
-{
-  assert(checkElement(reader, anonymous ? KEY2Token::anon_styles : KEY2Token::styles, KEY2Token::NS_URI_SF));
-
-  checkNoAttributes(reader);
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      const int elementToken = getNameId(element);
-
-      switch (elementToken)
-      {
-      case KEY2Token::cell_style :
-      case KEY2Token::characterstyle :
-      case KEY2Token::connection_style :
-      case KEY2Token::graphic_style :
-      case KEY2Token::headline_style :
-      case KEY2Token::layoutstyle :
-      case KEY2Token::liststyle :
-      case KEY2Token::placeholder_style :
-      case KEY2Token::paragraphstyle :
-      case KEY2Token::slide_style :
-      case KEY2Token::tabular_style :
-      case KEY2Token::vector_style :
-      {
-        KEY2StyleParser parser(getNameId(element), getNamespaceId(element), getCollector(), getDefaults());
-        parser.parse(element);
-        break;
-      }
-
-      case KEY2Token::cell_style_ref :
-      case KEY2Token::characterstyle_ref :
-      case KEY2Token::layoutstyle_ref :
-      case KEY2Token::liststyle_ref :
-      case KEY2Token::paragraphstyle_ref :
-      case KEY2Token::vector_style_ref :
-      {
-        const optional<ID_t> id = readRef(element);
-        const optional<KEYPropertyMap> dummyProps;
-        const optional<string> dummyIdent;
-
-        switch (elementToken)
-        {
-        case KEY2Token::cell_style_ref :
-          getCollector()->collectCellStyle(id, dummyProps, dummyIdent, dummyIdent, true, anonymous);
-          break;
-        case KEY2Token::characterstyle_ref :
-          getCollector()->collectCharacterStyle(id, dummyProps, dummyIdent, dummyIdent, true, anonymous);
-          break;
-        case KEY2Token::layoutstyle_ref :
-          getCollector()->collectLayoutStyle(id, dummyProps, dummyIdent, dummyIdent, true, anonymous);
-          break;
-        case KEY2Token::liststyle_ref :
-          getCollector()->collectListStyle(id, dummyProps, dummyIdent, dummyIdent, true, anonymous);
-          break;
-        case KEY2Token::paragraphstyle_ref :
-          getCollector()->collectParagraphStyle(id, dummyProps, dummyIdent, dummyIdent, true, anonymous);
-          break;
-        case KEY2Token::vector_style_ref :
-          getCollector()->collectVectorStyle(id, dummyProps, dummyIdent, dummyIdent, true, anonymous);
-          break;
-        default :
-          assert(0);
-          break;
-        }
-        break;
-      }
-
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-}
-
-void KEY2Parser::parseStylesheet(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::stylesheet, KEY2Token::NS_URI_KEY));
-
-  const optional<ID_t> id = readID(reader);
-
-  optional<ID_t> parent;
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::styles :
-        parseStyles(reader, false);
-        break;
-      case KEY2Token::anon_styles :
-        parseStyles(reader, true);
-        break;
-      case KEY2Token::parent_ref :
-        parent = readRef(element);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectStylesheet(id, parent);
-}
-
-void KEY2Parser::parseTheme(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::theme, KEY2Token::NS_URI_KEY));
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_KEY == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::size :
-      {
-        const KEYSize size = readSize(reader);
-        // TODO: use size
-        (void) size;
-        break;
-      }
-      case KEY2Token::stylesheet :
-        parseStylesheet(reader);
-        break;
-      case KEY2Token::master_slides :
-        parseMasterSlides(reader);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-}
-
-void KEY2Parser::parseThemeList(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::theme_list, KEY2Token::NS_URI_KEY));
-
-  getCollector()->startThemes();
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if ((KEY2Token::NS_URI_KEY == getNamespaceId(element)) && (KEY2Token::theme == getNameId(element)))
-      parseTheme(reader);
-    else
-      skipElement(element);
-  }
-
-  getCollector()->endThemes();
-}
-
-void KEY2Parser::parseBezier(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::bezier, KEY2Token::NS_URI_SF));
-
-  optional<ID_t> id;
-  KEYPathPtr_t path;
-
-  KEYXMLReader::AttributeIterator attr(reader);
-  while (attr.next())
-  {
-    if ((KEY2Token::NS_URI_SFA == getNamespaceId(attr)))
-    {
-      switch (getNameId(attr))
-      {
-      case KEY2Token::ID :
-        id = attr.getValue();
-        break;
-      case KEY2Token::path :
-        path.reset(new KEYPath(attr.getValue()));
-        break;
-      default :
-        break;
-      }
-    }
-  }
-
-  checkEmptyElement(reader);
-
-  getCollector()->collectBezier(id, path, false);
-}
-
-void KEY2Parser::parseConnectionLine(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::connection_line, KEY2Token::NS_URI_SF));
-
-  const optional<ID_t> id = readID(reader);
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::geometry :
-        parseGeometry(element);
-        break;
-      case KEY2Token::path :
-        parsePath(element);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectShape(id);
-}
-
-void KEY2Parser::parseGeometry(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::geometry, KEY2Token::NS_URI_SF));
-
-  optional<ID_t> id;
-  optional<KEYSize> naturalSize;
-  optional<KEYSize> size;
-  optional<KEYPosition> pos;
-  optional<double> angle;
-  optional<double> shearXAngle;
-  optional<double> shearYAngle;
-  optional<bool> aspectRatioLocked;
-  optional<bool> sizesLocked;
-  optional<bool> horizontalFlip;
-  optional<bool> verticalFlip;
-
-  KEYXMLReader::AttributeIterator attr(reader);
-  while (attr.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(attr))
-    {
-      switch (getNameId(attr))
-      {
-      case KEY2Token::angle :
-        angle = deg2rad(lexical_cast<double>(attr.getValue()));
-        break;
-      case KEY2Token::aspectRatioLocked :
-        aspectRatioLocked = bool_cast(attr.getValue());
-        break;
-      case KEY2Token::horizontalFlip :
-        horizontalFlip = bool_cast(attr.getValue());
-        break;
-      case KEY2Token::shearXAngle :
-        shearXAngle = deg2rad(lexical_cast<double>(attr.getValue()));
-        break;
-      case KEY2Token::shearYAngle :
-        shearYAngle = deg2rad(lexical_cast<double>(attr.getValue()));
-        break;
-      case KEY2Token::sizesLocked :
-        sizesLocked = bool_cast(attr.getValue());
-        break;
-      case KEY2Token::verticalFlip :
-        verticalFlip = bool_cast(attr.getValue());
-        break;
-      default :
-        break;
-      }
-    }
-    else if (KEY2Token::NS_URI_SFA == getNamespaceId(attr) && (KEY2Token::ID == getNameId(attr)))
-    {
-      id = attr.getValue();
-    }
-  }
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::naturalSize :
-        naturalSize = readSize(reader);
-        break;
-      case KEY2Token::position :
-        pos = readPosition(reader);
-        break;
-      case KEY2Token::size :
-        size = readSize(reader);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectGeometry(id, naturalSize, size, pos, angle, shearXAngle, shearYAngle, horizontalFlip, verticalFlip, aspectRatioLocked, sizesLocked);
-}
-
-void KEY2Parser::parseGroup(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::group, KEY2Token::NS_URI_SF));
-
-  getCollector()->startLevel();
-
-  const optional<ID_t> id = readID(reader);
-
-  KEYGroupPtr_t group(new KEYGroup());
-
-  getCollector()->startGroup();
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::geometry :
-        parseGeometry(reader);
-        break;
-      case KEY2Token::group :
-        parseGroup(reader);
-        break;
-      case KEY2Token::image :
-        parseImage(reader);
-        break;
-      case KEY2Token::line :
-        parseLine(reader);
-        break;
-      case KEY2Token::media :
-        parseMedia(reader);
-        break;
-      case KEY2Token::shape :
-        parseShape(reader);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectGroup(id, group);
-  getCollector()->endGroup();
-  getCollector()->endLevel();
-}
-
-void KEY2Parser::parseImage(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::image, KEY2Token::NS_URI_SF));
-
-  optional<ID_t> id;
-  KEYImagePtr_t image(new KEYImage());
-
-  KEYXMLReader::AttributeIterator attr(reader);
-  while (attr.next())
-  {
-    if ((KEY2Token::NS_URI_SF == getNamespaceId(attr)) && (KEY2Token::locked == getNameId(attr)))
-      image->locked = bool_cast(attr.getValue());
-    else if ((KEY2Token::ID | KEY2Token::NS_URI_SFA) == getId(attr))
-      id = attr.getValue();
-  }
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::geometry :
-        parseGeometry(reader);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectImage(id, image);
-}
-
-void KEY2Parser::parseLine(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::line, KEY2Token::NS_URI_SF));
-
-  const optional<ID_t> id = readID(reader);
-
-  KEYLinePtr_t line(new KEYLine());
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::geometry :
-        parseGeometry(reader);
-        break;
-      case KEY2Token::head :
-      {
-        const KEYPosition head = readPosition(reader);
-        line->x1 = head.x;
-        line->y1 = head.y;
-        break;
-      }
-      case KEY2Token::tail :
-      {
-        const KEYPosition tail = readPosition(reader);
-        line->x2 = tail.x;
-        line->y2 = tail.y;
-        break;
-      }
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectLine(id, line);
-}
-
-void KEY2Parser::parseMedia(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::media, KEY2Token::NS_URI_SF));
-
-  getCollector()->startLevel();
-
-  const optional<ID_t> id = readID(reader);
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::geometry :
-        parseGeometry(reader);
-        break;
-      case KEY2Token::content :
-        parseContent(element);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectMedia(id);
-  getCollector()->endLevel();
-}
-
-void KEY2Parser::parsePath(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::path, KEY2Token::NS_URI_SF));
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::bezier_path :
-      case KEY2Token::editable_bezier_path :
-        parseBezierPath(element);
-        break;
-      case KEY2Token::callout2_path :
-        parseCallout2Path(element);
-        break;
-      case KEY2Token::connection_path :
-        parseConnectionPath(element);
-        break;
-      case KEY2Token::point_path :
-        parsePointPath(element);
-        break;
-      case KEY2Token::scalar_path :
-        parseScalarPath(element);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-}
-
-void KEY2Parser::parseShape(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::shape, KEY2Token::NS_URI_SF));
-
-  getCollector()->startText(true);
-
-  const optional<ID_t> id = readID(reader);
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::geometry :
-        parseGeometry(element);
-        break;
-      case KEY2Token::path :
-        parsePath(element);
-        break;
-      case KEY2Token::text :
-        parseText(element);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectShape(id);
-  getCollector()->endText();
-}
-
-void KEY2Parser::parseStickyNote(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::sticky_note, KEY2Token::NS_URI_KEY)
-         || checkElement(reader, KEY2Token::sticky_note, KEY2Token::NS_URI_SF));
-
-  getCollector()->startText(false);
-  getCollector()->startLevel();
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::geometry :
-        parseGeometry(element);
-        break;
-      case KEY2Token::text :
-        parseText(element);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectStickyNote();
-
-  getCollector()->endLevel();
-  getCollector()->endText();
-}
-
-void KEY2Parser::parsePlaceholder(const KEYXMLReader &reader, const bool title)
-{
-  assert(title
-         ? checkElement(reader, KEY2Token::title_placeholder, KEY2Token::NS_URI_KEY)
-         : checkElement(reader, KEY2Token::body_placeholder, KEY2Token::NS_URI_KEY));
-
-  getCollector()->startText(true);
-
-  const optional<ID_t> id = readID(reader);
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if ((KEY2Token::NS_URI_KEY == getNamespaceId(element)) && (KEY2Token::text == getNameId(element)))
-      parseText(element);
-    else if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::geometry :
-        // ignore; the real geometry comes from style
-        skipElement(element);
-        break;
-      case KEY2Token::style :
-      {
-        KEYXMLReader readerStyle(element);
-
-        checkNoAttributes(readerStyle);
-
-        KEYXMLReader::ElementIterator elementStyle(readerStyle);
-        while (elementStyle.next())
-        {
-          if ((KEY2Token::NS_URI_SF == getNamespaceId(elementStyle)) && (KEY2Token::placeholder_style_ref == getNameId(elementStyle)))
-          {
-            const ID_t styleId = readRef(elementStyle);
-            const optional<string> none;
-            getCollector()->collectPlaceholderStyle(styleId, optional<KEYPropertyMap>(), none, none, true, false);
-          }
-          else
-          {
-            skipElement(elementStyle);
-          }
-        }
-        break;
-      }
-      default :
-        skipElement(element);
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectTextPlaceholder(id, title, false);
-  getCollector()->endText();
-}
-
-void KEY2Parser::parseBezierPath(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::bezier_path, KEY2Token::NS_URI_SF)
-         || checkElement(reader, KEY2Token::editable_bezier_path, KEY2Token::NS_URI_SF));
-
-  const optional<ID_t> id = readID(reader);
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::bezier :
-        parseBezier(element);
-        break;
-      case KEY2Token::bezier_ref :
-      {
-        const ID_t idref = readRef(element);
-        getCollector()->collectBezier(idref, KEYPathPtr_t(), true);
-        break;
-      }
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectBezierPath(id);
-}
-
-void KEY2Parser::parseCallout2Path(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::callout2_path, KEY2Token::NS_URI_SF));
-
-  optional<ID_t> id;
-  double cornerRadius(0);
-  bool tailAtCenter(false);
-  double tailPosX(0);
-  double tailPosY(0);
-  double tailSize(0);
-
-  KEYXMLReader::AttributeIterator attr(reader);
-  while (attr.next())
-  {
-    if ((KEY2Token::NS_URI_SFA == getNamespaceId(attr)) && (KEY2Token::ID == getNameId(attr)))
-    {
-      id = attr.getValue();
-    }
-    else if (KEY2Token::NS_URI_SF == getNamespaceId(attr))
-    {
-      switch (getNameId(attr))
-      {
-      case KEY2Token::cornerRadius :
-        cornerRadius = lexical_cast<double>(attr.getValue());
-        break;
-      case KEY2Token::tailAtCenter :
-        tailAtCenter = bool_cast(attr.getValue());
-        break;
-      case KEY2Token::tailPositionX :
-        tailPosX = lexical_cast<double>(attr.getValue());
-        break;
-      case KEY2Token::tailPositionY :
-        tailPosY = lexical_cast<double>(attr.getValue());
-        break;
-      case KEY2Token::tailSize :
-        tailSize = lexical_cast<double>(attr.getValue());
-        break;
-      default :
-        break;
-      }
-    }
-  }
-
-  KEYSize size;
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if ((KEY2Token::NS_URI_SF == getNamespaceId(element)) && (KEY2Token::size == getNameId(element)))
-      size = readSize(reader);
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectCalloutPath(id, size, cornerRadius, tailSize, tailPosX, tailPosY, tailAtCenter);
-}
-
-void KEY2Parser::parseConnectionPath(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::connection_path, KEY2Token::NS_URI_SF));
-
-  const optional<ID_t> id = readID(reader);
-
-  KEYSize size;
-  pair<optional<double>, optional<double> > point;
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::point :
-        point = readPoint(element);
-        break;
-      case KEY2Token::size :
-        size = readSize(element);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectConnectionPath(id, size, get_optional_value_or(point.first, 0), get_optional_value_or(point.second, 0));
-}
-
-void KEY2Parser::parsePointPath(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::point_path, KEY2Token::NS_URI_SF));
-
-  optional<ID_t> id;
-  bool star = false;
-  // right arrow is the default (by my decree .-)
-  bool doubleArrow = false;
-
-  KEYXMLReader::AttributeIterator attr(reader);
-  while (attr.next())
-  {
-    if ((KEY2Token::NS_URI_SF == getNamespaceId(attr)) && (KEY2Token::type == getNameId(attr)))
-    {
-      switch (getValueId(attr))
-      {
-      case KEY2Token::double_ :
-        doubleArrow = true;
-        break;
-      case KEY2Token::right :
-        break;
-      case KEY2Token::star :
-        star = true;
-        break;
-      default :
-        KEY_DEBUG_MSG(("unknown point path type: %s\n", attr.getValue()));
-        break;
-      }
-    }
-    else if ((KEY2Token::NS_URI_SFA == getNamespaceId(attr)) && (KEY2Token::ID == getNameId(attr)))
-    {
-      id = attr.getValue();
-    }
-  }
-
-  KEYSize size;
-  pair<optional<double>, optional<double> > point;
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::point :
-        point = readPoint(element);
-        break;
-      case KEY2Token::size :
-        size = readSize(element);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  if (star)
-    getCollector()->collectStarPath(id, size, numeric_cast<unsigned>(get_optional_value_or(point.first, 0.0)), get_optional_value_or(point.second, 0));
-  else
-    getCollector()->collectArrowPath(id, size, get_optional_value_or(point.first, 0), get_optional_value_or(point.second, 0), doubleArrow);
-}
-
-void KEY2Parser::parseScalarPath(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::scalar_path, KEY2Token::NS_URI_SF));
-
-  optional<ID_t> id;
-  bool polygon = false;
-  double value = 0;
-
-  KEYXMLReader::AttributeIterator attr(reader);
-  while (attr.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(attr))
-    {
-      switch (getNameId(attr))
-      {
-      case KEY2Token::scalar :
-        value = lexical_cast<double>(attr.getValue());
-        break;
-      case KEY2Token::type :
-      {
-        switch (getValueId(attr))
-        {
-        case KEY2Token::_0 :
-          break;
-        case KEY2Token::_1 :
-          polygon = true;
-          break;
-        default :
-          KEY_DEBUG_MSG(("unknown scalar path type: %s\n", attr.getValue()));
-          break;
-        }
-        break;
-      }
-      default :
-        break;
-      }
-    }
-    else if ((KEY2Token::NS_URI_SFA == getNamespaceId(attr)) && (KEY2Token::ID == getNameId(attr)))
-    {
-      id = attr.getValue();
-    }
-  }
-
-  KEYSize size;
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if ((KEY2Token::NS_URI_SF == getNamespaceId(element)) && (KEY2Token::size == getNameId(element)))
-      size = readSize(element);
-    else
-      skipElement(element);
-  }
-
-  if (polygon)
-    getCollector()->collectPolygonPath(id, size, numeric_cast<unsigned>(value));
-  else
-    getCollector()->collectRoundedRectanglePath(id, size, value);
-}
-
-void KEY2Parser::parseContent(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::content, KEY2Token::NS_URI_SF));
-
-  checkNoAttributes(reader);
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::image_media :
-        parseImageMedia(element);
-        break;
-      case KEY2Token::movie_media :
-        parseMovieMedia(element);
-        break;
-      default :
-        skipElement(element);
-      }
-    }
-    else
-      skipElement(element);
-  }
-}
-
-void KEY2Parser::parseData(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::data, KEY2Token::NS_URI_SF));
-
-  optional<ID_t> id;
-  optional<string> displayName;
-  WPXInputStreamPtr_t stream;
-  optional<unsigned> type;
-
-  KEYXMLReader::AttributeIterator attr(reader);
-  while (attr.next())
-  {
-    if ((KEY2Token::NS_URI_SFA == getNamespaceId(attr)) && (KEY2Token::ID == getNameId(attr)))
-    {
-      KEY_DEBUG_XML_TODO_ATTRIBUTE(attr);
-    }
-    else if (KEY2Token::NS_URI_SF == getNamespaceId(attr))
-    {
-      switch (getNameId(attr))
-      {
-      case KEY2Token::displayname :
-        displayName = attr.getValue();
-        break;
-      case KEY2Token::hfs_type :
-        type = lexical_cast<unsigned>(attr.getValue());
-        break;
-      case KEY2Token::path :
-        stream.reset(m_package->getDocumentOLEStream(attr.getValue()));
-        break;
-      default :
-        break;
-      }
-    }
-  }
-
-  checkEmptyElement(reader);
-
-  getCollector()->collectData(id, stream, displayName, type, false);
-}
-
-void KEY2Parser::parseFiltered(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::filtered, KEY2Token::NS_URI_SF));
-
-  optional<ID_t> id;
-  optional<KEYSize> size;
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::size :
-        size = readSize(element);
-        break;
-      case KEY2Token::data :
-        parseData(element);
-        break;
-      default :
-        skipElement(element);
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectFiltered(id, size);
-}
-
-void KEY2Parser::parseFilteredImage(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::filtered_image, KEY2Token::NS_URI_SF));
-
-  const optional<ID_t> id = readID(reader);
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::unfiltered_ref :
-      {
-        optional<ID_t> idref = readRef(element);
-        getCollector()->collectUnfiltered(idref, optional<KEYSize>(), true);
-        break;
-      }
-      case KEY2Token::unfiltered :
-        parseUnfiltered(element);
-        break;
-      case KEY2Token::filtered :
-        parseFiltered(element);
-        break;
-      case KEY2Token::leveled :
-        parseLeveled(element);
-        break;
-      default :
-        skipElement(element);
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectFilteredImage(id, false);
-}
-
-void KEY2Parser::parseImageMedia(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::image_media, KEY2Token::NS_URI_SF));
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::filtered_image :
-        parseFilteredImage(element);
-        break;
-      default :
-        skipElement(element);
-      }
-    }
-    else
-      skipElement(element);
-  }
-}
-
-void KEY2Parser::parseLeveled(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::leveled, KEY2Token::NS_URI_SF));
-
-  const optional<ID_t> id = readID(reader);
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::data :
-        parseData(element);
-        break;
-      case KEY2Token::size :
-        KEY_DEBUG_XML_TODO_ELEMENT(element);
-        skipElement(element);
-        break;
-      default :
-        skipElement(element);
-      }
-    }
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectLeveled(id, optional<KEYSize>());
-}
-
-void KEY2Parser::parseUnfiltered(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::unfiltered, KEY2Token::NS_URI_SF));
-
-  const optional<ID_t> id = readID(reader);
-
-  optional<KEYSize> size;
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::size :
-        size = readSize(element);
-        break;
-      case KEY2Token::data :
-        parseData(element);
-        break;
-      default :
-        skipElement(element);
-      }
-    }
-    else
-    {
-      skipElement(element);
-    }
-  }
-
-  getCollector()->collectUnfiltered(id, size, false);
-}
-
-void KEY2Parser::parseMovieMedia(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::movie_media, KEY2Token::NS_URI_SF));
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if ((KEY2Token::NS_URI_SF | KEY2Token::self_contained_movie) == getId(element))
-      parseSelfContainedMovie(element);
-    else
-      skipElement(element);
-  }
-
-  getCollector()->collectMovieMedia(optional<ID_t>());
-}
-
-void KEY2Parser::parseSelfContainedMovie(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::self_contained_movie, KEY2Token::NS_URI_SF));
-
-  checkNoAttributes(reader);
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if ((KEY2Token::NS_URI_SF | KEY2Token::other_datas) == getId(element))
-      parseOtherDatas(element);
-    else
-      skipElement(element);
-  }
-}
-
-void KEY2Parser::parseOtherDatas(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::other_datas, KEY2Token::NS_URI_SF));
-
-  checkNoAttributes(reader);
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    switch (getId(element))
-    {
-    case KEY2Token::NS_URI_SF | KEY2Token::data :
-      parseData(element);
-      break;
-    case KEY2Token::NS_URI_SF | KEY2Token::data_ref :
-    {
-      const ID_t idref = readRef(element);
-      getCollector()->collectData(idref, WPXInputStreamPtr_t(), optional<string>(), optional<unsigned>(), true);
-      break;
-    }
-    default :
-      skipElement(element);
-    }
-  }
-}
-
-void KEY2Parser::parseBr(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::br, KEY2Token::NS_URI_SF)
-         || checkElement(reader, KEY2Token::crbr, KEY2Token::NS_URI_SF)
-         || checkElement(reader, KEY2Token::intratopicbr, KEY2Token::NS_URI_SF)
-         || checkElement(reader, KEY2Token::lnbr, KEY2Token::NS_URI_SF));
-
-  checkNoAttributes(reader);
-  checkEmptyElement(reader);
-
-  getCollector()->collectLineBreak();
-}
-
-void KEY2Parser::parseLayout(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::layout, KEY2Token::NS_URI_SF));
-
-  KEYXMLReader::AttributeIterator attr(reader);
-  while (attr.next())
-  {
-    if ((KEY2Token::NS_URI_SF == getNamespaceId(attr)) && (KEY2Token::style == getNameId(attr)))
-      emitLayoutStyle(attr.getValue());
-  }
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if ((KEY2Token::NS_URI_SF == getNamespaceId(element)) && (KEY2Token::p == getNameId(element)))
-      parseP(element);
-    else
-      skipElement(element);
-  }
-}
-
-void KEY2Parser::parseLink(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::link, KEY2Token::NS_URI_SF));
-
-  KEYXMLReader::MixedIterator mixed(reader);
-  while (mixed.next())
-  {
-    if (mixed.isElement())
-    {
-      if (KEY2Token::NS_URI_SF == getNamespaceId(mixed))
-      {
-        switch (getNameId(mixed))
-        {
-        case KEY2Token::br :
-          parseBr(mixed);
-          break;
-        case KEY2Token::span :
-          parseSpan(mixed);
-          break;
-        default :
-          skipElement(mixed);
-          break;
-        }
-      }
-      else
-      {
-        skipElement(mixed);
-      }
-    }
-    else
-      getCollector()->collectText(optional<ID_t>(), mixed.getText());
-  }
-}
-
-void KEY2Parser::parseP(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::p, KEY2Token::NS_URI_SF));
-
-  optional<ID_t> style;
-
-  KEYXMLReader::AttributeIterator attr(reader);
-  while (attr.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(attr))
-    {
-      switch (getNameId(attr))
-      {
-      case KEY2Token::style :
-        style = attr.getValue();
-        break;
-      default :
-        break;
-      }
-    }
-  }
-
-  getCollector()->startParagraph(style);
-
-  KEYXMLReader::MixedIterator mixed(reader);
-  while (mixed.next())
-  {
-    if (mixed.isElement())
-    {
-      if (KEY2Token::NS_URI_SF == getNamespaceId(mixed))
-      {
-        switch (getNameId(mixed))
-        {
-        case KEY2Token::br :
-        case KEY2Token::crbr :
-        case KEY2Token::intratopicbr :
-        case KEY2Token::lnbr :
-          parseBr(mixed);
-          break;
-        case KEY2Token::span :
-          parseSpan(mixed);
-          break;
-        case KEY2Token::tab :
-          parseTab(mixed);
-          break;
-        case KEY2Token::link :
-          parseLink(mixed);
-          break;
-        default :
-          skipElement(mixed);
-          break;
-        }
-      }
-      else
-      {
-        skipElement(mixed);
-      }
-    }
-    else
-    {
-      getCollector()->collectText(style, mixed.getText());
-    }
-  }
-
-  getCollector()->endParagraph();
-}
-
-void KEY2Parser::parseSpan(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::span, KEY2Token::NS_URI_SF));
-
-  optional<ID_t> style;
-
-  KEYXMLReader::AttributeIterator attr(reader);
-  while (attr.next())
-  {
-    if ((KEY2Token::NS_URI_SF == getNamespaceId(attr)) && (KEY2Token::style == getNameId(attr)))
-      style = attr.getValue();
-  }
-
-  KEYXMLReader::MixedIterator mixed(reader);
-  while (mixed.next())
-  {
-    if (mixed.isElement())
-    {
-      if (KEY2Token::NS_URI_KEY == getNamespaceId(mixed))
-      {
-        switch (getNameId(mixed))
-        {
-        case KEY2Token::br :
-        case KEY2Token::crbr :
-        case KEY2Token::intratopicbr :
-        case KEY2Token::lnbr :
-          parseBr(mixed);
-          break;
-        case KEY2Token::tab :
-          parseTab(mixed);
-          break;
-        default :
-          skipElement(mixed);
-          break;
-        }
-      }
-      else
-      {
-        skipElement(mixed);
-      }
-    }
-    else
-      getCollector()->collectText(style, mixed.getText());
-  }
-}
-
-void KEY2Parser::parseTab(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::tab, KEY2Token::NS_URI_SF));
-
-  checkNoAttributes(reader);
-  checkEmptyElement(reader);
-
-  getCollector()->collectTab();
-}
-
-void KEY2Parser::parseText(const KEYXMLReader &reader)
-{
-  // NOTE: isn't it wonderful that there are two text elements in two
-  // different namespaces, but with the same schema?
-  assert(checkElement(reader, KEY2Token::text, KEY2Token::NS_URI_KEY)
-         || checkElement(reader, KEY2Token::text, KEY2Token::NS_URI_SF));
-
-  optional<ID_t> layoutStyle;
-
-  KEYXMLReader::AttributeIterator attr(reader);
-  while (attr.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(attr))
-    {
-      switch (getNameId(attr))
-      {
-      case KEY2Token::layoutstyle :
-        emitLayoutStyle(attr.getValue());
-        break;
-      default :
-        break;
-      }
-    }
-  }
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if ((KEY2Token::NS_URI_SF == getNamespaceId(element)) && (KEY2Token::text_storage == getNameId(element)))
-      parseTextStorage(element);
-    else
-      skipElement(element);
-  }
-}
-
-void KEY2Parser::parseTextBody(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::text_body, KEY2Token::NS_URI_SF));
-
-  checkNoAttributes(reader);
-
-  bool layout = false;
-  bool para = false;
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::layout :
-        if (layout || para)
-        {
-          KEY_DEBUG_MSG(("layout following another element, not allowed, skipping\n"));
-          skipElement(element);
-        }
-        else
-        {
-          parseLayout(element);
-          layout = true;
-        }
-        break;
-      case KEY2Token::p :
-        if (layout)
-        {
-          KEY_DEBUG_MSG(("paragraph following layout, not allowed, skipping\n"));
-          skipElement(element);
-        }
-        else if (para)
-        {
-          parseP(element);
-        }
-        else
-        {
-          para = true;
-          parseP(element);
-        }
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-    {
-      skipElement(element);
-    }
-  }
-}
-
-void KEY2Parser::parseTextStorage(const KEYXMLReader &reader)
-{
-  assert(checkElement(reader, KEY2Token::text_storage, KEY2Token::NS_URI_SF));
-
-  KEYXMLReader::ElementIterator element(reader);
-  while (element.next())
-  {
-    if (KEY2Token::NS_URI_SF == getNamespaceId(element))
-    {
-      switch (getNameId(element))
-      {
-      case KEY2Token::text_body :
-        parseTextBody(element);
-        break;
-      default :
-        skipElement(element);
-        break;
-      }
-    }
-    else
-    {
-      skipElement(element);
-    }
-  }
-}
-
-void KEY2Parser::emitLayoutStyle(const ID_t &id)
-{
-  optional<KEYPropertyMap> dummyProps;
-  optional<string> dummyIdent;
-  getCollector()->collectLayoutStyle(id, dummyProps, dummyIdent, dummyIdent, true, false);
+  static IWORKChainedTokenizer tokenizer(KEY2Token::getTokenizer(), IWORKToken::getTokenizer());
+  return tokenizer;
 }
 
 }

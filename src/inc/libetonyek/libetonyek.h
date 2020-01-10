@@ -10,9 +10,7 @@
 #ifndef LIBETONYEK_LIBETONYEK_H_INCLUDED
 #define LIBETONYEK_LIBETONYEK_H_INCLUDED
 
-#include "KEYDocument.h"
-#include "KEYPresentationInterface.h"
-#include "KEYStringVector.h"
+#include "EtonyekDocument.h"
 
 #endif // LIBETONYEK_LIBETONYEK_H_INCLUDED
 

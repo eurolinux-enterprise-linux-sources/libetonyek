@@ -1,0 +1,26 @@
+From 5bb538c7c9984d2f68b81eb182ca9bf4c12593a9 Mon Sep 17 00:00:00 2001
+From: David Tardon <dtardon@redhat.com>
+Date: Wed, 20 May 2015 16:44:25 +0200
+Subject: [PATCH] fix test on i386
+
+Change-Id: I54379bec41f724d5c3ff8bf9e559c5bda7a9c57d
+---
+ src/test/IWORKTransformationTest.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/test/IWORKTransformationTest.cpp b/src/test/IWORKTransformationTest.cpp
+index b44d52f..77f0b27 100644
+--- a/src/test/IWORKTransformationTest.cpp
++++ b/src/test/IWORKTransformationTest.cpp
+@@ -209,7 +209,7 @@ void IWORKTransformationTest::testIdentities()
+   CPPUNIT_ASSERT(origin(100, 50) == translate(-50, -25));
+   CPPUNIT_ASSERT((flip(true, false) * flip(false, true)) == flip(true, true));
+   CPPUNIT_ASSERT((flip(false, true) * flip(true, false)) == flip(true, true));
+-  CPPUNIT_ASSERT((rotate(etonyek_half_pi) * rotate(etonyek_third_pi)) == (rotate(etonyek_third_pi) * rotate(etonyek_half_pi)));
++  CPPUNIT_ASSERT(approxEqual(rotate(etonyek_half_pi) * rotate(etonyek_third_pi), rotate(etonyek_third_pi) * rotate(etonyek_half_pi)));
+   CPPUNIT_ASSERT(scale(-1, -1) == flip(true, true));
+   CPPUNIT_ASSERT((translate(80, 40) * translate(10, 20)) == (translate(10, 20) * translate(80, 40)));
+   CPPUNIT_ASSERT((scale(2, 2) * translate(1, 2) == (translate(2, 4) * scale(2, 2))));
+-- 
+2.4.0
+

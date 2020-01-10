@@ -15,15 +15,15 @@ namespace libetonyek
 namespace
 {
 
-void checkStream(const WPXInputStreamPtr_t &input)
+void checkStream(const RVNGInputStreamPtr_t &input)
 {
-  if (!input || input->atEOS())
+  if (!input || input->isEnd())
     throw EndOfStreamException();
 }
 
 }
 
-uint8_t readU8(const WPXInputStreamPtr_t &input, bool /* bigEndian */)
+uint8_t readU8(const RVNGInputStreamPtr_t &input, bool /* bigEndian */)
 {
   checkStream(input);
 
@@ -35,7 +35,7 @@ uint8_t readU8(const WPXInputStreamPtr_t &input, bool /* bigEndian */)
   throw EndOfStreamException();
 }
 
-uint16_t readU16(const WPXInputStreamPtr_t &input, bool bigEndian)
+uint16_t readU16(const RVNGInputStreamPtr_t &input, bool bigEndian)
 {
   checkStream(input);
 
@@ -51,7 +51,7 @@ uint16_t readU16(const WPXInputStreamPtr_t &input, bool bigEndian)
   throw EndOfStreamException();
 }
 
-uint32_t readU32(const WPXInputStreamPtr_t &input, bool bigEndian)
+uint32_t readU32(const RVNGInputStreamPtr_t &input, bool bigEndian)
 {
   checkStream(input);
 
@@ -67,7 +67,7 @@ uint32_t readU32(const WPXInputStreamPtr_t &input, bool bigEndian)
   throw EndOfStreamException();
 }
 
-uint64_t readU64(const WPXInputStreamPtr_t &input, bool bigEndian)
+uint64_t readU64(const RVNGInputStreamPtr_t &input, bool bigEndian)
 {
   checkStream(input);
 
@@ -91,6 +91,18 @@ bool approxEqual(const double x, const double y, const double eps)
 double pt2in(const double d)
 {
   return d / 72;
+}
+
+double deg2rad(double value)
+{
+  // normalize range
+  while (360 <= value)
+    value -= 360;
+  while (0 > value)
+    value += 360;
+
+  // convert
+  return etonyek_pi / 180 * value;
 }
 
 }

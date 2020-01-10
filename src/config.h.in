@@ -1,7 +1,16 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* define if the Boost library is available */
-#undef HAVE_BOOST
+/* Define to 1 if you have the <boost/algorithm/string/classification.hpp>
+   header file. */
+#undef HAVE_BOOST_ALGORITHM_STRING_CLASSIFICATION_HPP
+
+/* Define to 1 if you have the <boost/algorithm/string/predicate.hpp> header
+   file. */
+#undef HAVE_BOOST_ALGORITHM_STRING_PREDICATE_HPP
+
+/* Define to 1 if you have the <boost/algorithm/string/split.hpp> header file.
+   */
+#undef HAVE_BOOST_ALGORITHM_STRING_SPLIT_HPP
 
 /* Define to 1 if you have the <boost/any.hpp> header file. */
 #undef HAVE_BOOST_ANY_HPP
@@ -9,18 +18,17 @@
 /* Define to 1 if you have the <boost/bind.hpp> header file. */
 #undef HAVE_BOOST_BIND_HPP
 
-/* define if the Boost::Filesystem library is available */
-#undef HAVE_BOOST_FILESYSTEM
-
 /* Define to 1 if you have the <boost/function.hpp> header file. */
 #undef HAVE_BOOST_FUNCTION_HPP
 
 /* Define to 1 if you have the <boost/lexical_cast.hpp> header file. */
 #undef HAVE_BOOST_LEXICAL_CAST_HPP
 
-/* Define to 1 if you have the <boost/math/constants/constants.hpp> header
-   file. */
-#undef HAVE_BOOST_MATH_CONSTANTS_CONSTANTS_HPP
+/* Define to 1 if you have the <boost/logic/tribool.hpp> header file. */
+#undef HAVE_BOOST_LOGIC_TRIBOOL_HPP
+
+/* Define to 1 if you have the <boost/make_shared.hpp> header file. */
+#undef HAVE_BOOST_MAKE_SHARED_HPP
 
 /* Define to 1 if you have the <boost/numeric/conversion/cast.hpp> header
    file. */
@@ -47,6 +55,9 @@
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <glm/glm.hpp> header file. */
+#undef HAVE_GLM_GLM_HPP
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H

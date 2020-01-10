@@ -1,0 +1,37 @@
+/*
+ * This file is part of the libetonyek project.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+%includes
+%{
+#if defined __GNUC__
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#endif
+
+using namespace PAG1Token;
+%}
+%struct-type
+struct Token
+{
+  const char *name;
+  int id;
+};
+%%
+92008102400,VERSION_STR_4
+body,body
+cell,cell
+document,document
+footnote,footnote
+header,header
+http://developer.apple.com/namespaces/sl,NS_URI_SL
+layout,layout
+note,note
+section-prototypes,section_prototypes
+stylesheet,stylesheet
+textbox,textbox
+version,version
+%%

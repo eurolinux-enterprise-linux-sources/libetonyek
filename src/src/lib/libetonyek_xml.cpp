@@ -7,89 +7,90 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include "libetonyek_xml.h"
+
+#include <cassert>
+
 #include <boost/lexical_cast.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/optional.hpp>
 
-#include "libetonyek_xml.h"
-#include "KEYXMLReader.h"
+#include "libetonyek_utils.h"
+#include "IWORKToken.h"
+#include "IWORKTokenizer.h"
 
+using boost::lexical_cast;
 using boost::optional;
 
 using std::string;
 
+extern "C" int readFromStream(void *context, char *buffer, int len)
+{
+  try
+  {
+    librevenge::RVNGInputStream *const input = reinterpret_cast<librevenge::RVNGInputStream *>(context);
+
+    unsigned long bytesRead = 0;
+    const unsigned char *const bytes = input->read(len, bytesRead);
+
+    std::memcpy(buffer, bytes, static_cast<int>(bytesRead));
+    return static_cast<int>(bytesRead);
+  }
+  catch (...)
+  {
+  }
+
+  return -1;
+}
+
+extern "C" int closeStream(void * /* context */)
+{
+  return 0;
+}
+
 namespace libetonyek
 {
 
-namespace
+bool bool_cast(const char *value)
 {
-
-struct XMLException {};
-
-}
-
-void skipElement(const KEYXMLReader &reader)
-{
-  KEYXMLReader::ElementIterator elements(reader);
-  while (elements.next())
-    skipElement(elements);
-}
-
-bool checkElement(const KEYXMLReader &reader, const int name, const int ns)
-{
-  return (getNamespaceId(reader) == ns) && (getNameId(reader) == name);
-}
-
-bool checkEmptyElement(const KEYXMLReader &reader)
-{
-  bool empty = true;
-
-  KEYXMLReader::ElementIterator elements(reader);
-  while (elements.next())
+  const IWORKTokenizer &tok(IWORKToken::getTokenizer());
+  switch (tok.getId(value))
   {
-    empty = false;
-    skipElement(elements);
+  case IWORKToken::_1 :
+  case IWORKToken::true_ :
+    return true;
+  case IWORKToken::_0 :
+  case IWORKToken::false_ :
+  default :
+    return false;
   }
 
-  return empty;
+  return false;
 }
 
-bool checkNoAttributes(const KEYXMLReader &reader)
+double double_cast(const char *value)
 {
-  unsigned count = 0;
-
-  KEYXMLReader::AttributeIterator attr(reader);
-  while (attr.next())
-  {
-    ++count;
-  }
-
-  return 0 == count;
+  return lexical_cast<double, const char *>(value);
 }
 
-string readOnlyAttribute(const KEYXMLReader &reader, const int name, const int ns)
+int int_cast(const char *value)
 {
-  optional<string> value;
-
-  KEYXMLReader::AttributeIterator attr(reader);
-  while (attr.next())
-  {
-    if ((getNamespaceId(attr) == ns) && (getNameId(attr) == name))
-      value = attr.getValue();
-  }
-
-  if (!value)
-    throw GenericException();
-
-  return get(value);
+  return lexical_cast<int, const char *>(value);
 }
 
-string readOnlyElementAttribute(const KEYXMLReader &reader, const int name, const int ns)
+const char *char_cast(const char *const c)
 {
-  const string value = readOnlyAttribute(reader, name, ns);
+  return c;
+}
 
-  checkEmptyElement(reader);
+const char *char_cast(const signed char *const c)
+{
+  return reinterpret_cast<const char *>(c);
+}
 
-  return value;
+const char *char_cast(const unsigned char *const c)
+{
+  return reinterpret_cast<const char *>(c);
 }
 
 }
