@@ -11,24 +11,34 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstring>
-
-#include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
+#include <functional>
+#include <memory>
 
 #include "IWORKDocumentInterface.h"
 #include "IWORKOutputElements.h"
 #include "IWORKPath.h"
+#include "IWORKProperties.h"
+#include "IWORKRecorder.h"
 #include "IWORKShape.h"
+#include "IWORKTable.h"
 #include "IWORKText.h"
+#include "libetonyek_utils.h"
 
 namespace libetonyek
 {
 
-using boost::make_shared;
-using boost::optional;
 
+using librevenge::RVNGPropertyList;
+using librevenge::RVNG_PERCENT;
+using librevenge::RVNG_POINT;
+
+using namespace std::placeholders;
+
+using std::make_shared;
 using std::memcmp;
+using std::shared_ptr;
 using std::string;
 
 namespace
@@ -41,7 +51,7 @@ const unsigned char SIGNATURE_QUICKTIME[] = { 'm', 'o', 'o', 'v' };
 const unsigned char SIGNATURE_TIFF_1[] = { 0x49, 0x49, 0x2a, 0x00 };
 const unsigned char SIGNATURE_TIFF_2[] = { 0x4d, 0x4d, 0x00, 0x2a };
 
-optional<string> detectMimetype(const RVNGInputStreamPtr_t &stream)
+string detectMimetype(const RVNGInputStreamPtr_t &stream)
 {
   stream->seek(0, librevenge::RVNG_SEEK_SET);
 
@@ -50,7 +60,7 @@ optional<string> detectMimetype(const RVNGInputStreamPtr_t &stream)
 
   if (8 != numBytesRead)
     // looks like the binary is broken anyway: just bail out
-    return optional<string>();
+    return string();
 
   if (0 == memcmp(sig, SIGNATURE_PNG, ETONYEK_NUM_ELEMENTS(SIGNATURE_PNG)))
     return string("image/png");
@@ -68,34 +78,10 @@ optional<string> detectMimetype(const RVNGInputStreamPtr_t &stream)
   if (0 == memcmp(sig, SIGNATURE_JPEG, ETONYEK_NUM_ELEMENTS(SIGNATURE_JPEG)))
     return string("image/jpeg");
 
-  return optional<string>();
+  return string();
 }
 
-optional<string> getMimetype(const optional<int> &type, const RVNGInputStreamPtr_t &stream)
-{
-  if (type)
-  {
-    switch (get(type))
-    {
-    case 1246774599 :
-      return string("image/jpeg");
-    case 1299148630 :
-      return string("video/quicktime");
-    case 1346651680 :
-      return string("application/pdf");
-    case 1347307366 :
-      return string("image/png");
-    case 1414088262 :
-      return string("image/tiff");
-    default :
-      break;
-    }
-  }
-
-  return detectMimetype(stream);
-}
-
-librevenge::RVNGPropertyList pointToWPG(const double x, const double y)
+librevenge::RVNGPropertyList makePoint(const double x, const double y)
 {
   librevenge::RVNGPropertyList props;
 
@@ -103,49 +89,6 @@ librevenge::RVNGPropertyList pointToWPG(const double x, const double y)
   props.insert("svg:y", pt2in(y));
 
   return props;
-}
-
-void drawMedia(const IWORKMediaPtr_t &media, const glm::dmat3 &trafo, IWORKOutputElements &elements)
-{
-  if (bool(media)
-      && bool(media->m_geometry)
-      && bool(media->m_content)
-      && bool(media->m_content->m_data)
-      && bool(media->m_content->m_data->m_stream))
-  {
-    const RVNGInputStreamPtr_t input = media->m_content->m_data->m_stream;
-
-    const optional<string> mimetype = getMimetype(media->m_content->m_data->m_type, input);
-
-    if (mimetype)
-    {
-      input->seek(0, librevenge::RVNG_SEEK_END);
-      const unsigned long size = input->tell();
-      input->seek(0, librevenge::RVNG_SEEK_SET);
-
-      unsigned long readBytes = 0;
-      const unsigned char *const bytes = input->read(size, readBytes);
-      if (readBytes != size)
-        throw GenericException();
-
-      librevenge::RVNGPropertyList props;
-
-      props.insert("libwpg:mime-type", get(mimetype).c_str());
-      props.insert("office:binary-data", librevenge::RVNGBinaryData(bytes, size));
-
-      glm::dvec3 vec = trafo * glm::dvec3(0, 0, 1);
-      props.insert("svg:x", pt2in(vec[0]));
-      props.insert("svg:y", pt2in(vec[1]));
-
-      double width = media->m_geometry->m_size.m_width;
-      double height = media->m_geometry->m_size.m_height;
-      vec = trafo * glm::dvec3(width, height, 0);
-      props.insert("svg:width", pt2in(vec[0]));
-      props.insert("svg:height", pt2in(vec[1]));
-
-      elements.addDrawGraphicObject(props);
-    }
-  }
 }
 
 void drawImage(const IWORKImagePtr_t &image, const glm::dmat3 &trafo, IWORKOutputElements &elements)
@@ -181,8 +124,8 @@ void drawLine(const IWORKLinePtr_t &line, const glm::dmat3 &trafo, IWORKOutputEl
     elements.addSetStyle(props);
 
     librevenge::RVNGPropertyListVector vertices;
-    vertices.append(pointToWPG(get(line->m_x1), get(line->m_y1)));
-    vertices.append(pointToWPG(get(line->m_x2), get(line->m_y2)));
+    vertices.append(makePoint(get(line->m_x1), get(line->m_y1)));
+    vertices.append(makePoint(get(line->m_x2), get(line->m_y2)));
 
     librevenge::RVNGPropertyList points;
     points.insert("svg:points", vertices);
@@ -195,28 +138,208 @@ void drawLine(const IWORKLinePtr_t &line, const glm::dmat3 &trafo, IWORKOutputEl
   }
 }
 
-void drawShape(const IWORKShapePtr_t &shape, const glm::dmat3 &trafo, IWORKOutputElements &elements)
+struct FillWriter : public boost::static_visitor<void>
 {
-  if (bool(shape) && bool(shape->m_path))
+  explicit FillWriter(RVNGPropertyList &props)
+    : m_props(props), m_opacity(1)
   {
-    // TODO: make style
-
-    const IWORKPath path = *shape->m_path * trafo;
-
-    librevenge::RVNGPropertyList props;
-    props.insert("svg:d", path.toWPG());
-
-    elements.addSetStyle(librevenge::RVNGPropertyList());
-    elements.addDrawPath(props);
-
-    if (bool(shape->m_text))
-      shape->m_text->draw(trafo, shape->m_geometry, elements);
   }
-}
 
-void drawTable(const IWORKTable &table, const glm::dmat3 &trafo, IWORKOutputElements &elements)
+  double getOpacity() const
+  {
+    return m_opacity;
+  }
+  void operator()(const IWORKColor &color) const
+  {
+    m_props.insert("draw:fill", "solid");
+    m_props.insert("draw:fill-color", makeColor(color));
+    m_opacity=color.m_alpha;
+  }
+
+  void operator()(const IWORKGradient &gradient) const
+  {
+    if (gradient.m_stops.empty())
+      return;
+    m_props.insert("draw:fill", "gradient");
+    switch (gradient.m_type)
+    {
+    case IWORK_GRADIENT_TYPE_LINEAR :
+      m_props.insert("draw:style", "linear");
+      break;
+    case IWORK_GRADIENT_TYPE_RADIAL :
+      m_props.insert("draw:style", "radial");
+      // TODO: store sf:start to retrieve the center position
+      m_props.insert("draw:cx", 0.5, RVNG_PERCENT);
+      m_props.insert("draw:cy", 0.5, RVNG_PERCENT);
+      break;
+    }
+    // TODO: use svg:linearGradient/svg:radialGradient?
+    if (gradient.m_stops.front().m_fraction<=0 && gradient.m_stops.back().m_fraction>=1)
+    {
+      IWORKGradientStop const &start= gradient.m_type==IWORK_GRADIENT_TYPE_LINEAR ? gradient.m_stops.front() : gradient.m_stops.back();
+      IWORKGradientStop const &end= gradient.m_type==IWORK_GRADIENT_TYPE_LINEAR ? gradient.m_stops.back() : gradient.m_stops.front();
+      m_props.insert("draw:start-color", makeColor(start.m_color));
+      m_props.insert("draw:start-intensity", start.m_color.m_alpha, RVNG_PERCENT);
+      m_props.insert("draw:end-color", makeColor(end.m_color));
+      m_props.insert("draw:end-intensity", end.m_color.m_alpha, RVNG_PERCENT);
+    }
+    else
+    {
+      librevenge::RVNGPropertyListVector gradientVector;
+      int firstVal=gradient.m_type==IWORK_GRADIENT_TYPE_LINEAR ? 1 : 0;
+      for (int s=0; s < 2; ++s)
+      {
+        IWORKGradientStop const &stop= s==firstVal ? gradient.m_stops.front() : gradient.m_stops.back();
+        librevenge::RVNGPropertyList grad;
+        grad.insert("svg:offset", firstVal==0 ? stop.m_fraction : 1.-stop.m_fraction, librevenge::RVNG_PERCENT);
+        grad.insert("svg:stop-color", makeColor(stop.m_color));
+        grad.insert("svg:stop-opacity", stop.m_color.m_alpha, librevenge::RVNG_PERCENT);
+        gradientVector.append(grad);
+      }
+      if (gradient.m_type==IWORK_GRADIENT_TYPE_RADIAL)
+        m_props.insert("svg:radialGradient", gradientVector);
+      else
+        m_props.insert("svg:linearGradient", gradientVector);
+    }
+    // the axis of the gradient in Keynote is clockwise to the horizontal axis
+    m_props.insert("draw:angle", rad2deg(/*etonyek_two_pi - */gradient.m_angle + etonyek_half_pi));
+  }
+
+  void operator()(const IWORKFillImage &bitmap) const
+  {
+    bool filled = false;
+
+    if (bitmap.m_stream)
+    {
+      const unsigned long length = getLength(bitmap.m_stream);
+      unsigned long readBytes = 0;
+      bitmap.m_stream->seek(0, librevenge::RVNG_SEEK_SET);
+      const unsigned char *const bytes = bitmap.m_stream->read(length, readBytes);
+      if (readBytes == length)
+      {
+        m_props.insert("draw:fill", "bitmap");
+        m_props.insert("draw:fill-image", librevenge::RVNGBinaryData(bytes, length));
+        m_props.insert("librevenge:mime-type", "jpg"); // TODO: fix
+        switch (bitmap.m_type)
+        {
+        case IWORK_FILL_IMAGE_TYPE_ORIGINAL_SIZE :
+          m_props.insert("style:repeat", "no-repeat");
+          break;
+        case IWORK_FILL_IMAGE_TYPE_STRETCH :
+        case IWORK_FILL_IMAGE_TYPE_SCALE_TO_FILL :
+        case IWORK_FILL_IMAGE_TYPE_SCALE_TO_FIT :
+          m_props.insert("style:repeat", "stretch");
+          break;
+        case IWORK_FILL_IMAGE_TYPE_TILE :
+          m_props.insert("style:repeat", "repeat");
+          break;
+        }
+        m_props.insert("draw:fill-image-width", bitmap.m_size.m_width, RVNG_POINT);
+        m_props.insert("draw:fill-image-height", bitmap.m_size.m_height, RVNG_POINT);
+        filled = true;
+      }
+    }
+
+    if (!filled && bitmap.m_color)
+      (*this)(get(bitmap.m_color));
+  }
+
+private:
+  RVNGPropertyList &m_props;
+  //! the opacity
+  mutable double m_opacity;
+};
+
+void fillGraphicProps(const IWORKStylePtr_t style, RVNGPropertyList &props)
 {
-  table.draw(trafo, elements);
+  assert(bool(style));
+
+  using namespace property;
+
+  double opacity=style->has<Opacity>() ? style->get<Opacity>() : 1.;
+  if (style->has<Fill>())
+  {
+    FillWriter fillWriter(props);
+    apply_visitor(fillWriter, style->get<Fill>());
+    opacity*=fillWriter.getOpacity();
+  }
+  else
+    props.insert("draw:fill", "none");
+
+  if (style->has<Stroke>())
+  {
+    const IWORKStroke &stroke = style->get<Stroke>();
+    IWORKStrokeType type = stroke.m_type;
+    if ((type == IWORK_STROKE_TYPE_DASHED) && stroke.m_pattern.size() < 2)
+      type = IWORK_STROKE_TYPE_SOLID;
+
+    switch (type)
+    {
+    case IWORK_STROKE_TYPE_NONE :
+      props.insert("draw:stroke", "none");
+      break;
+    case IWORK_STROKE_TYPE_SOLID :
+      props.insert("draw:stroke", "solid");
+      break;
+    case IWORK_STROKE_TYPE_DASHED :
+      props.insert("draw:stroke", "dash");
+      props.insert("draw:dots1", 1);
+      props.insert("draw:dots1-length", stroke.m_pattern[0], RVNG_PERCENT);
+      props.insert("draw:dots2", 1);
+      props.insert("draw:dots2-length", stroke.m_pattern[0], RVNG_PERCENT);
+      props.insert("draw:distance", stroke.m_pattern[1], RVNG_PERCENT);
+      break;
+    case IWORK_STROKE_TYPE_AUTO :
+      if (style->has<Fill>())
+        props.insert("draw:stroke", "none");
+      else
+        props.insert("draw:stroke", "solid");
+    }
+
+    props.insert("svg:stroke-width", pt2in(stroke.m_width));
+    props.insert("svg:stroke-color", makeColor(stroke.m_color));
+
+    switch (stroke.m_cap)
+    {
+    default :
+    case IWORK_LINE_CAP_BUTT :
+      props.insert("svg:stroke-linecap", "butt");
+      break;
+    case IWORK_LINE_CAP_ROUND :
+      props.insert("svg:stroke-linecap", "round");
+      break;
+    }
+
+    switch (stroke.m_join)
+    {
+    case IWORK_LINE_JOIN_MITER :
+      props.insert("svg:stroke-linejoin", "miter");
+      break;
+    case IWORK_LINE_JOIN_ROUND :
+      props.insert("svg:stroke-linejoin", "round");
+      break;
+    default :
+      props.insert("svg:stroke-linejoin", "none");
+    }
+  }
+
+  if (style->has<Shadow>())
+  {
+    const IWORKShadow &shadow = style->get<Shadow>();
+
+    props.insert("draw:shadow", "visible");
+    props.insert("draw:shadow-color", makeColor(shadow.m_color));
+    props.insert("draw:shadow-opacity", shadow.m_opacity, RVNG_PERCENT);
+    const double angle = deg2rad(shadow.m_angle);
+    props.insert("draw:shadow-offset-x", shadow.m_offset * std::cos(angle), RVNG_POINT);
+    props.insert("draw:shadow-offset-y", shadow.m_offset * std::sin(angle), RVNG_POINT);
+  }
+
+  if (opacity<1)
+  {
+    props.insert("draw:opacity", opacity, RVNG_PERCENT);
+    props.insert("draw:image-opacity", opacity, RVNG_PERCENT);
+  }
 }
 
 }
@@ -230,43 +353,54 @@ IWORKCollector::Level::Level()
 
 IWORKCollector::IWORKCollector(IWORKDocumentInterface *const document)
   : m_document(document)
+  , m_recorder()
   , m_levelStack()
-  , m_currentStylesheet(new IWORKStylesheet())
+  , m_stylesheetStack()
   , m_newStyles()
-  , m_currentText()
-  , m_currentPath()
   , m_currentTable()
+  , m_currentText()
+  , m_headers()
+  , m_footers()
+  , m_currentPath()
   , m_groupLevel(0)
 {
-  m_document->startDocument(librevenge::RVNGPropertyList());
-  m_document->setDocumentMetaData(librevenge::RVNGPropertyList());
 }
 
 IWORKCollector::~IWORKCollector()
 {
   assert(m_levelStack.empty());
+  assert(m_stylesheetStack.empty());
   assert(0 == m_groupLevel);
 
   assert(!m_currentPath);
   assert(!m_currentText);
-
-  m_document->endDocument();
 }
 
-void IWORKCollector::collectStyle(const IWORKStylePtr_t &style, const bool anonymous)
+void IWORKCollector::setRecorder(const std::shared_ptr<IWORKRecorder> &recorder)
 {
-  assert(m_currentStylesheet);
+  m_recorder = recorder;
+}
+
+void IWORKCollector::collectStyle(const IWORKStylePtr_t &style)
+{
+  if (bool(m_recorder))
+  {
+    m_recorder->collectStyle(style);
+    return;
+  }
 
   if (bool(style))
-  {
-    if (style->getIdent() && !anonymous)
-      m_currentStylesheet->m_styles[get(style->getIdent())] = style;
     m_newStyles.push_back(style);
-  }
 }
 
 void IWORKCollector::setGraphicStyle(const IWORKStylePtr_t &style)
 {
+  if (bool(m_recorder))
+  {
+    m_recorder->setGraphicStyle(style);
+    return;
+  }
+
   if (!m_levelStack.empty())
   {
     m_levelStack.top().m_graphicStyle = style;
@@ -276,6 +410,12 @@ void IWORKCollector::setGraphicStyle(const IWORKStylePtr_t &style)
 
 void IWORKCollector::collectGeometry(const IWORKGeometryPtr_t &geometry)
 {
+  if (bool(m_recorder))
+  {
+    m_recorder->collectGeometry(geometry);
+    return;
+  }
+
   assert(!m_levelStack.empty());
 
   m_levelStack.top().m_geometry = geometry;
@@ -284,31 +424,52 @@ void IWORKCollector::collectGeometry(const IWORKGeometryPtr_t &geometry)
 
 void IWORKCollector::collectBezier(const IWORKPathPtr_t &path)
 {
-  m_currentPath = path;
+  if (bool(m_recorder))
+    m_recorder->collectPath(path);
+  else
+    m_currentPath = path;
 }
 
 void IWORKCollector::collectImage(const IWORKImagePtr_t &image)
 {
+  if (bool(m_recorder))
+  {
+    m_recorder->collectImage(image);
+    return;
+  }
+
   assert(!m_levelStack.empty());
 
   image->m_geometry = m_levelStack.top().m_geometry;
   m_levelStack.top().m_geometry.reset();
 
-  drawImage(image, m_levelStack.top().m_trafo, m_zoneManager.getCurrent());
+  drawImage(image, m_levelStack.top().m_trafo, m_outputManager.getCurrent());
 }
 
 void IWORKCollector::collectLine(const IWORKLinePtr_t &line)
 {
+  if (bool(m_recorder))
+  {
+    m_recorder->collectLine(line);
+    return;
+  }
+
   assert(!m_levelStack.empty());
 
   line->m_geometry = m_levelStack.top().m_geometry;
   m_levelStack.top().m_geometry.reset();
 
-  drawLine(line, m_levelStack.top().m_trafo, m_zoneManager.getCurrent());
+  drawLine(line, m_levelStack.top().m_trafo, m_outputManager.getCurrent());
 }
 
 void IWORKCollector::collectShape()
 {
+  if (bool(m_recorder))
+  {
+    m_recorder->collectShape();
+    return;
+  }
+
   assert(!m_levelStack.empty());
 
   const IWORKShapePtr_t shape(new IWORKShape());
@@ -332,7 +493,7 @@ void IWORKCollector::collectShape()
   shape->m_style = m_levelStack.top().m_graphicStyle;
   m_levelStack.top().m_graphicStyle.reset();
 
-  drawShape(shape, m_levelStack.top().m_trafo, m_zoneManager.getCurrent());
+  drawShape(shape);
 }
 
 void IWORKCollector::collectBezierPath()
@@ -342,42 +503,74 @@ void IWORKCollector::collectBezierPath()
 
 void IWORKCollector::collectPolygonPath(const IWORKSize &size, const unsigned edges)
 {
-  m_currentPath = makePolygonPath(size, edges);
+  const IWORKPathPtr_t path(makePolygonPath(size, edges));
+  if (bool(m_recorder))
+    m_recorder->collectPath(path);
+  else
+    m_currentPath = path;
 }
 
 void IWORKCollector::collectRoundedRectanglePath(const IWORKSize &size, const double radius)
 {
-  m_currentPath = makeRoundedRectanglePath(size, radius);
+  const IWORKPathPtr_t path(makeRoundedRectanglePath(size, radius));
+  if (bool(m_recorder))
+    m_recorder->collectPath(path);
+  else
+    m_currentPath = path;
 }
 
 void IWORKCollector::collectArrowPath(const IWORKSize &size, const double headWidth, const double stemRelYPos, bool const doubleSided)
 {
+  IWORKPathPtr_t path;
   if (doubleSided)
-    m_currentPath = makeDoubleArrowPath(size, headWidth, stemRelYPos);
+    path = makeDoubleArrowPath(size, headWidth, stemRelYPos);
   else
-    m_currentPath = makeArrowPath(size, headWidth, stemRelYPos);
+    path = makeArrowPath(size, headWidth, stemRelYPos);
+  if (bool(m_recorder))
+    m_recorder->collectPath(path);
+  else
+    m_currentPath = path;
 }
 
 void IWORKCollector::collectStarPath(const IWORKSize &size, const unsigned points, const double innerRadius)
 {
-  m_currentPath = makeStarPath(size, points, innerRadius);
+  const IWORKPathPtr_t path(makeStarPath(size, points, innerRadius));
+  if (bool(m_recorder))
+    m_recorder->collectPath(path);
+  else
+    m_currentPath = path;
 }
 
 void IWORKCollector::collectConnectionPath(const IWORKSize &size, const double middleX, const double middleY)
 {
-  m_currentPath = makeConnectionPath(size, middleX, middleY);
+  const IWORKPathPtr_t path(makeConnectionPath(size, middleX, middleY));
+  if (bool(m_recorder))
+    m_recorder->collectPath(path);
+  else
+    m_currentPath = path;
 }
 
 void IWORKCollector::collectCalloutPath(const IWORKSize &size, const double radius, const double tailSize, const double tailX, const double tailY, bool quoteBubble)
 {
+  IWORKPathPtr_t path;
   if (quoteBubble)
-    m_currentPath = makeQuoteBubblePath(size, radius, tailSize, tailX, tailY);
+    path = makeQuoteBubblePath(size, radius, tailSize, tailX, tailY);
   else
-    m_currentPath = makeCalloutPath(size, radius, tailSize, tailX, tailY);
+    path = makeCalloutPath(size, radius, tailSize, tailX, tailY);
+  if (bool(m_recorder))
+    m_recorder->collectPath(path);
+  else
+    m_currentPath = path;
 }
 
 void IWORKCollector::collectMedia(const IWORKMediaContentPtr_t &content)
 {
+  if (bool(m_recorder))
+  {
+    m_recorder->collectMedia(content);
+    return;
+  }
+
   assert(!m_levelStack.empty());
 
   const IWORKMediaPtr_t media(new IWORKMedia());
@@ -388,168 +581,120 @@ void IWORKCollector::collectMedia(const IWORKMediaContentPtr_t &content)
   m_levelStack.top().m_geometry.reset();
   m_levelStack.top().m_graphicStyle.reset();
 
-  drawMedia(media, m_levelStack.top().m_trafo, m_zoneManager.getCurrent());
+  drawMedia(media);
 }
 
-IWORKStylesheetPtr_t IWORKCollector::collectStylesheet(const IWORKStylesheetPtr_t &parent)
+void IWORKCollector::collectStylesheet(const IWORKStylesheetPtr_t &stylesheet)
 {
-  assert(m_currentStylesheet);
-  assert(parent != m_currentStylesheet);
+  if (bool(m_recorder))
+  {
+    m_recorder->collectStylesheet(stylesheet);
+    return;
+  }
 
-  m_currentStylesheet->parent = parent;
-
-  for_each(m_newStyles.begin(), m_newStyles.end(), boost::bind(&IWORKStyle::link, _1, m_currentStylesheet));
-
-  IWORKStylesheetPtr_t stylesheet(m_currentStylesheet);
-  m_currentStylesheet.reset(new IWORKStylesheet());
+  for_each(m_newStyles.begin(), m_newStyles.end(), std::bind(&IWORKStyle::link, _1, stylesheet));
   m_newStyles.clear();
-
-  return stylesheet;
 }
 
-void IWORKCollector::collectText(const std::string &text)
+void IWORKCollector::collectMetadata(const IWORKMetadata &metadata)
 {
-  assert(bool(m_currentText));
-
-  m_currentText->insertText(text);
+  m_metadata = metadata;
 }
 
-void IWORKCollector::collectTab()
+void IWORKCollector::collectHeader(const std::string &name)
 {
-  assert(bool(m_currentText));
-
-  m_currentText->insertTab();
+  collectHeaderFooter(name, m_headers);
 }
 
-void IWORKCollector::collectLineBreak()
+void IWORKCollector::collectFooter(const std::string &name)
 {
-  assert(bool(m_currentText));
-
-  m_currentText->insertLineBreak();
+  collectHeaderFooter(name, m_footers);
 }
 
-void IWORKCollector::collectTableSizes(const IWORKTable::RowSizes_t &rowSizes, const IWORKTable::ColumnSizes_t &columnSizes)
+void IWORKCollector::collectTable(const std::shared_ptr<IWORKTable> &table)
 {
-  m_currentTable.setSizes(columnSizes, rowSizes);
-}
-
-void IWORKCollector::collectTableCell(const unsigned row, const unsigned column, const boost::optional<std::string> &content, const unsigned rowSpan, const unsigned columnSpan)
-{
-  IWORKOutputElements elements;
-
-  if (bool(content))
+  if (bool(m_recorder))
   {
-    assert(!m_currentText || m_currentText->empty());
-
-    librevenge::RVNGPropertyList props;
-    elements.addOpenParagraph(props);
-    elements.addOpenSpan(props);
-    elements.addInsertText(librevenge::RVNGString(get(content).c_str()));
-    elements.addCloseSpan();
-    elements.addCloseParagraph();
-  }
-  else if (bool(m_currentText))
-  {
-    m_currentText->draw(elements);
-    m_currentText.reset();
+    m_recorder->collectTable(table);
+    return;
   }
 
-  m_currentTable.insertCell(column, row, elements, columnSpan, rowSpan);
+  assert(!m_currentTable);
+  m_currentTable = table;
+  drawTable();
+  m_currentTable.reset();
 }
 
-void IWORKCollector::collectCoveredTableCell(const unsigned row, const unsigned column)
+void IWORKCollector::collectText(const std::shared_ptr<IWORKText> &text)
 {
-  m_currentTable.insertCoveredCell(column, row);
+  if (bool(m_recorder))
+  {
+    m_recorder->collectText(text);
+    return;
+  }
+
+  assert(!m_currentText);
+  m_currentText = text;
 }
 
-void IWORKCollector::collectTableRow()
+void IWORKCollector::startDocument()
 {
-  // nothing needed
+  m_document->startDocument(librevenge::RVNGPropertyList());
 }
 
-void IWORKCollector::collectTable()
+void IWORKCollector::endDocument()
 {
-  assert(!m_levelStack.empty());
+  assert(m_levelStack.empty());
+  assert(0 == m_groupLevel);
 
-  m_currentTable.setGeometry(m_levelStack.top().m_geometry);
-  m_levelStack.top().m_geometry.reset();
+  assert(!m_currentPath);
+  assert(!m_currentText);
 
-  drawTable(m_currentTable, m_levelStack.top().m_trafo, m_zoneManager.getCurrent());
+  m_document->endDocument();
 }
 
 void IWORKCollector::startGroup()
 {
+  if (bool(m_recorder))
+  {
+    m_recorder->startGroup();
+    return;
+  }
+
   ++m_groupLevel;
 }
 
 void IWORKCollector::endGroup()
 {
+  if (bool(m_recorder))
+  {
+    m_recorder->endGroup();
+    return;
+  }
+
   assert(m_groupLevel > 0);
 
   --m_groupLevel;
 }
 
-void IWORKCollector::startParagraph(const IWORKStylePtr_t &style)
+std::shared_ptr<IWORKTable> IWORKCollector::createTable(const IWORKTableNameMapPtr_t &tableNameMap, const IWORKLanguageManager &langManager) const
 {
-  assert(bool(m_currentText));
-
-  m_currentText->openParagraph(style);
+  return shared_ptr<IWORKTable>(new IWORKTable(tableNameMap, langManager));
 }
 
-void IWORKCollector::endParagraph()
+std::shared_ptr<IWORKText> IWORKCollector::createText(const IWORKLanguageManager &langManager, bool discardEmptyContent) const
 {
-  assert(bool(m_currentText));
-
-  m_currentText->closeParagraph();
-}
-
-void IWORKCollector::openSpan(const IWORKStylePtr_t &style)
-{
-  assert(bool(m_currentText));
-
-  m_currentText->openSpan(style);
-}
-
-void IWORKCollector::closeSpan()
-{
-  assert(bool(m_currentText));
-
-  m_currentText->closeSpan();
-}
-
-void IWORKCollector::openLink(const std::string &url)
-{
-  assert(bool(m_currentText));
-
-  m_currentText->openLink(url);
-}
-
-void IWORKCollector::closeLink()
-{
-  assert(bool(m_currentText));
-
-  m_currentText->closeLink();
-}
-
-void IWORKCollector::startText()
-{
-  assert(!m_currentText);
-
-  m_currentText.reset(new IWORKText());
-
-  assert(m_currentText->empty());
-}
-
-void IWORKCollector::endText()
-{
-  // text is reset at the place where it is used
-  assert(!m_currentText || m_currentText->empty());
-
-  m_currentText.reset();
+  return make_shared<IWORKText>(langManager, discardEmptyContent);
 }
 
 void IWORKCollector::startLevel()
 {
+  if (bool(m_recorder))
+  {
+    m_recorder->startLevel();
+    return;
+  }
+
   glm::dmat3 currentTrafo;
   if (!m_levelStack.empty())
     currentTrafo = m_levelStack.top().m_trafo;
@@ -561,6 +706,12 @@ void IWORKCollector::startLevel()
 
 void IWORKCollector::endLevel()
 {
+  if (bool(m_recorder))
+  {
+    m_recorder->endLevel();
+    return;
+  }
+
   assert(!m_levelStack.empty());
   m_levelStack.pop();
 
@@ -577,15 +728,136 @@ void IWORKCollector::popStyle()
   m_styleStack.pop();
 }
 
+void IWORKCollector::pushStylesheet(const IWORKStylesheetPtr_t &stylesheet)
+{
+  if (bool(m_recorder))
+  {
+    m_recorder->pushStylesheet(stylesheet);
+    return;
+  }
+
+  m_stylesheetStack.push(stylesheet);
+}
+
+void IWORKCollector::popStylesheet()
+{
+  if (bool(m_recorder))
+  {
+    m_recorder->popStylesheet();
+    return;
+  }
+
+  assert(!m_stylesheetStack.empty());
+
+  m_stylesheetStack.pop();
+}
+
 void IWORKCollector::resolveStyle(IWORKStyle &style)
 {
   // TODO: implement me
   (void) style;
 }
 
-IWORKZoneManager &IWORKCollector::getZoneManager()
+void IWORKCollector::collectHeaderFooter(const std::string &name, IWORKHeaderFooterMap_t &map)
 {
-  return m_zoneManager;
+  IWORKOutputElements &elements = map[name];
+  if (!elements.empty())
+  {
+    ETONYEK_DEBUG_MSG(("header '%s' already exists, overwriting\n", name.c_str()));
+    elements.clear();
+  }
+  if (bool(m_currentText))
+  {
+    m_currentText->draw(elements);
+    m_currentText.reset();
+  }
+}
+
+void IWORKCollector::fillMetadata(librevenge::RVNGPropertyList &props)
+{
+  if (!m_metadata.m_title.empty())
+    props.insert("dc:subject", m_metadata.m_title.c_str());
+  if (!m_metadata.m_author.empty())
+    props.insert("meta:intial-creator", m_metadata.m_author.c_str());
+  if (!m_metadata.m_keywords.empty())
+    props.insert("meta:keyword", m_metadata.m_keywords.c_str());
+  if (!m_metadata.m_comment.empty())
+    props.insert("librevenge:comments", m_metadata.m_comment.c_str());
+}
+
+IWORKOutputManager &IWORKCollector::getOutputManager()
+{
+  return m_outputManager;
+}
+
+void IWORKCollector::drawMedia(const IWORKMediaPtr_t &media)
+{
+  if (bool(media)
+      && bool(media->m_geometry)
+      && bool(media->m_content)
+      && bool(media->m_content->m_data)
+      && bool(media->m_content->m_data->m_stream))
+  {
+    const glm::dmat3 trafo = m_levelStack.top().m_trafo;
+    const RVNGInputStreamPtr_t input = media->m_content->m_data->m_stream;
+
+    string mimetype(media->m_content->m_data->m_mimeType);
+    if (mimetype.empty())
+      mimetype = detectMimetype(input);
+
+    if (!mimetype.empty())
+    {
+      input->seek(0, librevenge::RVNG_SEEK_END);
+      const unsigned long size = input->tell();
+      input->seek(0, librevenge::RVNG_SEEK_SET);
+
+      unsigned long readBytes = 0;
+      const unsigned char *const bytes = input->read(size, readBytes);
+      if (readBytes != size)
+        throw GenericException();
+
+      const glm::dvec3 pos = trafo * glm::dvec3(0, 0, 1);
+      const double width = media->m_geometry->m_size.m_width;
+      const double height = media->m_geometry->m_size.m_height;
+      const glm::dvec3 dim = trafo * glm::dvec3(width, height, 0);
+
+      drawMedia(pos[0], pos[1], dim[0], dim[1], mimetype, librevenge::RVNGBinaryData(bytes, size));
+    }
+  }
+}
+
+void IWORKCollector::drawShape(const IWORKShapePtr_t &shape)
+{
+  if (bool(shape) && bool(shape->m_path))
+  {
+    const glm::dmat3 trafo = m_levelStack.top().m_trafo;
+    IWORKOutputElements &elements = m_outputManager.getCurrent();
+
+
+    const IWORKPath path = *shape->m_path * trafo;
+
+    librevenge::RVNGPropertyList styleProps;
+
+    if (bool(shape->m_style))
+      fillGraphicProps(shape->m_style, styleProps);
+
+    librevenge::RVNGPropertyList shapeProps;
+
+    librevenge::RVNGPropertyListVector vec;
+    path.write(vec);
+    shapeProps.insert("svg:d", vec);
+    fillShapeProperties(shapeProps);
+
+    elements.addSetStyle(styleProps);
+    elements.addDrawPath(shapeProps);
+
+    drawTextBox(shape->m_text, trafo, shape->m_geometry);
+  }
+}
+
+void IWORKCollector::writeFill(const IWORKFill &fill, librevenge::RVNGPropertyList &props)
+{
+  apply_visitor(FillWriter(props), fill);
 }
 
 } // namespace libetonyek

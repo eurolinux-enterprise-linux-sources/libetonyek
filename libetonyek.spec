@@ -1,8 +1,8 @@
 %global apiversion 0.1
 
 Name: libetonyek
-Version: 0.1.2
-Release: 4%{?dist}
+Version: 0.1.7
+Release: 1%{?dist}
 Summary: A library for import of Apple iWork documents
 
 License: MPLv2.0
@@ -15,21 +15,17 @@ BuildRequires: glm-devel
 BuildRequires: gperf
 BuildRequires: help2man
 BuildRequires: pkgconfig(cppunit)
+BuildRequires: pkgconfig(liblangtag)
 BuildRequires: pkgconfig(librevenge-0.0)
 BuildRequires: pkgconfig(libxml-2.0)
+BuildRequires: pkgconfig(mdds-1.2)
 BuildRequires: pkgconfig(zlib)
-
-Patch0: 0001-fix-test-on-i386.patch
-Patch1: 0001-add-missing-breaks.patch
-Patch2: 0002-remove-surplus-breaks.patch
-Patch3: 0001-avoid-use-of-uninitialized-value.patch
-Patch4: 0001-get-rid-of-last-remains-of-libwpg.patch
 
 %description
 %{name} is library for import of documents from Apple iWork applications
-(Keynote, Pages and Numbers). It can only import the older format
-(Keynote 2-5, Pages 4, Numbers 2). The support for Pages and Numbers is
-only minimal at the moment.
+(Keynote, Pages and Numbers). It can import documents created by
+Keynote 2-6, Pages 1-4 and Numbers 1-2. The support for Numbers is rather
+minimal at the moment.
 
 %package devel
 Summary: Development files for %{name}
@@ -65,23 +61,17 @@ sed -i \
     libtool
 make %{?_smp_mflags}
 
-export LD_LIBRARY_PATH=`pwd`/src/lib/.libs${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-help2man -N -n 'debug the conversion library' -o key2raw.1 ./src/conv/raw/.libs/key2raw
-help2man -N -n 'debug the conversion library' -o numbers2raw.1 ./src/conv/raw/.libs/numbers2raw
-help2man -N -n 'debug the conversion library' -o pages2raw.1 ./src/conv/raw/.libs/pages2raw
-help2man -N -n 'convert Numbers spreadsheet into CSV' -o numbers2csv.1 ./src/conv/csv/.libs/numbers2csv
-help2man -N -n 'convert Pages document into HTML' -o pages2html.1 ./src/conv/html/.libs/pages2html
-help2man -N -n 'convert Keynote presentation into SVG' -o key2xhtml.1 ./src/conv/svg/.libs/key2xhtml
-help2man -N -n 'convert Keynote presentation into plain text' -o key2text.1 ./src/conv/text/.libs/key2text
-help2man -N -n 'convert Numbers spreadsheet into plain text' -o numbers2text.1 ./src/conv/text/.libs/numbers2text
-help2man -N -n 'convert Pages document into plain text' -o pages2text.1 ./src/conv/text/.libs/pages2text
-
 %install
 make install DESTDIR=%{buildroot}
 rm -f %{buildroot}/%{_libdir}/*.la
 # we install API docs directly from build
 rm -rf %{buildroot}/%{_docdir}/%{name}
 
+# generate and install man pages
+export LD_LIBRARY_PATH=%{buildroot}/%{_libdir}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+for tool in key2raw key2text key2xhtml numbers2csv numbers2raw numbers2text pages2html pages2raw pages2text; do
+    help2man -N -S '%{name} %{version}' -o ${tool}.1 %{buildroot}%{_bindir}/${tool}
+done
 install -m 0755 -d %{buildroot}/%{_mandir}/man1
 install -m 0644 key2*.1 numbers2*.1 pages2*.1 %{buildroot}/%{_mandir}/man1
 
@@ -90,10 +80,14 @@ install -m 0644 key2*.1 numbers2*.1 pages2*.1 %{buildroot}/%{_mandir}/man1
 
 %check
 export LD_LIBRARY_PATH=%{buildroot}/%{_libdir}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-make %{?_smp_mflags} check
+if ! make %{?_smp_mflags} check; then
+    cat src/test/*.log
+    exit 1
+fi
 
 %files
-%doc AUTHORS COPYING FEATURES NEWS README
+%doc AUTHORS FEATURES NEWS README
+%license COPYING
 %{_libdir}/%{name}-%{apiversion}.so.*
 
 %files devel
@@ -103,7 +97,7 @@ make %{?_smp_mflags} check
 %{_libdir}/pkgconfig/%{name}-%{apiversion}.pc
 
 %files doc
-%doc COPYING
+%license COPYING
 %doc docs/doxygen/html
 
 %files tools
@@ -127,6 +121,9 @@ make %{?_smp_mflags} check
 %{_mandir}/man1/pages2text.1*
 
 %changelog
+* Mon Oct 23 2017 David Tardon <dtardon@redhat.com> - 0.1.7-1
+- Resolves: rhbz#1477216 rebase to 0.1.7
+
 * Fri Jun 12 2015 David Tardon <dtardon@redhat.com> - 0.1.2-4
 - Related: rhbz#1207752 fix output of shapes
 

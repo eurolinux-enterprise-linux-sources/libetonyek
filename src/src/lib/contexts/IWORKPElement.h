@@ -10,6 +10,8 @@
 #ifndef IWORKPELEMENT_H_INCLUDED
 #define IWORKPELEMENT_H_INCLUDED
 
+#include <boost/optional.hpp>
+
 #include "IWORKTypes.h"
 #include "IWORKXMLContextBase.h"
 
@@ -22,17 +24,18 @@ public:
   explicit IWORKPElement(IWORKXMLParserState &state);
 
 protected:
-  virtual void attribute(int name, const char *value);
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
-  virtual void text(const char *value);
+  void attribute(int name, const char *value) override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
+  void text(const char *value) override;
 
-private:
   void ensureOpened();
 
 private:
   IWORKStylePtr_t m_style;
   bool m_opened;
+  bool m_delayedPageBreak;
+  boost::optional<unsigned> m_listLevel;
 };
 
 }

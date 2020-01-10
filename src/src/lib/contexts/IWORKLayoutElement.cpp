@@ -9,9 +9,10 @@
 
 #include "IWORKLayoutElement.h"
 
-#include "IWORKCollector.h"
+#include "IWORKDictionary.h"
 #include "IWORKPElement.h"
 #include "IWORKStyle.h"
+#include "IWORKText.h"
 #include "IWORKToken.h"
 #include "IWORKXMLParserState.h"
 
@@ -20,24 +21,54 @@ namespace libetonyek
 
 IWORKLayoutElement::IWORKLayoutElement(IWORKXMLParserState &state)
   : IWORKXMLElementContextBase(state)
+  , m_opened(false)
+  , m_style()
 {
 }
 
-void IWORKLayoutElement::attribute(const int name, const char *)
+void IWORKLayoutElement::attribute(const int name, const char *const value)
 {
   if ((IWORKToken::NS_URI_SF | IWORKToken::style) == name)
   {
-    // TODO: fetch the style
-    getCollector()->collectStyle(IWORKStylePtr_t(), false);
+    const IWORKStyleMap_t::const_iterator it = getState().getDictionary().m_layoutStyles.find(value);
+    if (it != getState().getDictionary().m_layoutStyles.end())
+      m_style = it->second;
+    else if (getState().m_stylesheet && getState().m_stylesheet->m_styles.find(value)!=getState().m_stylesheet->m_styles.end())
+      m_style=getState().m_stylesheet->m_styles.find(value)->second;
+    else
+    {
+      ETONYEK_DEBUG_MSG(("IWORKLayoutElement::attribute: unknown style %s\n", value));
+    }
   }
 }
 
 IWORKXMLContextPtr_t IWORKLayoutElement::element(const int name)
 {
+  if (!m_opened)
+    open();
+
   if ((IWORKToken::NS_URI_SF | IWORKToken::p) == name)
     return makeContext<IWORKPElement>(getState());
 
   return IWORKXMLContextPtr_t();
+}
+
+void IWORKLayoutElement::endOfElement()
+{
+  if (m_opened)
+  {
+    if (bool(getState().m_currentText))
+      getState().m_currentText->flushLayout();
+  }
+}
+
+void IWORKLayoutElement::open()
+{
+  assert(!m_opened);
+
+  if (bool(getState().m_currentText))
+    getState().m_currentText->setLayoutStyle(m_style);
+  m_opened = true;
 }
 
 }

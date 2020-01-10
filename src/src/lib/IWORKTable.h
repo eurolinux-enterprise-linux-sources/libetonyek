@@ -11,14 +11,20 @@
 #define IWORKTABLE_H_INCLUDED
 
 #include <deque>
+#include <memory>
 
-#include <glm/glm.hpp>
+#include <boost/optional.hpp>
 
-#include "IWORKTypes_fwd.h"
+#include "IWORKStyle_fwd.h"
+#include "IWORKTypes.h"
 #include "IWORKOutputElements.h"
 
 namespace libetonyek
 {
+
+class IWORKLanguageManager;
+class IWORKText;
+class IWORKTableRecorder;
 
 class IWORKTable
 {
@@ -28,6 +34,10 @@ class IWORKTable
     unsigned m_columnSpan;
     unsigned m_rowSpan;
     bool m_covered;
+    boost::optional<IWORKFormula> m_formula;
+    IWORKStylePtr_t m_style;
+    IWORKCellType m_type;
+    boost::optional<std::string> m_value;
 
     Cell();
   };
@@ -36,25 +46,76 @@ class IWORKTable
   typedef std::deque<Row_t> Table_t;
 
 public:
-  typedef std::deque<double> ColumnSizes_t;
-  typedef std::deque<double> RowSizes_t;
+  enum CellType
+  {
+    CELL_TYPE_BODY,
+    CELL_TYPE_ALTERNATE_BODY,
+    CELL_TYPE_COLUMN_HEADER,
+    CELL_TYPE_ROW_HEADER,
+    CELL_TYPE_ROW_FOOTER
+  };
 
 public:
-  IWORKTable();
+  explicit IWORKTable(const IWORKTableNameMapPtr_t &tableNameMap, const IWORKLanguageManager &langManager);
 
-  void setSizes(const ColumnSizes_t &columnSizes, const RowSizes_t &rowSizes);
-  void insertCell(unsigned column, unsigned row, const IWORKOutputElements &content = IWORKOutputElements(), unsigned columnSpan = 1, unsigned rowSpan = 1);
+  void setRecorder(const std::shared_ptr<IWORKTableRecorder> &recorder);
+  const std::shared_ptr<IWORKTableRecorder> &getRecorder() const;
+
+  void setSize(unsigned columns, unsigned rows);
+  void setHeaders(unsigned headerColumns, unsigned headerRows, unsigned footerRows);
+  void setBandedRows(bool banded = true);
+  void setRepeated(bool columns, bool rows);
+
+  void setStyle(const IWORKStylePtr_t &style);
+  void setSizes(const IWORKColumnSizes_t &columnSizes, const IWORKRowSizes_t &rowSizes);
+  void setBorders(const IWORKGridLineMap_t &verticalLines, const IWORKGridLineMap_t &horizontalLines);
+  void insertCell(unsigned column, unsigned row,
+                  const boost::optional<std::string> &value = boost::none,
+                  const std::shared_ptr<IWORKText> &text = std::shared_ptr<IWORKText>(),
+                  unsigned columnSpan = 1, unsigned rowSpan = 1,
+                  const boost::optional<IWORKFormula> &formula = boost::none,
+                  const IWORKStylePtr_t &style = IWORKStylePtr_t(),
+                  IWORKCellType type = IWORK_CELL_TYPE_TEXT);
   void insertCoveredCell(unsigned column, unsigned row);
 
-  void setGeometry(const IWORKGeometryPtr_t &geometry);
+  void draw(const librevenge::RVNGPropertyList &tableProps, IWORKOutputElements &elements, bool drawAsSimpleTable);
 
-  void draw(const glm::dmat3 &trafo, IWORKOutputElements &elements) const;
+  void setDefaultCellStyle(CellType type, const IWORKStylePtr_t &style);
+  void setDefaultLayoutStyle(CellType type, const IWORKStylePtr_t &style);
+  void setDefaultParagraphStyle(CellType type, const IWORKStylePtr_t &style);
+
+  IWORKStylePtr_t getDefaultCellStyle(unsigned column, unsigned row) const;
+  IWORKStylePtr_t getDefaultLayoutStyle(unsigned column, unsigned row) const;
+  IWORKStylePtr_t getDefaultParagraphStyle(unsigned column, unsigned row) const;
 
 private:
+  IWORKStylePtr_t getDefaultStyle(unsigned column, unsigned row, const IWORKStylePtr_t *group) const;
+
+private:
+  const IWORKTableNameMapPtr_t m_tableNameMap;
+  const IWORKLanguageManager &m_langManager;
+
   Table_t m_table;
-  ColumnSizes_t m_columnSizes;
-  RowSizes_t m_rowSizes;
-  IWORKGeometryPtr_t m_geometry;
+  IWORKStylePtr_t m_style;
+  IWORKColumnSizes_t m_columnSizes;
+  IWORKRowSizes_t m_rowSizes;
+  IWORKGridLineMap_t m_verticalLines;
+  IWORKGridLineMap_t m_horizontalLines;
+
+  unsigned m_rows;
+  unsigned m_columns;
+  unsigned m_headerRows;
+  unsigned m_footerRows;
+  unsigned m_headerColumns;
+  bool m_bandedRows;
+  bool m_headerRowsRepeated;
+  bool m_headerColumnsRepeated;
+
+  IWORKStylePtr_t m_defaultCellStyles[5];
+  IWORKStylePtr_t m_defaultLayoutStyles[5];
+  IWORKStylePtr_t m_defaultParaStyles[5];
+
+  std::shared_ptr<IWORKTableRecorder> m_recorder;
 };
 
 }

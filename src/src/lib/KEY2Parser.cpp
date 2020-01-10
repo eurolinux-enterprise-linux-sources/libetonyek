@@ -10,42 +10,44 @@
 #include "KEY2Parser.h"
 
 #include <cassert>
-#include <utility>
-
-#include <boost/lexical_cast.hpp>
-#include <boost/numeric/conversion/cast.hpp>
 
 #include "libetonyek_utils.h"
 #include "libetonyek_xml.h"
 #include "IWORKChainedTokenizer.h"
+#include "IWORKDiscardContext.h"
 #include "IWORKGeometryElement.h"
+#include "IWORKGroupElement.h"
+#include "IWORKImageElement.h"
+#include "IWORKLineElement.h"
 #include "IWORKMediaElement.h"
 #include "IWORKPath.h"
+#include "IWORKPathElement.h"
 #include "IWORKPositionElement.h"
 #include "IWORKRefContext.h"
 #include "IWORKStyle.h"
+#include "IWORKShapeContext.h"
 #include "IWORKSizeElement.h"
+#include "IWORKStringElement.h"
+#include "IWORKStyleRefContext.h"
 #include "IWORKStylesContext.h"
+#include "IWORKStylesheetBase.h"
 #include "IWORKTabularInfoElement.h"
+#include "IWORKText.h"
+#include "IWORKTextElement.h"
 #include "IWORKTextBodyElement.h"
 #include "IWORKTextStorageElement.h"
 #include "IWORKToken.h"
 #include "IWORKTypes.h"
+#include "KEY2Dictionary.h"
 #include "KEY2ParserState.h"
 #include "KEY2StyleContext.h"
-#include "KEY2StyleRefContext.h"
 #include "KEY2Token.h"
 #include "KEY2XMLContextBase.h"
 #include "KEYCollector.h"
-#include "KEYDictionary.h"
 #include "KEYTypes.h"
 
-using boost::get_optional_value_or;
-using boost::lexical_cast;
-using boost::numeric_cast;
 using boost::optional;
 
-using std::pair;
 using std::string;
 
 namespace libetonyek
@@ -76,24 +78,93 @@ unsigned getVersion(const int token)
 namespace
 {
 
+class StringContentContext : public KEY2XMLElementContextBase
+{
+public:
+  StringContentContext(KEY2ParserState &state, optional<string> &value);
+
+private:
+  IWORKXMLContextPtr_t element(int name) override;
+
+private:
+  optional<string> &m_value;
+};
+
+StringContentContext::StringContentContext(KEY2ParserState &state, optional<string> &value)
+  : KEY2XMLElementContextBase(state)
+  , m_value(value)
+{
+}
+
+IWORKXMLContextPtr_t StringContentContext::element(const int name)
+{
+  if (name == (KEY2Token::NS_URI_KEY | KEY2Token::string))
+    return makeContext<IWORKStringElement>(getState(), m_value);
+  return IWORKXMLContextPtr_t();
+}
+
+}
+
+namespace
+{
+
 class MetadataElement : public KEY2XMLElementContextBase
 {
 public:
   explicit MetadataElement(KEY2ParserState &state);
 
+protected:
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
+
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  boost::optional<std::string> m_author;
+  boost::optional<std::string> m_title;
+  boost::optional<std::string> m_keywords;
+  boost::optional<std::string> m_comment;
 };
 
 MetadataElement::MetadataElement(KEY2ParserState &state)
   : KEY2XMLElementContextBase(state)
+  , m_author()
+  , m_title()
+  , m_keywords()
+  , m_comment()
 {
 }
 
-IWORKXMLContextPtr_t MetadataElement::element(int)
+IWORKXMLContextPtr_t MetadataElement::element(const int name)
 {
-  // TODO: parse
+  switch (name)
+  {
+  case KEY2Token::NS_URI_KEY | KEY2Token::authors :
+    return makeContext<StringContentContext>(getState(), m_author);
+  case KEY2Token::NS_URI_KEY | KEY2Token::comment :
+    return makeContext<StringContentContext>(getState(), m_comment);
+  case KEY2Token::NS_URI_KEY | KEY2Token::keywords :
+    return makeContext<StringContentContext>(getState(), m_keywords);
+  case KEY2Token::NS_URI_KEY | KEY2Token::title :
+    return makeContext<StringContentContext>(getState(), m_title);
+  }
+
   return IWORKXMLContextPtr_t();
+}
+
+void MetadataElement::endOfElement()
+{
+  IWORKMetadata metadata;
+
+  if (m_author)
+    metadata.m_author = get(m_author);
+  if (m_title)
+    metadata.m_title = get(m_title);
+  if (m_keywords)
+    metadata.m_keywords = get(m_keywords);
+  if (m_comment)
+    metadata.m_comment = get(m_comment);
+
+  if (isCollector())
+    getCollector().collectMetadata(metadata);
 }
 
 }
@@ -107,7 +178,7 @@ public:
   StylesContext(KEY2ParserState &state, bool anonymous);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  IWORKXMLContextPtr_t element(int name) override;
 };
 
 StylesContext::StylesContext(KEY2ParserState &state, const bool anonymous)
@@ -119,13 +190,10 @@ IWORKXMLContextPtr_t StylesContext::element(const int name)
 {
   switch (name)
   {
-  case IWORKToken::NS_URI_SF | IWORKToken::layoutstyle :
   case IWORKToken::NS_URI_SF | IWORKToken::placeholder_style :
-    return makeContext<KEY2StyleContext>(getState(), name);
-
-  case IWORKToken::NS_URI_SF | IWORKToken::layoutstyle_ref :
-    break;
-    return makeContext<KEY2StyleRefContext>(getState(), name, false, m_anonymous);
+    return makeContext<KEY2StyleContext>(getState(), &getState().getDictionary().m_placeholderStyles);
+  case KEY2Token::NS_URI_KEY | KEY2Token::slide_style :
+    return makeContext<KEY2StyleContext>(getState(), &getState().getDictionary().m_slideStyles);
   }
 
   return KEY2XMLContextBase<IWORKStylesContext>::element(name);
@@ -136,21 +204,21 @@ IWORKXMLContextPtr_t StylesContext::element(const int name)
 namespace
 {
 
-class StylesheetElement : public KEY2XMLElementContextBase
+class StylesheetElement : public KEY2XMLContextBase<IWORKStylesheetBase>
 {
 public:
   explicit StylesheetElement(KEY2ParserState &state);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 
 private:
   optional<ID_t> m_parent;
 };
 
 StylesheetElement::StylesheetElement(KEY2ParserState &state)
-  : KEY2XMLElementContextBase(state)
+  : KEY2XMLContextBase<IWORKStylesheetBase>(state)
 {
 }
 
@@ -166,25 +234,21 @@ IWORKXMLContextPtr_t StylesheetElement::element(const int name)
     return makeContext<IWORKRefContext>(getState(), m_parent);
   }
 
-  return IWORKXMLContextPtr_t();
+  return KEY2XMLContextBase<IWORKStylesheetBase>::element(name);
 }
 
 void StylesheetElement::endOfElement()
 {
-  IWORKStylesheetPtr_t parent;
-
   if (m_parent)
   {
     assert(getId() != m_parent);
 
     const IWORKStylesheetMap_t::const_iterator it = getState().getDictionary().m_stylesheets.find(get(m_parent));
     if (getState().getDictionary().m_stylesheets.end() != it)
-      parent = it->second;
+      getState().m_stylesheet->parent = it->second;
   }
 
-  const IWORKStylesheetPtr_t stylesheet = getCollector()->collectStylesheet(parent);
-  if (bool(stylesheet) && getId())
-    getState().getDictionary().m_stylesheets[get(getId())] = stylesheet;
+  KEY2XMLContextBase<IWORKStylesheetBase>::endOfElement();
 }
 
 }
@@ -198,8 +262,8 @@ public:
   explicit ProxyMasterLayerElement(KEY2ParserState &state);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 
 private:
   optional<ID_t> m_ref;
@@ -224,569 +288,12 @@ IWORKXMLContextPtr_t ProxyMasterLayerElement::element(const int name)
 
 void ProxyMasterLayerElement::endOfElement()
 {
-  if (m_ref)
+  if (m_ref && isCollector())
   {
     const KEYLayerMap_t::const_iterator it = getState().getDictionary().m_layers.find(get(m_ref));
     if (getState().getDictionary().m_layers.end() != it)
-      getCollector()->insertLayer(it->second);
+      getCollector().insertLayer(it->second);
   }
-}
-
-}
-
-namespace
-{
-
-class PointElement : public KEY2XMLEmptyContextBase
-{
-public:
-  PointElement(KEY2ParserState &state, pair<optional<double>, optional<double> > &point);
-
-private:
-  virtual void attribute(int name, const char *value);
-
-private:
-  pair<optional<double>, optional<double> > &m_point;
-};
-
-PointElement::PointElement(KEY2ParserState &state, pair<optional<double>, optional<double> > &point)
-  : KEY2XMLEmptyContextBase(state)
-  , m_point(point)
-{
-}
-
-void PointElement::attribute(const int name, const char *const value)
-{
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SFA | IWORKToken::x :
-    m_point.first = lexical_cast<double>(value);
-  case IWORKToken::NS_URI_SFA | IWORKToken::y :
-    m_point.second = lexical_cast<double>(value);
-  }
-}
-
-}
-
-namespace
-{
-
-class ConnectionPathElement : public KEY2XMLElementContextBase
-{
-public:
-  explicit ConnectionPathElement(KEY2ParserState &state);
-
-private:
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
-
-private:
-  optional<IWORKSize> m_size;
-  pair<optional<double>, optional<double> > m_point;
-};
-
-ConnectionPathElement::ConnectionPathElement(KEY2ParserState &state)
-  : KEY2XMLElementContextBase(state)
-{
-}
-
-IWORKXMLContextPtr_t ConnectionPathElement::element(const int name)
-{
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SF | IWORKToken::point :
-    return makeContext<PointElement>(getState(), m_point);
-  case IWORKToken::NS_URI_SF | IWORKToken::size :
-    return makeContext<IWORKSizeElement>(getState(), m_size);
-  }
-
-  return IWORKXMLContextPtr_t();
-}
-
-void ConnectionPathElement::endOfElement()
-{
-  if (m_size)
-    getCollector()->collectConnectionPath(get(m_size), get_optional_value_or(m_point.first, 0), get_optional_value_or(m_point.second, 0));
-}
-
-}
-
-namespace
-{
-
-class PointPathElement : public KEY2XMLElementContextBase
-{
-public:
-  explicit PointPathElement(KEY2ParserState &state);
-
-private:
-  virtual void attribute(int name, const char *value);
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
-
-private:
-  bool m_star;
-  bool m_doubleArrow;
-  optional<IWORKSize> m_size;
-  pair<optional<double>, optional<double> > m_point;
-};
-
-PointPathElement::PointPathElement(KEY2ParserState &state)
-  : KEY2XMLElementContextBase(state)
-  , m_star(false)
-  , m_doubleArrow(false) // right arrow is the default (by my decree .-)
-{
-}
-
-void PointPathElement::attribute(const int name, const char *const value)
-{
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SF | IWORKToken::type :
-  {
-    switch (getToken(value))
-    {
-    case KEY2Token::double_ :
-      m_doubleArrow = true;
-      break;
-    case KEY2Token::right :
-      break;
-    case KEY2Token::star :
-      m_star = true;
-      break;
-    default :
-      ETONYEK_DEBUG_MSG(("unknown point path type: %s\n", value));
-      break;
-    }
-  }
-  default :
-    KEY2XMLElementContextBase::attribute(name, value);
-    break;
-  }
-}
-
-IWORKXMLContextPtr_t PointPathElement::element(const int name)
-{
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SF | IWORKToken::point :
-    return makeContext<PointElement>(getState(), m_point);
-  case IWORKToken::NS_URI_SF | IWORKToken::size :
-    return makeContext<IWORKSizeElement>(getState(), m_size);
-  }
-
-  return IWORKXMLContextPtr_t();
-}
-
-void PointPathElement::endOfElement()
-{
-  IWORKSize size;
-  if (m_size)
-    size = get(m_size);
-
-  if (m_star)
-    getCollector()->collectStarPath(size, numeric_cast<unsigned>(get_optional_value_or(m_point.first, 0.0)), get_optional_value_or(m_point.second, 0));
-  else
-    getCollector()->collectArrowPath(size, get_optional_value_or(m_point.first, 0), get_optional_value_or(m_point.second, 0), m_doubleArrow);
-}
-
-}
-
-namespace
-{
-
-class ScalarPathElement : public KEY2XMLElementContextBase
-{
-public:
-  explicit ScalarPathElement(KEY2ParserState &state);
-
-private:
-  virtual void attribute(int name, const char *value);
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
-
-private:
-  optional<IWORKSize> m_size;
-  bool m_polygon;
-  double m_value;
-};
-
-ScalarPathElement::ScalarPathElement(KEY2ParserState &state)
-  : KEY2XMLElementContextBase(state)
-  , m_size()
-  , m_polygon(false)
-  , m_value(0)
-{
-}
-
-void ScalarPathElement::attribute(const int name, const char *const value)
-{
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SF | IWORKToken::scalar :
-    m_value = lexical_cast<double>(value);
-    break;
-  case IWORKToken::NS_URI_SF | IWORKToken::type :
-  {
-    switch (getToken(value))
-    {
-    case IWORKToken::_0 :
-      break;
-    case IWORKToken::_1 :
-      m_polygon = true;
-      break;
-    default :
-      ETONYEK_DEBUG_MSG(("unknown scalar path type: %s\n", value));
-      break;
-    }
-    break;
-  }
-  default :
-    KEY2XMLElementContextBase::attribute(name, value);
-    break;
-  }
-}
-
-IWORKXMLContextPtr_t ScalarPathElement::element(const int name)
-{
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SF | IWORKToken::size :
-    return makeContext<IWORKSizeElement>(getState(), m_size);
-  }
-
-  return IWORKXMLContextPtr_t();
-}
-
-void ScalarPathElement::endOfElement()
-{
-  IWORKSize size;
-  if (m_size)
-    size = get(m_size);
-
-  if (m_polygon)
-    getCollector()->collectPolygonPath(size, numeric_cast<unsigned>(m_value));
-  else
-    getCollector()->collectRoundedRectanglePath(size, m_value);
-}
-
-}
-
-namespace
-{
-
-class BezierElement : public KEY2XMLEmptyContextBase
-{
-public:
-  explicit BezierElement(KEY2ParserState &state);
-
-private:
-  virtual void attribute(int name, const char *value);
-  virtual void endOfElement();
-
-private:
-  IWORKPathPtr_t m_path;
-};
-
-BezierElement::BezierElement(KEY2ParserState &state)
-  : KEY2XMLEmptyContextBase(state)
-  , m_path()
-{
-}
-
-void BezierElement::attribute(const int name, const char *const value)
-{
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SFA | IWORKToken::path :
-    m_path.reset(new IWORKPath(value));
-    break;
-  default :
-    KEY2XMLEmptyContextBase::attribute(name, value);
-    break;
-  }
-}
-
-void BezierElement::endOfElement()
-{
-  if (getId())
-    getState().getDictionary().m_beziers[get(getId())] = m_path;
-  getCollector()->collectBezier(m_path);
-}
-
-}
-
-namespace
-{
-
-class BezierRefElement : public KEY2XMLEmptyContextBase
-{
-public:
-  explicit BezierRefElement(KEY2ParserState &state);
-
-private:
-  virtual void endOfElement();
-};
-
-BezierRefElement::BezierRefElement(KEY2ParserState &state)
-  : KEY2XMLEmptyContextBase(state)
-{
-}
-
-void BezierRefElement::endOfElement()
-{
-  if (getRef())
-  {
-    const IWORKPathMap_t::const_iterator it = getState().getDictionary().m_beziers.find(get(getRef()));
-    if (getState().getDictionary().m_beziers.end() != it)
-      getCollector()->collectBezier(it->second);
-  }
-}
-
-}
-
-namespace
-{
-
-class BezierPathElement : public KEY2XMLElementContextBase
-{
-public:
-  explicit BezierPathElement(KEY2ParserState &state);
-
-private:
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
-};
-
-BezierPathElement::BezierPathElement(KEY2ParserState &state)
-  : KEY2XMLElementContextBase(state)
-{
-}
-
-IWORKXMLContextPtr_t BezierPathElement::element(const int name)
-{
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SF | IWORKToken::bezier :
-    return makeContext<BezierElement>(getState());
-  case IWORKToken::NS_URI_SF | IWORKToken::bezier_ref :
-    return makeContext<BezierRefElement>(getState());
-  }
-
-  return IWORKXMLContextPtr_t();
-}
-
-void BezierPathElement::endOfElement()
-{
-  getCollector()->collectBezierPath();
-}
-
-}
-
-namespace
-{
-
-class Callout2PathElement : public KEY2XMLElementContextBase
-{
-public:
-  explicit Callout2PathElement(KEY2ParserState &state);
-
-private:
-  virtual void attribute(int name, const char *value);
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
-
-private:
-  optional<IWORKSize> m_size;
-  double m_cornerRadius;
-  bool m_tailAtCenter;
-  double m_tailPosX;
-  double m_tailPosY;
-  double m_tailSize;
-};
-
-Callout2PathElement::Callout2PathElement(KEY2ParserState &state)
-  : KEY2XMLElementContextBase(state)
-  , m_size()
-  , m_cornerRadius(0)
-  , m_tailAtCenter(false)
-  , m_tailPosX(0)
-  , m_tailPosY(0)
-  , m_tailSize(0)
-{
-}
-
-void Callout2PathElement::attribute(const int name, const char *const value)
-{
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SF | IWORKToken::cornerRadius :
-    m_cornerRadius = lexical_cast<double>(value);
-    break;
-  case IWORKToken::NS_URI_SF | IWORKToken::tailAtCenter :
-    m_tailAtCenter = bool_cast(value);
-    break;
-  case IWORKToken::NS_URI_SF | IWORKToken::tailPositionX :
-    m_tailPosX = lexical_cast<double>(value);
-    break;
-  case IWORKToken::NS_URI_SF | IWORKToken::tailPositionY :
-    m_tailPosY = lexical_cast<double>(value);
-    break;
-  case IWORKToken::NS_URI_SF | IWORKToken::tailSize :
-    m_tailSize = lexical_cast<double>(value);
-    break;
-  default :
-    KEY2XMLElementContextBase::attribute(name, value);
-    break;
-  }
-}
-
-IWORKXMLContextPtr_t Callout2PathElement::element(const int name)
-{
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SF | IWORKToken::size :
-    return makeContext<IWORKSizeElement>(getState(), m_size);
-  }
-
-  return IWORKXMLContextPtr_t();
-}
-
-void Callout2PathElement::endOfElement()
-{
-  getCollector()->collectCalloutPath(get_optional_value_or(m_size, IWORKSize()), m_cornerRadius, m_tailSize, m_tailPosX, m_tailPosY, m_tailAtCenter);
-}
-
-}
-
-namespace
-{
-
-class PathElement : public KEY2XMLElementContextBase
-{
-public:
-  explicit PathElement(KEY2ParserState &state);
-
-private:
-  virtual IWORKXMLContextPtr_t element(int name);
-};
-
-PathElement::PathElement(KEY2ParserState &state)
-  : KEY2XMLElementContextBase(state)
-{
-}
-
-IWORKXMLContextPtr_t PathElement::element(const int name)
-{
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SF | IWORKToken::bezier_path :
-  case IWORKToken::NS_URI_SF | IWORKToken::editable_bezier_path :
-    return makeContext<BezierPathElement>(getState());
-  case IWORKToken::NS_URI_SF | IWORKToken::callout2_path :
-    return makeContext<Callout2PathElement>(getState());
-  case IWORKToken::NS_URI_SF | IWORKToken::connection_path :
-    return makeContext<ConnectionPathElement>(getState());
-  case IWORKToken::NS_URI_SF | IWORKToken::point_path :
-    return makeContext<PointPathElement>(getState());
-  case IWORKToken::NS_URI_SF | IWORKToken::scalar_path :
-    return makeContext<ScalarPathElement>(getState());
-  }
-
-  return IWORKXMLContextPtr_t();
-}
-
-}
-
-namespace
-{
-
-// NOTE: isn't it wonderful that there are two text elements in two
-// different namespaces, but with the same schema?
-class TextElement : public KEY2XMLElementContextBase
-{
-public:
-  explicit TextElement(KEY2ParserState &state);
-
-private:
-  virtual void attribute(int name, const char *value);
-  virtual IWORKXMLContextPtr_t element(int name);
-};
-
-TextElement::TextElement(KEY2ParserState &state)
-  : KEY2XMLElementContextBase(state)
-{
-}
-
-void TextElement::attribute(const int name, const char *)
-{
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SF | IWORKToken::layoutstyle :
-    // TODO: handle
-    getCollector()->collectStyle(IWORKStylePtr_t(), false);
-    break;
-  }
-}
-
-IWORKXMLContextPtr_t TextElement::element(const int name)
-{
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SF | IWORKToken::text_storage :
-    return makeContext<IWORKTextStorageElement>(getState());
-  }
-
-  return IWORKXMLContextPtr_t();
-}
-
-}
-
-namespace
-{
-
-class ShapeElement : public KEY2XMLElementContextBase
-{
-public:
-  explicit ShapeElement(KEY2ParserState &state);
-
-private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
-};
-
-ShapeElement::ShapeElement(KEY2ParserState &state)
-  : KEY2XMLElementContextBase(state)
-{
-}
-
-void ShapeElement::startOfElement()
-{
-  getCollector()->startLevel();
-  getCollector()->startText();
-}
-
-IWORKXMLContextPtr_t ShapeElement::element(const int name)
-{
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SF | IWORKToken::geometry :
-    return makeContext<IWORKGeometryElement>(getState());
-  case IWORKToken::NS_URI_SF | IWORKToken::path :
-    return makeContext<PathElement>(getState());
-  case IWORKToken::NS_URI_SF | IWORKToken::text :
-    return makeContext<TextElement>(getState());
-  }
-
-  return IWORKXMLContextPtr_t();
-}
-
-void ShapeElement::endOfElement()
-{
-  getCollector()->collectShape();
-  getCollector()->endText();
-  getCollector()->endLevel();
 }
 
 }
@@ -800,10 +307,10 @@ public:
   explicit ImageElement(KEY2ParserState &state);
 
 private:
-  virtual void startOfElement();
-  virtual void attribute(int name, const char *value);
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  void startOfElement() override;
+  void attribute(int name, const char *value) override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 
 private:
   IWORKImagePtr_t m_image;
@@ -817,7 +324,8 @@ ImageElement::ImageElement(KEY2ParserState &state)
 
 void ImageElement::startOfElement()
 {
-  getCollector()->startLevel();
+  if (isCollector())
+    getCollector().startLevel();
 }
 
 void ImageElement::attribute(const int name, const char *const value)
@@ -848,124 +356,11 @@ void ImageElement::endOfElement()
 {
   if (getId())
     getState().getDictionary().m_images[get(getId())] = m_image;
-  getCollector()->collectImage(m_image);
-  getCollector()->endLevel();
-}
-
-}
-
-namespace
-{
-
-class LineElement : public KEY2XMLElementContextBase
-{
-public:
-  explicit LineElement(KEY2ParserState &state);
-
-private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
-
-private:
-  optional<IWORKPosition> m_head;
-  optional<IWORKPosition> m_tail;
-};
-
-LineElement::LineElement(KEY2ParserState &state)
-  : KEY2XMLElementContextBase(state)
-{
-}
-
-void LineElement::startOfElement()
-{
-  getCollector()->startLevel();
-}
-
-IWORKXMLContextPtr_t LineElement::element(const int name)
-{
-  switch (name)
+  if (isCollector())
   {
-  case IWORKToken::NS_URI_SF | IWORKToken::geometry :
-    return makeContext<IWORKGeometryElement>(getState());
-  case IWORKToken::NS_URI_SF | IWORKToken::head :
-    return makeContext<IWORKPositionElement>(getState(), m_head);
-  case IWORKToken::NS_URI_SF | IWORKToken::tail :
-    return makeContext<IWORKPositionElement>(getState(), m_tail);
+    getCollector().collectImage(m_image);
+    getCollector().endLevel();
   }
-
-  return IWORKXMLContextPtr_t();
-}
-
-void LineElement::endOfElement()
-{
-  IWORKLinePtr_t line(new IWORKLine());
-  if (m_head)
-  {
-    line->m_x1 = get(m_head).m_x;
-    line->m_y1 = get(m_head).m_y;
-  }
-  if (m_tail)
-  {
-    line->m_x2 = get(m_tail).m_x;
-    line->m_y2 = get(m_tail).m_y;
-  }
-  getCollector()->collectLine(line);
-  getCollector()->endLevel();
-}
-
-}
-
-namespace
-{
-
-class GroupElement : public KEY2XMLElementContextBase
-{
-public:
-  explicit GroupElement(KEY2ParserState &state);
-
-private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
-};
-
-GroupElement::GroupElement(KEY2ParserState &state)
-  : KEY2XMLElementContextBase(state)
-{
-}
-
-void GroupElement::startOfElement()
-{
-  getCollector()->startLevel();
-  getCollector()->startGroup();
-}
-
-IWORKXMLContextPtr_t GroupElement::element(const int name)
-{
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SF | IWORKToken::geometry :
-    return makeContext<IWORKGeometryElement>(getState());
-  case IWORKToken::NS_URI_SF | IWORKToken::group :
-    return makeContext<GroupElement>(getState());
-  case IWORKToken::NS_URI_SF | IWORKToken::image :
-    return makeContext<ImageElement>(getState());
-  case IWORKToken::NS_URI_SF | IWORKToken::line :
-    return makeContext<LineElement>(getState());
-  case IWORKToken::NS_URI_SF | IWORKToken::media :
-    return makeContext<IWORKMediaElement>(getState());
-  case IWORKToken::NS_URI_SF | IWORKToken::shape :
-    return makeContext<ShapeElement>(getState());
-  }
-
-  return IWORKXMLContextPtr_t();
-}
-
-void GroupElement::endOfElement()
-{
-  getCollector()->endGroup();
-  getCollector()->endLevel();
 }
 
 }
@@ -979,7 +374,7 @@ public:
   PlaceholderRefContext(KEY2ParserState &state, bool title);
 
 private:
-  virtual void endOfElement();
+  void endOfElement() override;
 
 private:
   const bool m_title;
@@ -993,13 +388,13 @@ PlaceholderRefContext::PlaceholderRefContext(KEY2ParserState &state, const bool 
 
 void PlaceholderRefContext::endOfElement()
 {
-  if (getRef())
+  if (getRef() && isCollector())
   {
-    KEYDictionary &dict = getState().getDictionary();
+    KEY2Dictionary &dict = getState().getDictionary();
     KEYPlaceholderMap_t &placeholderMap = m_title ? dict.m_titlePlaceholders : dict.m_bodyPlaceholders;
     const KEYPlaceholderMap_t::const_iterator it = placeholderMap.find(get(getRef()));
     if (placeholderMap.end() != it)
-      getCollector()->insertTextPlaceholder(it->second);
+      getCollector().insertTextPlaceholder(it->second);
   }
 }
 
@@ -1014,8 +409,8 @@ public:
   explicit ConnectionLineElement(KEY2ParserState &state);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 };
 
 ConnectionLineElement::ConnectionLineElement(KEY2ParserState &state)
@@ -1030,7 +425,7 @@ IWORKXMLContextPtr_t ConnectionLineElement::element(const int name)
   case IWORKToken::NS_URI_SF | IWORKToken::geometry :
     return makeContext<IWORKGeometryElement>(getState());
   case IWORKToken::NS_URI_SF | IWORKToken::path :
-    return makeContext<PathElement>(getState());
+    return makeContext<IWORKPathElement>(getState());
   }
 
   return IWORKXMLContextPtr_t();
@@ -1038,7 +433,8 @@ IWORKXMLContextPtr_t ConnectionLineElement::element(const int name)
 
 void ConnectionLineElement::endOfElement()
 {
-  getCollector()->collectShape();
+  if (isCollector())
+    getCollector().collectShape();
 }
 
 }
@@ -1052,9 +448,9 @@ public:
   explicit StickyNoteElement(KEY2ParserState &state);
 
 private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  void startOfElement() override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 };
 
 StickyNoteElement::StickyNoteElement(KEY2ParserState &state)
@@ -1064,8 +460,12 @@ StickyNoteElement::StickyNoteElement(KEY2ParserState &state)
 
 void StickyNoteElement::startOfElement()
 {
-  getCollector()->startText();
-  getCollector()->startLevel();
+  if (isCollector())
+  {
+    assert(!getState().m_currentText);
+    getState().m_currentText = getCollector().createText(getState().m_langManager);
+    getCollector().startLevel();
+  }
 }
 
 IWORKXMLContextPtr_t StickyNoteElement::element(const int name)
@@ -1075,7 +475,7 @@ IWORKXMLContextPtr_t StickyNoteElement::element(const int name)
   case IWORKToken::NS_URI_SF | IWORKToken::geometry :
     return makeContext<IWORKGeometryElement>(getState());
   case IWORKToken::NS_URI_SF | IWORKToken::text :
-    return makeContext<TextElement>(getState());
+    return makeContext<IWORKTextElement>(getState());
   }
 
   return IWORKXMLContextPtr_t();
@@ -1083,10 +483,14 @@ IWORKXMLContextPtr_t StickyNoteElement::element(const int name)
 
 void StickyNoteElement::endOfElement()
 {
-  getCollector()->collectStickyNote();
+  if (isCollector())
+  {
+    getCollector().collectText(getState().m_currentText);
+    getState().m_currentText.reset();
+    getCollector().collectStickyNote();
 
-  getCollector()->endLevel();
-  getCollector()->endText();
+    getCollector().endLevel();
+  }
 }
 
 }
@@ -1100,10 +504,10 @@ public:
   explicit DrawablesElement(KEY2ParserState &state);
 
 private:
-  virtual void startOfElement();
-  virtual void attribute(int name, const char *value);
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  void startOfElement() override;
+  void attribute(int name, const char *value) override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 };
 
 DrawablesElement::DrawablesElement(KEY2ParserState &state)
@@ -1113,7 +517,8 @@ DrawablesElement::DrawablesElement(KEY2ParserState &state)
 
 void DrawablesElement::startOfElement()
 {
-  getCollector()->startLevel();
+  if (isCollector())
+    getCollector().startLevel();
 }
 
 void DrawablesElement::attribute(int, const char *)
@@ -1129,15 +534,15 @@ IWORKXMLContextPtr_t DrawablesElement::element(const int name)
   case IWORKToken::NS_URI_SF | IWORKToken::connection_line :
     return makeContext<ConnectionLineElement>(getState());
   case IWORKToken::NS_URI_SF | IWORKToken::group :
-    return makeContext<GroupElement>(getState());
+    return makeContext<IWORKGroupElement>(getState());
   case IWORKToken::NS_URI_SF | IWORKToken::image :
     return makeContext<ImageElement>(getState());
   case IWORKToken::NS_URI_SF | IWORKToken::line :
-    return makeContext<LineElement>(getState());
+    return makeContext<IWORKLineElement>(getState());
   case IWORKToken::NS_URI_SF | IWORKToken::media :
     return makeContext<IWORKMediaElement>(getState());
   case IWORKToken::NS_URI_SF | IWORKToken::shape :
-    return makeContext<ShapeElement>(getState());
+    return makeContext<IWORKShapeContext>(getState());
   case IWORKToken::NS_URI_SF | IWORKToken::sticky_note :
     return makeContext<StickyNoteElement>(getState());
   case IWORKToken::NS_URI_SF | IWORKToken::tabular_info :
@@ -1153,7 +558,8 @@ IWORKXMLContextPtr_t DrawablesElement::element(const int name)
 
 void DrawablesElement::endOfElement()
 {
-  getCollector()->endLevel();
+  if (isCollector())
+    getCollector().endLevel();
 }
 
 }
@@ -1167,9 +573,9 @@ public:
   explicit LayerElement(KEY2ParserState &state);
 
 private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  void startOfElement() override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 };
 
 LayerElement::LayerElement(KEY2ParserState &state)
@@ -1179,7 +585,8 @@ LayerElement::LayerElement(KEY2ParserState &state)
 
 void LayerElement::startOfElement()
 {
-  getCollector()->startLayer();
+  if (isCollector())
+    getCollector().startLayer();
 }
 
 IWORKXMLContextPtr_t LayerElement::element(const int name)
@@ -1195,13 +602,16 @@ IWORKXMLContextPtr_t LayerElement::element(const int name)
 
 void LayerElement::endOfElement()
 {
-  const KEYLayerPtr_t layer(getCollector()->collectLayer());
-  getCollector()->endLayer();
-  if (bool(layer))
+  if (isCollector())
   {
-    if (bool(layer) && getId())
-      getState().getDictionary().m_layers[get(getId())] = layer;
-    getCollector()->insertLayer(layer);
+    const KEYLayerPtr_t layer(getCollector().collectLayer());
+    getCollector().endLayer();
+    if (bool(layer))
+    {
+      if (bool(layer) && getId())
+        getState().getDictionary().m_layers[get(getId())] = layer;
+      getCollector().insertLayer(layer);
+    }
   }
 }
 
@@ -1216,7 +626,7 @@ public:
   explicit LayersElement(KEY2ParserState &state);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  IWORKXMLContextPtr_t element(int name) override;
 };
 
 LayersElement::LayersElement(KEY2ParserState &state)
@@ -1248,8 +658,8 @@ public:
   explicit PageElement(KEY2ParserState &state);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 
 private:
   // TODO: use size
@@ -1289,7 +699,7 @@ public:
   explicit StyleElement(KEY2ParserState &state, optional<ID_t> &ref);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  IWORKXMLContextPtr_t element(int name) override;
 
 private:
   optional<ID_t> &m_ref;
@@ -1320,9 +730,9 @@ public:
   PlaceholderContext(KEY2ParserState &state, bool title);
 
 private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  void startOfElement() override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 
 private:
   const bool m_title;
@@ -1338,7 +748,11 @@ PlaceholderContext::PlaceholderContext(KEY2ParserState &state, const bool title)
 
 void PlaceholderContext::startOfElement()
 {
-  getCollector()->startText();
+  if (isCollector())
+  {
+    assert(!getState().m_currentText);
+    getState().m_currentText = getCollector().createText(getState().m_langManager);
+  }
 }
 
 IWORKXMLContextPtr_t PlaceholderContext::element(const int name)
@@ -1351,7 +765,7 @@ IWORKXMLContextPtr_t PlaceholderContext::element(const int name)
   case IWORKToken::NS_URI_SF | IWORKToken::style :
     return makeContext<StyleElement>(getState(), m_ref);
   case KEY2Token::NS_URI_KEY | KEY2Token::text :
-    return makeContext<TextElement>(getState());
+    return makeContext<IWORKTextElement>(getState());
   }
 
   return IWORKXMLContextPtr_t();
@@ -1359,22 +773,28 @@ IWORKXMLContextPtr_t PlaceholderContext::element(const int name)
 
 void PlaceholderContext::endOfElement()
 {
-  IWORKStylePtr_t style;
-  if (m_ref)
+  if (isCollector())
   {
-    const IWORKStyleMap_t::const_iterator it = getState().getDictionary().m_placeholderStyles.find(get(m_ref));
-    if (getState().getDictionary().m_placeholderStyles.end() != it)
-      style = it->second;
-  }
+    IWORKStylePtr_t style;
+    if (m_ref)
+    {
+      const IWORKStyleMap_t::const_iterator it = getState().getDictionary().m_placeholderStyles.find(get(m_ref));
+      if (getState().getDictionary().m_placeholderStyles.end() != it)
+        style = it->second;
+    }
 
-  const KEYPlaceholderPtr_t placeholder = getCollector()->collectTextPlaceholder(style, m_title);
-  if (bool(placeholder) && getId())
-  {
-    KEYDictionary &dict = getState().getDictionary();
-    KEYPlaceholderMap_t &placeholderMap = m_title ? dict.m_titlePlaceholders : dict.m_bodyPlaceholders;
-    placeholderMap[get(getId())] = placeholder;
+    if (bool(getState().m_currentText) && !getState().m_currentText->empty())
+      getCollector().collectText(getState().m_currentText);
+    getState().m_currentText.reset();
+
+    const KEYPlaceholderPtr_t placeholder = getCollector().collectTextPlaceholder(style, m_title);
+    if (bool(placeholder) && getId())
+    {
+      KEY2Dictionary &dict = getState().getDictionary();
+      KEYPlaceholderMap_t &placeholderMap = m_title ? dict.m_titlePlaceholders : dict.m_bodyPlaceholders;
+      placeholderMap[get(getId())] = placeholder;
+    }
   }
-  getCollector()->endText();
 }
 
 }
@@ -1388,9 +808,9 @@ public:
   explicit MasterSlideElement(KEY2ParserState &state);
 
 private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  void startOfElement() override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 };
 
 MasterSlideElement::MasterSlideElement(KEY2ParserState &state)
@@ -1400,7 +820,8 @@ MasterSlideElement::MasterSlideElement(KEY2ParserState &state)
 
 void MasterSlideElement::startOfElement()
 {
-  getCollector()->startPage();
+  if (isCollector())
+    getCollector().startPage();
 }
 
 IWORKXMLContextPtr_t MasterSlideElement::element(const int name)
@@ -1424,8 +845,11 @@ IWORKXMLContextPtr_t MasterSlideElement::element(const int name)
 
 void MasterSlideElement::endOfElement()
 {
-  getCollector()->collectPage();
-  getCollector()->endPage();
+  if (isCollector())
+  {
+    getCollector().collectPage();
+    getCollector().endPage();
+  }
 }
 
 }
@@ -1439,7 +863,7 @@ public:
   explicit MasterSlidesElement(KEY2ParserState &state);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  IWORKXMLContextPtr_t element(int name) override;
 };
 
 MasterSlidesElement::MasterSlidesElement(KEY2ParserState &state)
@@ -1469,7 +893,7 @@ public:
   explicit ThemeElement(KEY2ParserState &state);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  IWORKXMLContextPtr_t element(int name) override;
 
 private:
   // TODO: use size
@@ -1478,6 +902,7 @@ private:
 
 ThemeElement::ThemeElement(KEY2ParserState &state)
   : KEY2XMLElementContextBase(state)
+  , m_size()
 {
 }
 
@@ -1507,9 +932,9 @@ public:
   explicit ThemeListElement(KEY2ParserState &state);
 
 private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  void startOfElement() override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 };
 
 ThemeListElement::ThemeListElement(KEY2ParserState &state)
@@ -1519,7 +944,8 @@ ThemeListElement::ThemeListElement(KEY2ParserState &state)
 
 void ThemeListElement::startOfElement()
 {
-  getCollector()->startThemes();
+  if (isCollector())
+    getCollector().startThemes();
 }
 
 IWORKXMLContextPtr_t ThemeListElement::element(const int name)
@@ -1535,7 +961,8 @@ IWORKXMLContextPtr_t ThemeListElement::element(const int name)
 
 void ThemeListElement::endOfElement()
 {
-  getCollector()->endThemes();
+  if (isCollector())
+    getCollector().endThemes();
 }
 
 }
@@ -1549,9 +976,9 @@ public:
   explicit NotesElement(KEY2ParserState &state);
 
 private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  void startOfElement() override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 };
 
 NotesElement::NotesElement(KEY2ParserState &state)
@@ -1561,7 +988,11 @@ NotesElement::NotesElement(KEY2ParserState &state)
 
 void NotesElement::startOfElement()
 {
-  getCollector()->startText();
+  if (isCollector())
+  {
+    assert(!getState().m_currentText);
+    getState().m_currentText = getCollector().createText(getState().m_langManager);
+  }
 }
 
 IWORKXMLContextPtr_t NotesElement::element(const int name)
@@ -1577,8 +1008,12 @@ IWORKXMLContextPtr_t NotesElement::element(const int name)
 
 void NotesElement::endOfElement()
 {
-  getCollector()->collectNote();
-  getCollector()->endText();
+  if (isCollector())
+  {
+    getCollector().collectText(getState().m_currentText);
+    getState().m_currentText.reset();
+    getCollector().collectNote();
+  }
 }
 
 }
@@ -1592,7 +1027,7 @@ public:
   explicit StickyNotesElement(KEY2ParserState &state);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  IWORKXMLContextPtr_t element(int name) override;
 };
 
 StickyNotesElement::StickyNotesElement(KEY2ParserState &state)
@@ -1622,19 +1057,24 @@ public:
   explicit SlideElement(KEY2ParserState &state);
 
 private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  void startOfElement() override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
+
+private:
+  optional<ID_t> m_styleRef;
 };
 
 SlideElement::SlideElement(KEY2ParserState &state)
   : KEY2XMLElementContextBase(state)
+  , m_styleRef()
 {
 }
 
 void SlideElement::startOfElement()
 {
-  getCollector()->startPage();
+  if (isCollector())
+    getCollector().startPage();
 }
 
 IWORKXMLContextPtr_t SlideElement::element(const int name)
@@ -1645,6 +1085,8 @@ IWORKXMLContextPtr_t SlideElement::element(const int name)
     return makeContext<NotesElement>(getState());
   case KEY2Token::NS_URI_KEY | KEY2Token::page :
     return makeContext<PageElement>(getState());
+  case KEY2Token::NS_URI_KEY | KEY2Token::style_ref :
+    return makeContext<IWORKRefContext>(getState(), m_styleRef);
   case KEY2Token::NS_URI_KEY | KEY2Token::stylesheet :
     return makeContext<StylesheetElement>(getState());
   case KEY2Token::NS_URI_KEY | KEY2Token::title_placeholder :
@@ -1660,8 +1102,17 @@ IWORKXMLContextPtr_t SlideElement::element(const int name)
 
 void SlideElement::endOfElement()
 {
-  getCollector()->collectPage();
-  getCollector()->endPage();
+  if (isCollector())
+  {
+    if (m_styleRef)
+    {
+      const IWORKStyleMap_t::const_iterator it = getState().getDictionary().m_slideStyles.find(get(m_styleRef));
+      if (it != getState().getDictionary().m_slideStyles.end())
+        getCollector().setSlideStyle(it->second);
+    }
+    getCollector().collectPage();
+    getCollector().endPage();
+  }
 }
 
 }
@@ -1675,9 +1126,9 @@ public:
   explicit SlideListElement(KEY2ParserState &state);
 
 private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  void startOfElement() override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 };
 
 SlideListElement::SlideListElement(KEY2ParserState &state)
@@ -1687,7 +1138,8 @@ SlideListElement::SlideListElement(KEY2ParserState &state)
 
 void SlideListElement::startOfElement()
 {
-  getCollector()->startSlides();
+  if (isCollector())
+    getCollector().startSlides();
 }
 
 IWORKXMLContextPtr_t SlideListElement::element(const int name)
@@ -1703,7 +1155,8 @@ IWORKXMLContextPtr_t SlideListElement::element(const int name)
 
 void SlideListElement::endOfElement()
 {
-  getCollector()->endSlides();
+  if (isCollector())
+    getCollector().endSlides();
 }
 
 }
@@ -1717,8 +1170,10 @@ public:
   explicit PresentationElement(KEY2ParserState &state);
 
 private:
-  virtual void attribute(int name, const char *value);
-  virtual IWORKXMLContextPtr_t element(int name);
+  void startOfElement() override;
+  void attribute(int name, const char *value) override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 
 private:
   optional<IWORKSize> m_size;
@@ -1730,6 +1185,12 @@ PresentationElement::PresentationElement(KEY2ParserState &state)
   , m_size()
   , m_pendingSize(false)
 {
+}
+
+void PresentationElement::startOfElement()
+{
+  if (isCollector())
+    getCollector().startDocument();
 }
 
 void PresentationElement::attribute(const int name, const char *const value)
@@ -1752,8 +1213,8 @@ IWORKXMLContextPtr_t PresentationElement::element(const int name)
 {
   if (m_pendingSize)
   {
-    if (m_size)
-      getCollector()->collectPresentationSize(get(m_size));
+    if (m_size && isCollector())
+      getCollector().collectPresentationSize(get(m_size));
     m_pendingSize = false;
   }
 
@@ -1773,6 +1234,12 @@ IWORKXMLContextPtr_t PresentationElement::element(const int name)
   return IWORKXMLContextPtr_t();
 }
 
+void PresentationElement::endOfElement()
+{
+  if (isCollector())
+    getCollector().endDocument();
+}
+
 }
 
 namespace
@@ -1784,7 +1251,7 @@ public:
   explicit XMLDocument(KEY2ParserState &state);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  IWORKXMLContextPtr_t element(int name) override;
 };
 
 XMLDocument::XMLDocument(KEY2ParserState &state)
@@ -1805,7 +1272,60 @@ IWORKXMLContextPtr_t XMLDocument::element(const int name)
 
 }
 
-KEY2Parser::KEY2Parser(const RVNGInputStreamPtr_t &input, const RVNGInputStreamPtr_t &package, KEYCollector *const collector, KEYDictionary &dict)
+namespace
+{
+
+class DiscardContext : public KEY2XMLContextBase<IWORKDiscardContext>
+{
+public:
+  explicit DiscardContext(KEY2ParserState &state);
+  ~DiscardContext() override;
+
+private:
+  IWORKXMLContextPtr_t element(int name) override;
+
+private:
+  KEY2ParserState &m_state;
+  IWORKStylesheetPtr_t m_savedStylesheet;
+};
+
+DiscardContext::DiscardContext(KEY2ParserState &state)
+  : KEY2XMLContextBase<IWORKDiscardContext>(state)
+  , m_state(state)
+  , m_savedStylesheet()
+{
+}
+
+DiscardContext::~DiscardContext()
+{
+  if (bool(m_savedStylesheet))
+    m_state.m_stylesheet = m_savedStylesheet;
+}
+
+IWORKXMLContextPtr_t DiscardContext::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::placeholder_style :
+    return makeContext<KEY2StyleContext>(getState(), &getState().getDictionary().m_placeholderStyles);
+  case KEY2Token::NS_URI_KEY | KEY2Token::slide_style :
+    return makeContext<KEY2StyleContext>(getState(), &getState().getDictionary().m_slideStyles);
+  case KEY2Token::NS_URI_KEY | KEY2Token::stylesheet :
+    if (!m_savedStylesheet)
+    {
+      // this can only happen in a broken document
+      m_savedStylesheet = m_state.m_stylesheet;
+      m_state.m_stylesheet.reset();
+    }
+    return makeContext<StylesheetElement>(getState());
+  }
+
+  return KEY2XMLContextBase<IWORKDiscardContext>::element(name);
+}
+
+}
+
+KEY2Parser::KEY2Parser(const RVNGInputStreamPtr_t &input, const RVNGInputStreamPtr_t &package, KEYCollector &collector, KEY2Dictionary &dict)
   : IWORKParser(input, package)
   , m_state(*this, collector, dict)
 {
@@ -1818,6 +1338,11 @@ KEY2Parser::~KEY2Parser()
 IWORKXMLContextPtr_t KEY2Parser::createDocumentContext()
 {
   return makeContext<XMLDocument>(m_state);
+}
+
+IWORKXMLContextPtr_t KEY2Parser::createDiscardContext()
+{
+  return makeContext<DiscardContext>(m_state);
 }
 
 const IWORKTokenizer &KEY2Parser::getTokenizer() const

@@ -15,29 +15,28 @@
 #include <boost/optional.hpp>
 
 #include "IWORKPropertyMap.h"
+#include "IWORKStyle_fwd.h"
 #include "IWORKXMLContextBase.h"
 
 namespace libetonyek
 {
 
-struct IWORKDictionary;
-
 class IWORKStyleContext : public IWORKXMLElementContextBase
 {
 public:
-  IWORKStyleContext(IWORKXMLParserState &state, int id, bool nested = false);
-  IWORKStyleContext(IWORKXMLParserState &state, int id, IWORKPropertyMap &props, bool nested = false);
+  IWORKStyleContext(IWORKXMLParserState &state, IWORKStyleMap_t *styleMap = nullptr,  bool nested = false);
+  IWORKStyleContext(IWORKXMLParserState &state, IWORKPropertyMap &props, IWORKStyleMap_t *styleMap = nullptr, bool nested = false);
+  IWORKStyleContext(IWORKXMLParserState &state, IWORKPropertyMap &props, IWORKStyleMap_t *styleMap = nullptr, const char *defaultParent = nullptr, bool nested = false);
 
-  virtual void attribute(int name, const char *value);
-  virtual void endOfElement();
-
-private:
-  virtual IWORKXMLContextPtr_t element(int name);
-
-  IWORKDictionary &getDictionary();
+  void attribute(int name, const char *value) override;
+  void endOfElement() override;
 
 private:
-  const int m_id;
+  IWORKXMLContextPtr_t element(int name) override;
+
+private:
+  IWORKStyleMap_t *const m_styleMap;
+  const std::string m_defaultParent;
   const bool m_nested;
   IWORKPropertyMap m_ownProps;
   IWORKPropertyMap &m_props;

@@ -28,7 +28,7 @@ namespace libetonyek
 struct KEYLayer
 {
   boost::optional<std::string> m_type;
-  boost::optional<IWORKZoneID_t> m_zoneId;
+  boost::optional<IWORKOutputID_t> m_outputId;
 
   KEYLayer();
 };
@@ -43,17 +43,6 @@ struct KEYPlaceholder
 
   KEYPlaceholder();
 };
-
-struct KEYStickyNote
-{
-  IWORKGeometryPtr_t m_geometry;
-  IWORKTextPtr_t m_text;
-
-  KEYStickyNote();
-  KEYStickyNote(const IWORKGeometryPtr_t &geometry, const IWORKTextPtr_t &text);
-};
-
-typedef std::deque<KEYStickyNote> KEYStickyNotes_t;
 
 }
 

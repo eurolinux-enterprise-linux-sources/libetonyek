@@ -9,13 +9,16 @@
 
 #include "IWORKStylesContext.h"
 
+#include "IWORKDictionary.h"
+#include "IWORKStyle_fwd.h"
 #include "IWORKStyleContext.h"
 #include "IWORKStyleRefContext.h"
 #include "IWORKToken.h"
+#include "IWORKListstyleElement.h"
+#include "IWORKXMLParserState.h"
 
 namespace libetonyek
 {
-
 IWORKStylesContext::IWORKStylesContext(IWORKXMLParserState &state, const bool anonymous)
   : IWORKXMLElementContextBase(state)
   , m_anonymous(anonymous)
@@ -26,25 +29,40 @@ IWORKXMLContextPtr_t IWORKStylesContext::element(const int name)
 {
   switch (name)
   {
-  case IWORKToken::NS_URI_SF | IWORKToken::cell_style :
-  case IWORKToken::NS_URI_SF | IWORKToken::characterstyle :
   case IWORKToken::NS_URI_SF | IWORKToken::connection_style :
-  case IWORKToken::NS_URI_SF | IWORKToken::graphic_style :
   case IWORKToken::NS_URI_SF | IWORKToken::headline_style :
+    return makeContext<IWORKStyleContext>(getState());
   case IWORKToken::NS_URI_SF | IWORKToken::liststyle :
+    return makeContext<IWORKListstyleElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::cell_style :
+    return makeContext<IWORKStyleContext>(getState(), &getState().getDictionary().m_cellStyles);
+  case IWORKToken::NS_URI_SF | IWORKToken::graphic_style :
+    return makeContext<IWORKStyleContext>(getState(), &getState().getDictionary().m_graphicStyles);
+  case IWORKToken::NS_URI_SF | IWORKToken::characterstyle :
+    return makeContext<IWORKStyleContext>(getState(), &getState().getDictionary().m_characterStyles);
+  case IWORKToken::NS_URI_SF | IWORKToken::layoutstyle :
+    return makeContext<IWORKStyleContext>(getState(), &getState().getDictionary().m_layoutStyles);
   case IWORKToken::NS_URI_SF | IWORKToken::paragraphstyle :
-  case IWORKToken::NS_URI_SF | IWORKToken::slide_style :
+    return makeContext<IWORKStyleContext>(getState(), &getState().getDictionary().m_paragraphStyles);
   case IWORKToken::NS_URI_SF | IWORKToken::tabular_style :
+    return makeContext<IWORKStyleContext>(getState(), &getState().getDictionary().m_tabularStyles);
   case IWORKToken::NS_URI_SF | IWORKToken::vector_style :
-    return makeContext<IWORKStyleContext>(getState(), name);
+    return makeContext<IWORKStyleContext>(getState(), &getState().getDictionary().m_vectorStyles);
 
-  case IWORKToken::NS_URI_SF | IWORKToken::cell_style_ref :
-  case IWORKToken::NS_URI_SF | IWORKToken::characterstyle_ref :
   case IWORKToken::NS_URI_SF | IWORKToken::liststyle_ref :
+    return IWORKXMLContextPtr_t();
+  case IWORKToken::NS_URI_SF | IWORKToken::cell_style_ref :
+    return makeContext<IWORKStyleRefContext>(getState(), getState().getDictionary().m_cellStyles);
+  case IWORKToken::NS_URI_SF | IWORKToken::characterstyle_ref :
+    return makeContext<IWORKStyleRefContext>(getState(), getState().getDictionary().m_characterStyles);
+  case IWORKToken::NS_URI_SF | IWORKToken::layoutstyle_ref :
+    return makeContext<IWORKStyleRefContext>(getState(), getState().getDictionary().m_layoutStyles);
   case IWORKToken::NS_URI_SF | IWORKToken::paragraphstyle_ref :
+    return makeContext<IWORKStyleRefContext>(getState(), getState().getDictionary().m_paragraphStyles);
+  case IWORKToken::NS_URI_SF | IWORKToken::tabular_style_ref :
+    return makeContext<IWORKStyleRefContext>(getState(), getState().getDictionary().m_tabularStyles);
   case IWORKToken::NS_URI_SF | IWORKToken::vector_style_ref :
-    break;
-    return makeContext<IWORKStyleRefContext>(getState(), name, false, m_anonymous);
+    return makeContext<IWORKStyleRefContext>(getState(), getState().getDictionary().m_vectorStyles);
   }
 
   return IWORKXMLContextPtr_t();

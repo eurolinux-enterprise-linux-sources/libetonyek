@@ -9,6 +9,7 @@
 
 #include "IWORKStyle.h"
 
+#include "libetonyek_utils.h"
 #include "IWORKStyleStack.h"
 
 namespace libetonyek
@@ -20,6 +21,16 @@ IWORKStyle::IWORKStyle(const IWORKPropertyMap &props, const boost::optional<std:
   , m_parentIdent(parentIdent)
   , m_parent()
 {
+}
+
+IWORKStyle::IWORKStyle(const IWORKPropertyMap &props, const boost::optional<std::string> &ident, const IWORKStylePtr_t &parent)
+  : m_props(props)
+  , m_ident(ident)
+  , m_parentIdent()
+  , m_parent(parent)
+{
+  if (m_parent)
+    m_props.setParent(&m_parent->getPropertyMap());
 }
 
 bool IWORKStyle::link(const IWORKStylesheetPtr_t &stylesheet)
@@ -37,11 +48,7 @@ bool IWORKStyle::link(const IWORKStylesheetPtr_t &stylesheet)
 
   if (!currentStylesheet)
     return false;
-
-  const IWORKStyleMap_t::const_iterator it = currentStylesheet->m_styles.find(m_parentIdent.get());
-  if (currentStylesheet->m_styles.end() != it)
-    m_parent = it->second;
-
+  m_parent=currentStylesheet->find(m_parentIdent.get());
   if (m_parent)
     m_props.setParent(&m_parent->getPropertyMap());
 

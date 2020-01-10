@@ -46,7 +46,7 @@ public:
   }
 
 protected:
-  Collector *getCollector() const
+  Collector &getCollector() const
   {
     return m_state.getCollector();
   }
@@ -54,6 +54,11 @@ protected:
   int getToken(const char *const value) const
   {
     return m_state.getTokenizer().getId(value);
+  }
+
+  bool isCollector() const
+  {
+    return m_state.m_enableCollector;
   }
 
 protected:
@@ -65,9 +70,9 @@ class IWORKXMLContextMinimal : public IWORKXMLContext
 protected:
   IWORKXMLContextMinimal();
 
-  virtual void startOfElement();
+  void startOfElement() override;
   virtual void endOfAttributes();
-  virtual void endOfElement();
+  void endOfElement() override;
 };
 
 class IWORKXMLContextElement : public IWORKXMLContextMinimal, public boost::enable_shared_from_this<IWORKXMLContextElement>
@@ -75,8 +80,8 @@ class IWORKXMLContextElement : public IWORKXMLContextMinimal, public boost::enab
 protected:
   explicit IWORKXMLContextElement(IWORKXMLParserState &);
 
-  virtual void attribute(int name, const char *value);
-  virtual void text(const char *value);
+  void attribute(int name, const char *value) override;
+  void text(const char *value) override;
 
   const boost::optional<ID_t> &getId() const;
 
@@ -89,7 +94,7 @@ class IWORKXMLContextText : public IWORKXMLContextMinimal
 protected:
   explicit IWORKXMLContextText(IWORKXMLParserState &);
 
-  virtual IWORKXMLContextPtr_t element(int token);
+  IWORKXMLContextPtr_t element(int token) override;
 };
 
 class IWORKXMLContextMixed : public IWORKXMLContextMinimal, public boost::enable_shared_from_this<IWORKXMLContextMixed>
@@ -103,9 +108,9 @@ class IWORKXMLContextEmpty : public IWORKXMLContextMinimal
 protected:
   explicit IWORKXMLContextEmpty(IWORKXMLParserState &);
 
-  virtual void attribute(int name, const char *value);
-  virtual IWORKXMLContextPtr_t element(int token);
-  virtual void text(const char *value);
+  void attribute(int name, const char *value) override;
+  IWORKXMLContextPtr_t element(int token) override;
+  void text(const char *value) override;
 
   const boost::optional<ID_t> &getId() const;
   const boost::optional<ID_t> &getRef() const;

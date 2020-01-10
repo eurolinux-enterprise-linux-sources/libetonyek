@@ -7,7 +7,7 @@ AC_PREREQ([2.65])
 # ====================
 m4_define([libetonyek_version_major],[0])
 m4_define([libetonyek_version_minor],[1])
-m4_define([libetonyek_version_micro],[2])
+m4_define([libetonyek_version_micro],[7])
 m4_define([libetonyek_version],[libetonyek_version_major.libetonyek_version_minor.libetonyek_version_micro])
 
 # =============
@@ -19,6 +19,13 @@ AC_CONFIG_HEADER([config.h])
 AM_INIT_AUTOMAKE([1.11 foreign dist-xz dist-bzip2 subdir-objects])
 AM_SILENT_RULES([yes])
 AC_LANG([C++])
+
+# =================
+# Configure options
+# =================
+AC_ARG_WITH([mdds],
+            AS_HELP_STRING([--with-mdds=1.2|1.0|0.x], [Specify which version of mdds to use (1.2 is the default)]),
+            [], [with_mdds="1.2"])
 
 # ===========================
 # Find required base packages
@@ -38,10 +45,11 @@ PKG_PROG_PKG_CONFIG([0.20])
 AC_PROG_EGREP
 AC_PROG_SED
 
-AC_PATH_PROG(GPERF, gperf)
-if test -z "$GPERF"; then
-    AC_MSG_ERROR([gperf not found but needed. Install it.])
-fi
+AM_MISSING_PROG([GPERF], [gperf])
+
+AX_CXX_COMPILE_STDCXX_11
+AX_GCC_FUNC_ATTRIBUTE([format])
+DLP_FALLTHROUGH
 
 # ===============
 # Find librevenge
@@ -71,28 +79,44 @@ PKG_CHECK_MODULES([ZLIB],[zlib],[],[
 AC_SUBST(ZLIB_CFLAGS)
 AC_SUBST(ZLIB_LIBS)
 
+# ===============
+# Find liblangtag
+# ===============
+AC_ARG_WITH([liblangtag],
+    [AS_HELP_STRING([--without-liblangtag], [Disable use of liblangtag])],
+    [with_liblangtag="$withval"],
+    [with_liblangtag="yes"]
+)
+AS_IF([test "x$with_liblangtag" = "xyes"], [
+        PKG_CHECK_MODULES([LANGTAG],[
+            liblangtag
+        ])
+        AC_DEFINE([WITH_LIBLANGTAG], [1], [Build with liblangtag])
+    ],
+    []
+)
+AM_CONDITIONAL([WITH_LIBLANGTAG], [test "x$with_liblangtag" = "xyes"])
+
 # ==================
 # Find boost headers
 # ==================
 saved_CPPFLAGS="${CPPFLAGS}"
 CPPFLAGS="${BOOST_CFLAGS} ${CPPFLAGS}"
 AC_CHECK_HEADERS(
-        boost/algorithm/string/classification.hpp \
-        boost/algorithm/string/predicate.hpp \
-        boost/algorithm/string/split.hpp \
         boost/any.hpp \
-        boost/bind.hpp \
-        boost/function.hpp \
+        boost/container/deque.hpp \
+        boost/cstdint.hpp \
+        boost/fusion/adapted/std_pair.hpp \
+        boost/fusion/include/adapt_struct.hpp \
         boost/lexical_cast.hpp \
-        boost/logic/tribool.hpp \
-        boost/make_shared.hpp \
+        boost/none.hpp \
         boost/numeric/conversion/cast.hpp \
         boost/optional.hpp \
-        boost/ref.hpp \
-        boost/scoped_ptr.hpp \
-        boost/shared_ptr.hpp \
-        boost/spirit/include/classic_core.hpp \
-        boost/unordered_map.hpp,
+        boost/spirit/include/phoenix.hpp \
+        boost/spirit/include/qi.hpp \
+        boost/variant/recursive_variant.hpp \
+        boost/variant/variant.hpp \
+        ,
     [],
     [AC_MSG_ERROR([Required boost headers not found.])],
     []
@@ -105,14 +129,40 @@ AC_SUBST([BOOST_CFLAGS])
 # ================
 saved_CPPFLAGS="${CPPFLAGS}"
 CPPFLAGS="${GLM_CFLAGS} ${CPPFLAGS}"
+GLM_headers="glm/glm.hpp"
+AS_IF([test "x$enable_tests" == "xyes"], [GLM_headers="$GLM_headers glm/gtx/io.hpp"], [])
 AC_CHECK_HEADERS(
-        glm/glm.hpp,
+    [$GLM_headers],
     [],
-    [AC_MSG_ERROR([Required boost headers not found.])],
+    [AC_MSG_ERROR([Required glm headers not found.])],
     []
 )
 CPPFLAGS="${saved_CPPFLAGS}"
 AC_SUBST([GLM_CFLAGS])
+
+# =========
+# Find mdds
+# =========
+AS_IF([test "$with_mdds" != "0.x"],
+    [PKG_CHECK_MODULES([MDDS], [mdds-][$with_mdds])],
+    [
+        PKG_CHECK_MODULES([MDDS], [mdds])
+        AC_MSG_CHECKING([checking if mdds::flat_segment_tree can store values of any type])
+        old_CPPFLAGS="$CPPFLAGS"
+        CPPFLAGS="$MDDS_CFLAGS $CPPFLAGS"
+        AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+            #include <mdds/flat_segment_tree.hpp>
+            struct Value {};
+            mdds::flat_segment_tree<int, Value> tree(0, 4, Value());
+        ])], [
+            AC_MSG_RESULT([yes])
+        ], [
+            AC_MSG_RESULT([no])
+            AC_MSG_ERROR([please install mdds >= 0.12.1])
+        ])
+        CPPFLAGS="$old_CPPFLAGS"
+    ]
+)
 
 # =================================
 # Libtool/Version Makefile settings
@@ -214,7 +264,7 @@ AS_IF([test x"$enable_werror" != "xno"], [
 	CXXFLAGS="$CXXFLAGS -Werror"
 ])
 AC_ARG_ENABLE([weffc],
-	[AS_HELP_STRING([--disable-weffc], [ Disable -Weffc++ warnings, usefull when using an old version of gcc or of boost])],
+	[AS_HELP_STRING([--disable-weffc], [ Disable -Weffc++ warnings, useful when using an old version of gcc or of boost])],
 	[enable_weffc="$enableval"],
 	[enable_weffc=yes]
 )
@@ -301,6 +351,7 @@ AC_ARG_ENABLE([tests],
 )
 AS_IF([test "x$enable_tests" = "xyes"], [
     PKG_CHECK_MODULES([CPPUNIT], [cppunit])
+    PKG_CHECK_MODULES([REVENGE_STREAM],[librevenge-stream-0.0])
 ], [])
 AC_SUBST([CPPUNIT_CFLAGS])
 AC_SUBST([CPPUNIT_LIBS])
@@ -335,7 +386,17 @@ AC_ARG_WITH(tools,
 AS_IF([test "x$with_tools" != "xno"], [build_tools=yes], [build_tools=no])
 AM_CONDITIONAL([WITH_LIBETONYEK_TOOLS], [test "x$build_tools" != "xno"])
 
-AS_IF([test "x$build_tools" != "xno"], [
+# =======
+# Fuzzers
+# =======
+AC_ARG_ENABLE([fuzzers],
+	[AS_HELP_STRING([--enable-fuzzers], [Build fuzzer(s)])],
+	[enable_fuzzers="$enableval"],
+	[enable_fuzzers=no]
+)
+AM_CONDITIONAL(BUILD_FUZZERS, [test "x$enable_fuzzers" = "xyes"])
+
+AS_IF([test "x$build_tools" = "xyes" -o "x$enable_fuzzers" = "xyes"], [
     PKG_CHECK_MODULES([REVENGE_GENERATORS],[
         librevenge-generators-0.0
     ])
@@ -369,6 +430,7 @@ src/conv/text/Makefile
 src/conv/text/key2text.rc
 src/conv/text/numbers2text.rc
 src/conv/text/pages2text.rc
+src/fuzz/Makefile
 src/lib/Makefile
 src/lib/libetonyek.rc
 src/test/Makefile
@@ -390,6 +452,8 @@ AC_MSG_NOTICE([
 Build configuration:
 	debug:           ${enable_debug}
 	docs:            ${build_docs}
+	fuzzers:         ${enable_fuzzers}
+	liblangtag:      ${with_liblangtag}
 	tests:           ${enable_tests}
 	tools:           ${build_tools}
 	werror:          ${enable_werror}

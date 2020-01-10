@@ -17,8 +17,8 @@ namespace libetonyek
 {
 
 struct IWORKStylesheet;
-typedef boost::shared_ptr<IWORKStylesheet> IWORKStylesheetPtr_t;
-typedef boost::unordered_map<ID_t, IWORKStylesheetPtr_t> IWORKStylesheetMap_t;
+typedef std::shared_ptr<IWORKStylesheet> IWORKStylesheetPtr_t;
+typedef std::unordered_map<ID_t, IWORKStylesheetPtr_t> IWORKStylesheetMap_t;
 
 /** Representation of a stylesheet.
   *
@@ -37,6 +37,9 @@ struct IWORKStylesheet
   IWORKStyleMap_t m_styles;
 
   IWORKStylesheet();
+
+  //! try to return a style in a spreadsheet with a given name
+  IWORKStylePtr_t find(const std::string &name) const;
 };
 
 }

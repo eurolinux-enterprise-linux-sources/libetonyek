@@ -11,6 +11,13 @@
 
 #include "libetonyek_xml.h"
 #include "IWORKChainedTokenizer.h"
+#include "IWORKChartInfoElement.h"
+#include "IWORKDiscardContext.h"
+#include "IWORKGroupElement.h"
+#include "IWORKMediaElement.h"
+#include "IWORKMetadataElement.h"
+#include "IWORKShapeContext.h"
+#include "IWORKStylesheetBase.h"
 #include "IWORKTabularInfoElement.h"
 #include "IWORKToken.h"
 #include "NUMCollector.h"
@@ -45,10 +52,10 @@ public:
   explicit DrawablesElement(NUM1ParserState &state);
 
 private:
-  virtual void startOfElement();
-  virtual void attribute(int name, const char *value);
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  void startOfElement() override;
+  void attribute(int name, const char *value) override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 };
 
 DrawablesElement::DrawablesElement(NUM1ParserState &state)
@@ -58,7 +65,8 @@ DrawablesElement::DrawablesElement(NUM1ParserState &state)
 
 void DrawablesElement::startOfElement()
 {
-  getCollector()->startLevel();
+  if (isCollector())
+    getCollector().startLevel();
 }
 
 void DrawablesElement::attribute(int, const char *)
@@ -73,20 +81,22 @@ IWORKXMLContextPtr_t DrawablesElement::element(const int name)
   //   return makeContext<PlaceholderRefContext>(getState(), false);
   // case IWORKToken::NS_URI_SF | IWORKToken::connection_line :
   //   return makeContext<ConnectionLineElement>(getState());
-  // case IWORKToken::NS_URI_SF | IWORKToken::group :
-  //   return makeContext<GroupElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::group :
+    return makeContext<IWORKGroupElement>(getState());
   // case IWORKToken::NS_URI_SF | IWORKToken::image :
   //   return makeContext<ImageElement>(getState());
   // case IWORKToken::NS_URI_SF | IWORKToken::line :
   //   return makeContext<LineElement>(getState());
-  // case IWORKToken::NS_URI_SF | IWORKToken::media :
-  //   return makeContext<IWORKMediaElement>(getState());
-  // case IWORKToken::NS_URI_SF | IWORKToken::shape :
-  //   return makeContext<ShapeElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::media :
+    return makeContext<IWORKMediaElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::shape :
+    return makeContext<IWORKShapeContext>(getState());
   // case IWORKToken::NS_URI_SF | IWORKToken::sticky_note :
   //   return makeContext<StickyNoteElement>(getState());
   case IWORKToken::NS_URI_SF | IWORKToken::tabular_info :
     return makeContext<IWORKTabularInfoElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::chart_info :
+    return makeContext<IWORKChartInfoElement>(getState());
     // case IWORKToken::NS_URI_SF | IWORKToken::title_placeholder_ref :
     //   return makeContext<PlaceholderRefContext>(getState(), true);
 
@@ -97,7 +107,8 @@ IWORKXMLContextPtr_t DrawablesElement::element(const int name)
 
 void DrawablesElement::endOfElement()
 {
-  getCollector()->endLevel();
+  if (isCollector())
+    getCollector().endLevel();
 }
 
 }
@@ -111,9 +122,9 @@ public:
   explicit LayerElement(NUM1ParserState &state);
 
 private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  void startOfElement() override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 };
 
 LayerElement::LayerElement(NUM1ParserState &state)
@@ -151,7 +162,7 @@ public:
   explicit LayersElement(NUM1ParserState &state);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  IWORKXMLContextPtr_t element(int name) override;
 };
 
 LayersElement::LayersElement(NUM1ParserState &state)
@@ -181,9 +192,9 @@ public:
   explicit PageInfoElement(NUM1ParserState &state);
 
 private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  void startOfElement() override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 };
 
 PageInfoElement::PageInfoElement(NUM1ParserState &state)
@@ -215,15 +226,31 @@ void PageInfoElement::endOfElement()
 namespace
 {
 
+class StylesheetElement : public NUM1XMLContextBase<IWORKStylesheetBase>
+{
+public:
+  explicit StylesheetElement(NUM1ParserState &state);
+};
+
+StylesheetElement::StylesheetElement(NUM1ParserState &state)
+  : NUM1XMLContextBase<IWORKStylesheetBase>(state)
+{
+}
+
+}
+
+namespace
+{
+
 class WorkSpaceElement : public NUM1XMLElementContextBase
 {
 public:
   explicit WorkSpaceElement(NUM1ParserState &state);
 
 private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  void startOfElement() override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 };
 
 WorkSpaceElement::WorkSpaceElement(NUM1ParserState &state)
@@ -261,17 +288,11 @@ public:
   explicit WorkSpaceArrayElement(NUM1ParserState &state);
 
 private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  IWORKXMLContextPtr_t element(int name) override;
 };
 
 WorkSpaceArrayElement::WorkSpaceArrayElement(NUM1ParserState &state)
   : NUM1XMLElementContextBase(state)
-{
-}
-
-void WorkSpaceArrayElement::startOfElement()
 {
 }
 
@@ -286,11 +307,6 @@ IWORKXMLContextPtr_t WorkSpaceArrayElement::element(const int name)
   return IWORKXMLContextPtr_t();
 }
 
-void WorkSpaceArrayElement::endOfElement()
-{
-  getCollector()->endWorkSpaceArray();
-}
-
 }
 
 namespace
@@ -302,15 +318,21 @@ public:
   explicit DocumentElement(NUM1ParserState &state);
 
 private:
-  virtual void attribute(int name, const char *value);
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
-
+  void startOfElement() override;
+  void attribute(int name, const char *value) override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 };
 
 DocumentElement::DocumentElement(NUM1ParserState &state)
   : NUM1XMLElementContextBase(state)
 {
+}
+
+void DocumentElement::startOfElement()
+{
+  if (isCollector())
+    getCollector().startDocument();
 }
 
 void DocumentElement::attribute(const int name, const char *const value)
@@ -331,9 +353,12 @@ void DocumentElement::attribute(const int name, const char *const value)
 
 IWORKXMLContextPtr_t DocumentElement::element(const int name)
 {
-
   switch (name)
   {
+  case IWORKToken::NS_URI_SF | IWORKToken::metadata :
+    return makeContext<IWORKMetadataElement>(getState());
+  case NUM1Token::NS_URI_LS | NUM1Token::stylesheet :
+    return makeContext<StylesheetElement>(getState());
   case NUM1Token::NS_URI_LS | NUM1Token::workspace_array :
     return makeContext<WorkSpaceArrayElement>(getState());
   }
@@ -343,6 +368,8 @@ IWORKXMLContextPtr_t DocumentElement::element(const int name)
 
 void DocumentElement::endOfElement()
 {
+  if (isCollector())
+    getCollector().endDocument();
 }
 
 }
@@ -356,7 +383,7 @@ public:
   explicit XMLDocument(NUM1ParserState &state);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  IWORKXMLContextPtr_t element(int name) override;
 };
 
 XMLDocument::XMLDocument(NUM1ParserState &state)
@@ -377,7 +404,37 @@ IWORKXMLContextPtr_t XMLDocument::element(const int name)
 
 }
 
-NUM1Parser::NUM1Parser(const RVNGInputStreamPtr_t &input, const RVNGInputStreamPtr_t &package, NUMCollector *const collector, NUMDictionary *const dict)
+namespace
+{
+
+class DiscardContext : public NUM1XMLContextBase<IWORKDiscardContext>
+{
+public:
+  explicit DiscardContext(NUM1ParserState &state);
+
+private:
+  IWORKXMLContextPtr_t element(int name) override;
+};
+
+DiscardContext::DiscardContext(NUM1ParserState &state)
+  : NUM1XMLContextBase<IWORKDiscardContext>(state)
+{
+}
+
+IWORKXMLContextPtr_t DiscardContext::element(const int name)
+{
+  switch (name)
+  {
+  case NUM1Token::NS_URI_LS | NUM1Token::stylesheet :
+    return makeContext<StylesheetElement>(getState());
+  }
+
+  return shared_from_this();
+}
+
+}
+
+NUM1Parser::NUM1Parser(const RVNGInputStreamPtr_t &input, const RVNGInputStreamPtr_t &package, NUMCollector &collector, NUM1Dictionary *const dict)
   : IWORKParser(input, package)
   , m_state(*this, collector, *dict)
 {
@@ -390,6 +447,11 @@ NUM1Parser::~NUM1Parser()
 IWORKXMLContextPtr_t NUM1Parser::createDocumentContext()
 {
   return makeContext<XMLDocument>(m_state);
+}
+
+IWORKXMLContextPtr_t NUM1Parser::createDiscardContext()
+{
+  return makeContext<DiscardContext>(m_state);
 }
 
 const IWORKTokenizer &NUM1Parser::getTokenizer() const

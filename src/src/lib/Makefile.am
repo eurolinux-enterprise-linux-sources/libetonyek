@@ -9,33 +9,64 @@ endif
 
 noinst_LTLIBRARIES = libetonyek_internal.la
 lib_LTLIBRARIES = libetonyek-@ETONYEK_MAJOR_VERSION@.@ETONYEK_MINOR_VERSION@.la
-libetonyek_@ETONYEK_MAJOR_VERSION@_@ETONYEK_MINOR_VERSION@_includedir = $(includedir)/libetonyek-@ETONYEK_MAJOR_VERSION@.@ETONYEK_MINOR_VERSION@/libetonyek
-libetonyek_@ETONYEK_MAJOR_VERSION@_@ETONYEK_MINOR_VERSION@_include_HEADERS = \
-	$(top_srcdir)/inc/libetonyek/libetonyek.h \
-	$(top_srcdir)/inc/libetonyek/EtonyekDocument.h
 
-AM_CXXFLAGS = -I$(top_srcdir)/inc -I$(top_srcdir)/src/lib/contexts $(REVENGE_CFLAGS) $(XML_CFLAGS) $(ZLIB_CFLAGS) $(BOOST_CFLAGS) $(GLM_CFLAGS) $(DEBUG_CXXFLAGS) -DLIBETONYEK_BUILD
+AM_CXXFLAGS = \
+	-DLIBETONYEK_BUILD \
+	-I$(top_srcdir)/inc \
+	-I$(top_srcdir)/src/lib/contexts \
+	$(BOOST_CFLAGS) \
+	$(GLM_CFLAGS) \
+	$(LANGTAG_CFLAGS) \
+	$(MDDS_CFLAGS) \
+	$(REVENGE_CFLAGS) \
+	$(XML_CFLAGS) \
+	$(ZLIB_CFLAGS) \
+	$(DEBUG_CXXFLAGS)
 
-libetonyek_@ETONYEK_MAJOR_VERSION@_@ETONYEK_MINOR_VERSION@_la_LIBADD  = libetonyek_internal.la $(REVENGE_LIBS) $(XML_LIBS) $(ZLIB_LIBS) @LIBETONYEK_WIN32_RESOURCE@
+libetonyek_@ETONYEK_MAJOR_VERSION@_@ETONYEK_MINOR_VERSION@_la_LIBADD  = libetonyek_internal.la $(REVENGE_LIBS) $(LANGTAG_LIBS) $(XML_LIBS) $(ZLIB_LIBS) @LIBETONYEK_WIN32_RESOURCE@
 libetonyek_@ETONYEK_MAJOR_VERSION@_@ETONYEK_MINOR_VERSION@_la_DEPENDENCIES = libetonyek_internal.la @LIBETONYEK_WIN32_RESOURCE@
 libetonyek_@ETONYEK_MAJOR_VERSION@_@ETONYEK_MINOR_VERSION@_la_LDFLAGS = $(version_info) -export-dynamic -no-undefined
 libetonyek_@ETONYEK_MAJOR_VERSION@_@ETONYEK_MINOR_VERSION@_la_SOURCES = \
 	EtonyekDocument.cpp
 
+libetonyek_internal_la_CPPFLAGS = -DBOOST_SPIRIT_USE_PHOENIX_V3
 libetonyek_internal_la_SOURCES = \
+	IWAField.cpp \
+	IWAField.h \
+	IWAMessage.cpp \
+	IWAMessage.h \
+	IWAObjectType.h \
+	IWAParser.cpp \
+	IWAParser.h \
+	IWAReader.cpp \
+	IWAReader.h \
+	IWASnappyStream.cpp \
+	IWASnappyStream.h \
+	IWAText.cpp \
+	IWAText.h \
 	IWORKChainedTokenizer.cpp \
 	IWORKChainedTokenizer.h \
+	IWORKChart.cpp \
+	IWORKChart.h \
 	IWORKCollector.cpp \
 	IWORKCollector.h \
 	IWORKDictionary.cpp \
 	IWORKDictionary.h \
+	IWORKDiscardContext.cpp \
+	IWORKDiscardContext.h \
 	IWORKDocumentInterface.cpp \
 	IWORKDocumentInterface.h \
 	IWORKEnum.h \
+	IWORKFormula.cpp \
+	IWORKFormula.h \
+	IWORKLanguageManager.cpp \
+	IWORKLanguageManager.h \
 	IWORKMemoryStream.cpp \
 	IWORKMemoryStream.h \
 	IWORKOutputElements.cpp \
 	IWORKOutputElements.h \
+	IWORKOutputManager.cpp \
+	IWORKOutputManager.h \
 	IWORKParser.cpp \
 	IWORKParser.h \
 	IWORKPath.cpp \
@@ -45,29 +76,35 @@ libetonyek_internal_la_SOURCES = \
 	IWORKPresentationRedirector.h \
 	IWORKProperties.cpp \
 	IWORKProperties.h \
+	IWORKPropertyHandler.cpp \
+	IWORKPropertyHandler.h \
 	IWORKPropertyInfo.h \
 	IWORKPropertyMap.cpp \
 	IWORKPropertyMap.h \
+	IWORKRecorder.cpp \
+	IWORKRecorder.h \
 	IWORKShape.cpp \
 	IWORKShape.h \
 	IWORKSpreadsheetRedirector.cpp \
 	IWORKSpreadsheetRedirector.h \
 	IWORKStyle.cpp \
 	IWORKStyle.h \
+	IWORKStyleStack.cpp \
+	IWORKStyleStack.h \
 	IWORKStyle_fwd.h \
 	IWORKStylesheet.cpp \
 	IWORKStylesheet.h \
-	IWORKStyleStack.cpp \
-	IWORKStyleStack.h \
 	IWORKTable.cpp \
 	IWORKTable.h \
+	IWORKTableRecorder.cpp \
+	IWORKTableRecorder.h \
 	IWORKText.cpp \
 	IWORKText.h \
-	IWORKText_fwd.h \
+	IWORKTextRecorder.cpp \
+	IWORKTextRecorder.h \
 	IWORKTextRedirector.cpp \
 	IWORKTextRedirector.h \
-	IWORKTransformation.cpp \
-	IWORKTransformation.h \
+	IWORKText_fwd.h \
 	IWORKToken.cpp \
 	IWORKToken.h \
 	IWORKTokenInfo.h \
@@ -75,6 +112,8 @@ libetonyek_internal_la_SOURCES = \
 	IWORKTokenizer.h \
 	IWORKTokenizerBase.cpp \
 	IWORKTokenizerBase.h \
+	IWORKTransformation.cpp \
+	IWORKTransformation.h \
 	IWORKTypes.cpp \
 	IWORKTypes.h \
 	IWORKTypes_fwd.h \
@@ -86,12 +125,14 @@ libetonyek_internal_la_SOURCES = \
 	IWORKXMLParserState.h \
 	IWORKZlibStream.cpp \
 	IWORKZlibStream.h \
-	IWORKZoneManager.cpp \
-	IWORKZoneManager.h \
 	KEY1Parser.cpp \
 	KEY1Parser.h \
 	KEY1Token.cpp \
 	KEY1Token.h \
+	KEY2Collector.cpp \
+	KEY2Collector.h \
+	KEY2Dictionary.cpp \
+	KEY2Dictionary.h \
 	KEY2Parser.cpp \
 	KEY2Parser.h \
 	KEY2ParserState.cpp \
@@ -99,17 +140,16 @@ libetonyek_internal_la_SOURCES = \
 	KEY2Token.cpp \
 	KEY2Token.h \
 	KEY2XMLContextBase.h \
+	KEY6ObjectType.h \
+	KEY6Parser.cpp \
+	KEY6Parser.h \
 	KEYCollector.cpp \
 	KEYCollector.h \
-	KEYDictionary.cpp \
-	KEYDictionary.h \
 	KEYTypes.cpp \
 	KEYTypes.h \
 	KEYTypes_fwd.h \
-	NUMCollector.cpp \
-	NUMCollector.h \
-	NUMDictionary.cpp \
-	NUMDictionary.h \
+	NUM1Dictionary.cpp \
+	NUM1Dictionary.h \
 	NUM1Parser.cpp \
 	NUM1Parser.h \
 	NUM1ParserState.cpp \
@@ -117,10 +157,13 @@ libetonyek_internal_la_SOURCES = \
 	NUM1Token.cpp \
 	NUM1Token.h \
 	NUM1XMLContextBase.h \
-	PAGCollector.cpp \
-	PAGCollector.h \
-	PAGDictionary.cpp \
-	PAGDictionary.h \
+	NUM3ObjectType.h \
+	NUM3Parser.cpp \
+	NUM3Parser.h \
+	NUMCollector.cpp \
+	NUMCollector.h \
+	PAG1Dictionary.cpp \
+	PAG1Dictionary.h \
 	PAG1Parser.cpp \
 	PAG1Parser.h \
 	PAG1ParserState.cpp \
@@ -128,40 +171,131 @@ libetonyek_internal_la_SOURCES = \
 	PAG1Token.cpp \
 	PAG1Token.h \
 	PAG1XMLContextBase.h \
+	PAG5ObjectType.h \
+	PAG5Parser.cpp \
+	PAG5Parser.h \
+	PAGCollector.cpp \
+	PAGCollector.h \
+	PAGEnum.h \
+	PAGProperties.cpp \
+	PAGProperties.h \
+	PAGTypes.cpp \
+	PAGTypes.h \
+	contexts/IWORKBezierElement.cpp \
+	contexts/IWORKBezierElement.h \
+	contexts/IWORKBinaryElement.cpp \
+	contexts/IWORKBinaryElement.h \
+	contexts/IWORKBrContext.cpp \
+	contexts/IWORKBrContext.h \
 	contexts/IWORKColorElement.cpp \
 	contexts/IWORKColorElement.h \
+	contexts/IWORKContainerContext.h \
+	contexts/IWORKCoreImageFilterDescriptorElement.cpp \
+	contexts/IWORKCoreImageFilterDescriptorElement.h \
+	contexts/IWORKChartInfoElement.cpp \
+	contexts/IWORKChartInfoElement.h \
+	contexts/IWORKDataElement.cpp \
+	contexts/IWORKDataElement.h \
+	contexts/IWORKDirectCollector.h \
+	contexts/IWORKFilteredImageElement.cpp \
+	contexts/IWORKFilteredImageElement.h \
+	contexts/IWORKFoElement.cpp \
+	contexts/IWORKFoElement.h \
 	contexts/IWORKGeometryElement.cpp \
 	contexts/IWORKGeometryElement.h \
+	contexts/IWORKGroupElement.cpp \
+	contexts/IWORKGroupElement.h \
+	contexts/IWORKHeaderFooterContext.cpp \
+	contexts/IWORKHeaderFooterContext.h \
+	contexts/IWORKImageContext.cpp \
+	contexts/IWORKImageContext.h \
+	contexts/IWORKImageElement.cpp \
+	contexts/IWORKImageElement.h \
 	contexts/IWORKLayoutElement.cpp \
 	contexts/IWORKLayoutElement.h \
+	contexts/IWORKLineElement.cpp \
+	contexts/IWORKLineElement.h \
+	contexts/IWORKLinkElement.cpp \
+	contexts/IWORKLinkElement.h \
+	contexts/IWORKListLabelGeometriesProperty.cpp \
+	contexts/IWORKListLabelGeometriesProperty.h \
+	contexts/IWORKListLabelGeometryElement.cpp \
+	contexts/IWORKListLabelGeometryElement.h \
+	contexts/IWORKListLabelIndentsProperty.cpp \
+	contexts/IWORKListLabelIndentsProperty.h \
+	contexts/IWORKListLabelTypeinfoElement.cpp \
+	contexts/IWORKListLabelTypeinfoElement.h \
+	contexts/IWORKListLabelTypesProperty.cpp \
+	contexts/IWORKListLabelTypesProperty.h \
+	contexts/IWORKListstyleElement.cpp \
+	contexts/IWORKListstyleElement.h \
+	contexts/IWORKListTextIndentsProperty.cpp \
+	contexts/IWORKListTextIndentsProperty.h \
 	contexts/IWORKMediaElement.cpp \
 	contexts/IWORKMediaElement.h \
+	contexts/IWORKMetadataElement.cpp \
+	contexts/IWORKMetadataElement.h \
+	contexts/IWORKMutableArrayElement.h \
+	contexts/IWORKNumberConverter.cpp \
+	contexts/IWORKNumberConverter.h \
+	contexts/IWORKNumberElement.h \
+	contexts/IWORKNumericPropertyContext.h \
 	contexts/IWORKPElement.cpp \
 	contexts/IWORKPElement.h \
+	contexts/IWORKPathElement.cpp \
+	contexts/IWORKPathElement.h \
 	contexts/IWORKPositionElement.cpp \
 	contexts/IWORKPositionElement.h \
+	contexts/IWORKPropertyContext.h \
+	contexts/IWORKPropertyContextBase.cpp \
+	contexts/IWORKPropertyContextBase.h \
 	contexts/IWORKPropertyMapElement.cpp \
 	contexts/IWORKPropertyMapElement.h \
+	contexts/IWORKPtrPropertyContext.h \
+	contexts/IWORKPushCollector.h \
 	contexts/IWORKRefContext.cpp \
 	contexts/IWORKRefContext.h \
+	contexts/IWORKShapeContext.cpp \
+	contexts/IWORKShapeContext.h \
 	contexts/IWORKSizeElement.cpp \
 	contexts/IWORKSizeElement.h \
-	contexts/IWORKStylesContext.cpp \
-	contexts/IWORKStylesContext.h \
+	contexts/IWORKSpanElement.cpp \
+	contexts/IWORKSpanElement.h \
+	contexts/IWORKStringElement.cpp \
+	contexts/IWORKStringElement.h \
 	contexts/IWORKStyleContext.cpp \
 	contexts/IWORKStyleContext.h \
 	contexts/IWORKStyleRefContext.cpp \
 	contexts/IWORKStyleRefContext.h \
+	contexts/IWORKStylesContext.cpp \
+	contexts/IWORKStylesContext.h \
+	contexts/IWORKStylesheetBase.cpp \
+	contexts/IWORKStylesheetBase.h \
+	contexts/IWORKTabElement.cpp \
+	contexts/IWORKTabElement.h \
+	contexts/IWORKTabsElement.cpp \
+	contexts/IWORKTabsElement.h \
 	contexts/IWORKTabularInfoElement.cpp \
 	contexts/IWORKTabularInfoElement.h \
+	contexts/IWORKTextElement.cpp \
+	contexts/IWORKTextElement.h \
 	contexts/IWORKTextBodyElement.cpp \
 	contexts/IWORKTextBodyElement.h \
+	contexts/IWORKTextLabelElement.cpp \
+	contexts/IWORKTextLabelElement.h \
 	contexts/IWORKTextStorageElement.cpp \
 	contexts/IWORKTextStorageElement.h \
+	contexts/IWORKUnfilteredElement.cpp \
+	contexts/IWORKUnfilteredElement.h \
+	contexts/IWORKValueContext.h \
 	contexts/KEY2StyleContext.cpp \
 	contexts/KEY2StyleContext.h \
-	contexts/KEY2StyleRefContext.cpp \
-	contexts/KEY2StyleRefContext.h \
+	contexts/PAG1FootnotesElement.cpp \
+	contexts/PAG1FootnotesElement.h \
+	contexts/PAG1StyleContext.cpp \
+	contexts/PAG1StyleContext.h \
+	contexts/PAG1TextStorageElement.cpp \
+	contexts/PAG1TextStorageElement.h \
 	libetonyek_utils.cpp \
 	libetonyek_utils.h \
 	libetonyek_xml.cpp \
@@ -175,29 +309,21 @@ if OS_WIN32
 
 endif
 
-distclean-local :
-	rm -f $(BUILT_SOURCES)
-
 EXTRA_DIST = \
 	IWORKToken.gperf \
 	KEY1Token.gperf \
 	KEY2Token.gperf \
 	NUM1Token.gperf \
 	PAG1Token.gperf \
-	libetonyek.rc.in
+	libetonyek.rc.in \
+	libetonyek.rc \
+	$(BUILT_SOURCES)
 
-# These may be in the builddir too
-BUILD_EXTRA_DIST = \
-	libetonyek.rc
-
-IWORKToken.cpp : IWORKToken.inc
-KEY1Token.cpp : KEY1Token.inc
-KEY2Token.cpp : KEY2Token.inc
-NUM1Token.cpp : NUM1Token.inc
-PAG1Token.cpp : PAG1Token.inc
+MOSTLYCLEANFILES = $(BUILT_SOURCES)
+DISTCLEANFILES = libetonyek.rc
 
 %.inc : %.gperf
-	if $(GPERF) $(GPERFFLAGS) --language C++ $< > $@.tmp; then \
+	if $(GPERF) $(GPERFFLAGS) --language C++ $< | sed -e 's/\<register //g' > $@.tmp; then \
 		mv $@.tmp $@; \
 	else \
 		rm -f $@.tmp; \

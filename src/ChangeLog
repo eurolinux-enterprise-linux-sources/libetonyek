@@ -1,3 +1,3278 @@
+2017-10-23  David Tardon  <dtardon@redhat.com>  [423b931132454d3a0661b210afdbff3a44bb5999]
+
+	prepare for a release
+
+	Change-Id: I6cbbec8555c1658b5a689e22265f6719537b12c5
+
+2017-10-23  David Tardon  <dtardon@redhat.com>  [374b0743cca33cbed8f1a931969bee0a71c02efd]
+
+	use mdds 1.2 as default
+
+	Change-Id: Ib56754480e48de660bd78ad463f9dcd5eaf680d3
+
+2017-10-23  David Tardon  <dtardon@redhat.com>  [b57478b5b6bb7f37409c2577842ba6416c68d66d]
+
+	drop outdated MSVC project files
+
+	Change-Id: I5a898c04944c93f6301b35c41930639963991fc9
+
+2017-10-22  David Tardon  <dtardon@redhat.com>  [1bd5f059660aa2b297e94e1dc9ca2335554c7df9]
+
+	add Laurent to contributors
+
+	Change-Id: Id97c4d65007acf22106cbcff8bb3f195ff4e8891
+
+2017-10-22  osnola  <alonso@loria.fr>  [3548af4ba3e888c7771c96c96c62a566112e682c]
+
+	Clean code: move the function to find recursively a style in IWORKStyleSheet.
+
+	Change-Id: I11e481af59c37f04cb6daab9eba16818850c68e8
+
+2017-10-22  osnola  <alonso@loria.fr>  [5628e391ecde8ecf1100f3a66ea0a9b1821f5046]
+
+	Also look for parent-ident in parent sheetstyle(if a parent exists).
+
+	Change-Id: I39a48ae77a0f51d8c5668434edddda6c9941974e
+
+2017-10-22  osnola  <alonso@loria.fr>  [da717b37647ef5ecba43342be8b1ca744701c154]
+
+	Try to retrieve the page-breaks...
+
+	Change-Id: I8d09c495dfb6d41a596fb92ac295cb4501b13336
+
+2017-10-22  osnola  <alonso@loria.fr>  [536754be878ab71eff275e9a5a06cf305ac757d4]
+
+	Only send page-break if page-break is true+flush list before doing a draw
+
+	Change-Id: Ifad965ee06cc0832ba9c139287f269076b4307f3
+
+2017-10-22  osnola  <alonso@loria.fr>  [66b8130b03a6b47334e4b56cae49f6c57ab4a9a2]
+
+	Replace pageBreak character by a insertLine+do not send special characters
+
+	Change-Id: Ica1a7be90c10679a39aede664f0e8f127c8d0173
+
+2017-10-22  osnola  <alonso@loria.fr>  [57a1d9d8fa230effd4dffc1826f54e84f809855d]
+
+	Try to retrieve more list styles...
+
+	Change-Id: I6a7c6ce985432061c6c1c5304904864ca164a758
+
+2017-10-22  osnola  <alonso@loria.fr>  [dad2796da00f0369d34b8dbce840dc3896f8000e]
+
+	Search also for correspondance between sf:style in sf:ident for all styles.
+
+	Change-Id: Ia4ad584b6c3082eb9cdc0b9945ec0507749d9ca6
+
+2017-10-22  osnola  <alonso@loria.fr>  [f7f5604b53930f549bb46f02f45cb3ac489ce88c]
+
+	Search also for correspondance between sf:style in sf:ident for paragraph.
+
+	Change-Id: Icd63a26448e889eb2f72ce49a362295e20a15b41
+
+2017-10-22  osnola  <alonso@loria.fr>  [d59f758e1def1d5f3b1574740c3b3d1ff066a50c]
+
+	Try to make sheetstyle_ref working...
+
+	Change-Id: I90fec60c474d77bbcc316aba3c63c0d29874d0d6
+
+2017-10-21  David Tardon  <dtardon@redhat.com>  [a80a0a73ee3fb750cb5935b1eb4aa60194338af9]
+
+	bump version
+
+	Change-Id: I8597f033ec0b53572984c5726718a3d88a0cb365
+
+2017-09-28  David Tardon  <dtardon@redhat.com>  [2d0ff134ba25b132e1f0581fc4c2b042cc92f38f]
+
+	avoid output from fuzzer
+
+	Change-Id: I3a55412bde4ce0dae2c804c57975b9ba969755ba
+
+2017-08-29  Miklos Vajna  <vmiklos@collabora.co.uk>  [9ee0c158390b9e949f6122467d7f58988ef25db4]
+
+	Convert explicit for loops to range-based ones where possible
+
+	Change-Id: I1f77c1bcbca8aba51e8ebb8cada4484e9a10212c
+
+2017-08-28  Miklos Vajna  <vmiklos@collabora.co.uk>  [9b896591f998db647d2be0ecfbaa7bfa000c74a3]
+
+	Convert 0 to nullptr where it's used as a pointer value
+
+	To make the code easier to read, because this means the remaining zeros
+	all mean numbers.
+
+	Change-Id: Ie3cfcb931aa9e52138dc8731b348b944f595d54b
+
+2017-08-27  Miklos Vajna  <vmiklos@collabora.co.uk>  [d94fade840b69cfac72f99e40ecac6e2100c7a45]
+
+	Mark overriding member functions as 'override'
+
+	This does not affect the generated code (API or ABI), but:
+
+	1) Makes sure that in case the signature of one of these functions would
+	change by accident, the build breaks as the function no longer overrides
+	a base function.
+
+	2) Makes the code readable by explicitly marking all overriding
+	functions as 'override', where previously the reader had to read the
+	interface of the base class(es) as well to find out if the function is
+	virtual or not.
+
+	3) Since 'override' implies 'virtual', remove the 'virtual' keyword
+	where 'override' is present.
+
+	Change-Id: I5bee156a155237be6c4e53500576bd2141f8f873
+
+2017-08-26  Miklos Vajna  <vmiklos@collabora.co.uk>  [60ac5e8bee38d5732571d8a12e4ff38413f2073a]
+
+	Fix clang -Wunused-private-field warnings
+
+	Change-Id: I012562fcbc1524492e87c39fba503fd452436c6f
+
+2017-08-25  Miklos Vajna  <vmiklos@collabora.co.uk>  [0cc8d34debae2bfe802a54b393eb5d47982ff9e0]
+
+	Remove unused using declarations
+
+	Change-Id: I5ee328fe55abafcf9826523da2979a92f683fe0c
+
+2017-08-24  Miklos Vajna  <vmiklos@collabora.co.uk>  [3a567814fbcfe49626b3ea634490aff49744e16f]
+
+	IWORKTabularInfoElement: fix gcc-4.8 -Wshadow warning
+
+	contexts/IWORKTabularInfoElement.cpp: In member function 'void libetonyek::{anonymous}::CellContextBase::emitCell(bool)':
+	contexts/IWORKTabularInfoElement.cpp:205:27: error: declaration of 'text' shadows a member of 'this' [-Werror=shadow]
+	       IWORKTextPtr_t text(getState().m_currentText);
+	                               ^
+
+	Change-Id: Idc8c2957766c485265413f5221853be3394940f0
+
+2017-08-23  Miklos Vajna  <vmiklos@collabora.co.uk>  [a53ca4c22673df62b4ad3f90c555f7803c4be792]
+
+	IWORKMemoryStream: fix gcc-4.8 build
+
+	IWORKMemoryStream.cpp: In constructor 'libetonyek::IWORKMemoryStream::IWORKMemoryStream(const unsigned char*, unsigned int)':
+	IWORKMemoryStream.cpp:59:12: error: call of overloaded 'unique_ptr(int)' is ambiguous
+
+	Change-Id: Ic1e2c9bd7e5fb740b65e01393bc36c9464681f14
+
+2017-08-02  David Tardon  <dtardon@redhat.com>  [3dcc79e27b0fb5396ef4f6416d3a93dcbaa48738]
+
+	look for macros in m4/
+
+	Change-Id: Ib0700e171bf1da683b79e333838eca5646c5f681
+
+2017-07-30  David Tardon  <dtardon@redhat.com>  [69c5ad6d4c296bc9bc5624e2f789d7e57840c6b4]
+
+	replace decl. of cstdint stuff by boost
+
+	... although I suspect this is no longer necessary for recent versions
+	of MSVC.
+
+	Change-Id: Iba4e55a0f08e1358d3f098dbd82dfce228ff0aeb
+
+2017-07-30  David Tardon  <dtardon@redhat.com>  [3ec5f1c4ba705893ece33a73154f3a9cc3bd5b19]
+
+	the arg is not needed
+
+	Change-Id: I1fa8649e7f6837d38396856af8248aca0f6bd61b
+
+2017-07-30  David Tardon  <dtardon@redhat.com>  [a0deea09743e2b9e4afa68acc37748b1995da651]
+
+	drop verbose debug
+
+	Change-Id: I306fc768432c33ad0de5d1ddd6e9366afcd147a7
+
+2017-07-30  David Tardon  <dtardon@redhat.com>  [1d2654174a0a87b18328474b10daa86dcd963a01]
+
+	detect __attribute__((format)) in configure
+
+	Change-Id: I851e281d276cb2d53a9009880683a0202fe1087f
+
+2017-07-29  David Tardon  <dtardon@redhat.com>  [ac04b48cc659f8b39830bf249c79253ffb751a58]
+
+	suppress GCC 7 fallthrough warnings
+
+	Change-Id: Iddf0c8e50378cb575da8200e82289127a87d7938
+
+2017-06-06  David Tardon  <dtardon@redhat.com>  [932a85db01d629b84508e1bc237a0dc9dab79371]
+
+	ofz#2066 the stream can be null here
+
+	Change-Id: I0c7a7334286762a309ae242ebf0954fa7faccf1f
+
+2017-06-06  David Tardon  <dtardon@redhat.com>  [c4d71c2faa535f9119338a8fced272b8ac886e38]
+
+	astyle
+
+	Change-Id: I3d56f21348519b56af6e8b52622f865659a4e299
+
+2017-05-30  Caolán McNamara  <caolanm@redhat.com>  [f6854ea3eb4418d27b94a7cd7d0638ca5e15add1]
+
+	don't output libxml2 error spew on non/bad xml
+
+
+2017-04-25  David Tardon  <dtardon@redhat.com>  [9bfe0a1a2d258a2601443ad1865c1f5927acb139]
+
+	replace a dumb pointer by a smart one
+
+	Change-Id: Ia74ef1c7be4acf443eb1b6d5ac8da7bf50c390fd
+
+2017-04-11  David Tardon  <dtardon@redhat.com>  [706d603d184669a3adccc29aad0213413653ed61]
+
+	ofz#1084 getting an existing stream can still fail
+
+	E.g., because decompression failed.
+
+	Change-Id: I24398aa1a24d258005a2de5999afb29cb19d6ecc
+
+2017-04-07  David Tardon  <dtardon@redhat.com>  [80e90d03736f32b91c950b2a5417b3304540fabe]
+
+	build lang. manager tests conditionally
+
+	Change-Id: I5e10ea33d0e34415b3e5aad8c80124bde7f53ba7
+
+2017-04-07  David Tardon  <dtardon@redhat.com>  [47d8cb5bc7cf151417dcd93604d091cb7c532c27]
+
+	allow to build without liblangtag
+
+	This is only a hack for simplifying build for oss-fuzz and it should not
+	be used for "real" builds.
+
+	Change-Id: I33f8ab02d77b1dee198fab2d811fb3939433c6c4
+
+2017-04-07  David Tardon  <dtardon@redhat.com>  [4da35d628e149cfda5dbef16775dd5fd99537eb8]
+
+	Revert "allow to set liblangtag datadir (for oss-fuzz)"
+
+	This reverts commit d9c866d9279649379a5125c846d2388f036296ef.
+
+2017-04-07  David Tardon  <dtardon@redhat.com>  [d9c866d9279649379a5125c846d2388f036296ef]
+
+	allow to set liblangtag datadir (for oss-fuzz)
+
+	Change-Id: I35eb49e4d7cae0e795617b0ae3447dc1d7c06968
+
+2017-04-06  David Tardon  <dtardon@redhat.com>  [e7f63850beaf343810bafa243d5da0cf5f66368d]
+
+	drop unused includes
+
+	Change-Id: Ia7cfc29029aceeab98ac272f8e14ac15dcafebf0
+
+2017-04-06  David Tardon  <dtardon@redhat.com>  [1e5767401a8ff29cd9285f8dcf86c7c1460710a4]
+
+	boost::function -> std::function
+
+	Change-Id: I25ed485b8c8cd44c08e58a4071bd2374c8caed0d
+
+2017-04-06  David Tardon  <dtardon@redhat.com>  [d158739c7ed592dc5000a8d922e77f4360537547]
+
+	boost::bind -> std::bind
+
+	Change-Id: I144318a4e3deb2ff29d17239a5c395ddaab1b3c0
+
+2017-04-06  David Tardon  <dtardon@redhat.com>  [95e4b5b8906ee1ec5049c7f4bfbe197116453b2d]
+
+	boost::unordered_set -> std::unordered_set
+
+	Change-Id: Ie3d41747e2bddca102731c9025974dd39e1ac93a
+
+2017-04-06  David Tardon  <dtardon@redhat.com>  [b5b7ca041263be00691574b15787811f9e8a58fa]
+
+	boost::unordered_map -> std::unordered_map
+
+	Change-Id: I7d7a6f4195bf5ea29bc4f5e0eef7323129dcb9aa
+
+2017-04-06  David Tardon  <dtardon@redhat.com>  [3fb43f0cdfe873ad2bb2bc1920fc5d5031b1a23d]
+
+	boost::scoped_ptr is unused
+
+	Change-Id: Id10efbfd87cfd9abd9b2a20e8c42cb1c15226693
+
+2017-04-06  David Tardon  <dtardon@redhat.com>  [71017c54cdd5baef68e9a2af3d185d47d5d8872f]
+
+	boost::shared_ptr -> std::shared_ptr
+
+	Change-Id: Icb6bb861f457d3fe45f6a297f2dd44f57d9ede21
+
+2017-04-06  David Tardon  <dtardon@redhat.com>  [910c8cb24cfd18ab23276e2d48fb248b8af6c1ed]
+
+	switch to C++11
+
+	Change-Id: I06f3ab898edb645e5ad6d208b7f9547d5bafa69a
+
+2017-04-06  David Tardon  <dtardon@redhat.com>  [3c1635e8e9c08e43676ce68a822a24e5d162293b]
+
+	ignore only selected content of m4 dir
+
+	Change-Id: I0679aafbaa40c4e2f11575cd67b6aba4c03fca62
+
+2017-03-31  David Tardon  <dtardon@redhat.com>  [2812e15225c45aeb1ad51be2c992ce611fd56793]
+
+	fix comment
+
+	Change-Id: I0ba31bc96175b98ce5ab6fdabae3bf61bb9d7c57
+
+2017-03-31  David Tardon  <dtardon@redhat.com>  [6b33659582c723934ab3fc55d01c5b88217a4a8f]
+
+	add fuzzing driver for oss-fuzz
+
+	Change-Id: I9a29ca14e6aa8bcc8b5ebfbe2ee43e4e23985118
+
+2017-03-16  dennisroczek  <dennisroczek@libreoffice.org>  [54a485d2f5bc8448248021565d098f22c5d46fdb]
+
+	fix typo: "the the" --> the
+
+	Change-Id: I5a8766e6b7c48def00b3d5954ceb898cdc402d69
+	Reviewed-on: https://gerrit.libreoffice.org/35169
+	Reviewed-by: Julien Nabet <serval2412@yahoo.fr>
+	Tested-by: Julien Nabet <serval2412@yahoo.fr>
+
+2017-03-12  dennisroczek  <dennisroczek@libreoffice.org>  [20542c2649fced2038e4607e9c08b82a80d1e372]
+
+	fix typo: usefull --> useful
+
+	Change-Id: Id71f659585d9e4ac360f0676fe8bee6b82151b74
+	Reviewed-on: https://gerrit.libreoffice.org/35001
+	Reviewed-by: Adolfo Jayme Barrientos <fitojb@ubuntu.com>
+	Tested-by: Adolfo Jayme Barrientos <fitojb@ubuntu.com>
+
+2017-02-22  David Tardon  <dtardon@redhat.com>  [1fd67d70c41f7b5250e7e2c3f73dc846bce65572]
+
+	use CPPUNIT_ASSERT_EQUAL
+
+	Change-Id: If94d56264ad13ae0074209b8eb402290d50589fb
+
+2016-09-30  David Tardon  <dtardon@redhat.com>  [71ccd90029745e33eb62384e90069a77f5a69730]
+
+	make the mdds test forward-compatible
+
+	Change-Id: I8111097cbd51b5c875a9510ad26a2a0a7b8c90e8
+
+2016-09-30  David Tardon  <dtardon@redhat.com>  [1a20d8ece2ea3e8aa1d319cd88e8a6aa637982f2]
+
+	drop test that violates Unicode tr#35
+
+	(and therefore fails with latest liblangtag)
+
+	Change-Id: I0e06c6c4e8bcf999cf5559d6287e77ae97e555d8
+
+2016-09-30  David Tardon  <dtardon@redhat.com>  [00b7b65ad62ca82e4f7c04e17c87b8d08a0825ec]
+
+	remove unused context class
+
+	Change-Id: Ia903eaacfe6680976453229a0d11ecabcfa96736
+
+2016-09-30  David Tardon  <dtardon@redhat.com>  [9b194894fb1ea272c9103948f3808add34bdb77b]
+
+	WaE: unused function
+
+	Change-Id: Icae5e4b1c7439f75186623f106e2b4253524851f
+
+2016-06-09  Fridrich Štrba  <fridrich.strba@bluewin.ch>  [f6d14b3b510de5c50e45c98fe812a73ba00f3def]
+
+	Allow building with mdds-1.2
+
+	Change-Id: If8791b4c1c3fbefdd06af345276e0a724dff5482
+
+2016-03-06  osnola  <alonso@loria.fr>  [47f8d3b930cf47af5c67bdd9d27996c81cacd5a5]
+
+	parse followingLayoutStyle and followingParagraphStyle
+
+	Change-Id: I895ca642c6888fbbc8a5b9439c91c6c40e8e1f99
+
+2016-02-21  osnola  <alonso@loria.fr>  [37d56bf2489920cc951f0544da8c84fb8f7d8ca6]
+
+	recognize decimal label
+
+	Change-Id: I94e066cf2699a43aeaca6e1ece03586965537b51
+
+2016-02-21  osnola  <alonso@loria.fr>  [a97954bb4ba604f850eea11f51f26fa9b948fbc5]
+
+	retrieve more values in tables
+
+	Change-Id: I21408a83527e0ca8a05e839174e228564e29d812
+
+2016-02-21  osnola  <alonso@loria.fr>  [d00332a1e227e7f133bf8c8cb4cf7d68be6e92c8]
+
+	define cell's border on the right line
+
+	Change-Id: I096b80684ecd4202957d250d5f84944d1b6de0fd
+
+2016-02-21  osnola  <alonso@loria.fr>  [c1d0bc5c1188a1e473d1bfd6cf9ad40331dd2767]
+
+	replace a gradient in cell by average color
+
+	Change-Id: I5f79456da74fedb1cf8803ad75f78d270ddacfc2
+
+2016-02-21  osnola  <alonso@loria.fr>  [0107e26a7f8b20165d6fa373ff3159f7adda6934]
+
+	try to read more color + avoid sending 100% opacity
+
+	Change-Id: I1f71e122597da20a0914859f43ee8838c068e42a
+
+2016-02-21  osnola  <alonso@loria.fr>  [7f2ac3a0f52c6c5f7db7042c10752052db8c9348]
+
+	try to retrieve more cell's styles
+
+	Change-Id: Ia25bf628d2cde6de309343f521c2eaac2a55f847
+
+2016-02-16  David Tardon  <dtardon@redhat.com>  [59e42080b3a7f2317afd8f7b93207fdd8a5a1695]
+
+	add liblangtag to deps
+
+	Change-Id: I8ba760c68c182d365c3d28a9205f3acba8d9c5ce
+
+2016-02-16  David Tardon  <dtardon@redhat.com>  [192b2844c5cf593b802329201341f7b9bfd64e54]
+
+	librevenge-stream is not needed
+
+	Change-Id: I9cd88de9c93cb5d0c2f8d65b58876fc3c48f90e9
+
+2016-02-07  osnola  <alonso@loria.fr>  [277602b25579b16d54abb7d214ef7d299244fe6f]
+
+	IWORKCollector: improve gradient reconstruction
+
+	Change-Id: I85a37f3d1467d62bc6b682f6350c21627458ae4e
+
+2016-02-07  osnola  <alonso@loria.fr>  [1a3965b4ddeec82f2a7bebb434f0bb156c62d396]
+
+	read more elements
+
+	Change-Id: If1445611c5ec5643735db0a3f41eaf0358efb6aa
+
+2016-02-07  osnola  <alonso@loria.fr>  [e5bd8dc3c829e4c6cc190a2e15fd8c0d2b2e9990]
+
+	IWORKFormula: send cell's address and number correctly
+
+	Change-Id: I007c9621f1735f420c974e59fcfadd1cbf9f5299
+
+2016-01-27  David Tardon  <dtardon@redhat.com>  [e54e5817f7d56a5fac0e0dac2f1cfd1255355e44]
+
+	allow to map function names
+
+	Change-Id: I4bfdc4c8a6af7b663936758a3e1c8a9eaa7764f4
+
+2016-01-14  David Tardon  <dtardon@redhat.com>  [dcdddfa742e7ef3276c957af9e2027fafb8f645e]
+
+	coverity#1341779 uninitialized scalar field
+
+	Change-Id: I7f549b73e786618ac837297e21dc7818c12d4537
+
+2016-01-14  David Tardon  <dtardon@redhat.com>  [649f459c499ceab07446ed913ae661c31e13044a]
+
+	fix brain fart
+
+	Change-Id: If7c5e3c6cebe2f97f1c9f5793cf25cea135a7735
+
+2016-01-13  David Tardon  <dtardon@redhat.com>  [216fc4ac81cab9c7925aa166032150253a7f2482]
+
+	runLength must always be >0 here
+
+	Change-Id: I0fd3bd481900caf557c9580f51d11fd39148e5f0
+
+2016-01-13  David Tardon  <dtardon@redhat.com>  [eff35328432f01120d44b47494b2b87aa1973dcd]
+
+	length must be >0
+
+	Change-Id: I2f783d43426c7b9ea279639073865ab39710417b
+
+2016-01-12  David Tardon  <dtardon@redhat.com>  [7f668dfd610f9ce82b8747d99a39008314ae3d45]
+
+	fix build in C++98 mode
+
+	Change-Id: Ic9d57f8cf4c2d16a7f7ef77c0d9fb28abd2740a5
+
+2016-01-12  David Tardon  <dtardon@redhat.com>  [92eb3602a2d8830a5c966773ac4cb12ee07a4072]
+
+	fix doxygen syntax
+
+	Change-Id: Ibe9f38454ec117827574a1745c3792e5824dfeb4
+
+2016-01-12  David Tardon  <dtardon@redhat.com>  [801cbfa344692e6285859a79b08e21347f6f7009]
+
+	fix syntax for calling dependent template function
+
+	Change-Id: I35033f15cbf780cf2bf9488d750168235721490d
+
+2016-01-12  David Tardon  <dtardon@redhat.com>  [1891b21d87428263e2488168c6a86f1f0497139b]
+
+	prepare for a release
+
+	Change-Id: I2cedd0b16ba94eb57792f0ec1f997d820f3bfbb4
+
+2016-01-12  David Tardon  <dtardon@redhat.com>  [5dc3be0958c6b52f92686c98c594558085f46c05]
+
+	do not require newest librevenge
+
+	Change-Id: I1b939ffe6944939c41a7465547c119149e8e3f56
+
+2016-01-12  David Tardon  <dtardon@redhat.com>  [88ad2c37982a4f9223dfb921645c297e438ada53]
+
+	prepare for processing slide content at the end of slide
+
+	... as only at this point we know the master slide, therefore the parent
+	stylesheet.
+
+	Change-Id: I7ff29f793ed53df4f3d4ad3967ac2d480dd64dc2
+
+2016-01-12  David Tardon  <dtardon@redhat.com>  [b63ab7db970c8edba149bfb889f09c6c6a6a2e4e]
+
+	allow to delay eval. of slide content
+
+	This is needed because the master slide ref is one of the last elements
+	of slide, so it's only at the end it is possible to link styles to the
+	parent stylesheet. This had somehow slipped my attention and had never
+	been implemented...
+
+	Change-Id: I4582ee9c82454d30eb73fc2320b1845690b0db08
+
+2016-01-12  David Tardon  <dtardon@redhat.com>  [2149276ebd45765ae1637ff4485799d873a3bc80]
+
+	pass undrawn text object to table cell
+
+	Change-Id: If847075cd0b881ccd1f8b405e3b2f9e1f2e42f34
+
+2016-01-12  David Tardon  <dtardon@redhat.com>  [cc4c1e0d69afe7bfd4181953b37c3a3d9c79bcab]
+
+	drop unneeded include
+
+	Change-Id: Ic8ed9b35791cd10959d81cd8c4dad35d33692910
+
+2016-01-12  David Tardon  <dtardon@redhat.com>  [b3d7b1d57a388560f7edc38bcd478900bebba1cc]
+
+	avoid segfault
+
+	Change-Id: I38feae2be0d639344bdc122abd8e21d5450c1024
+
+2016-01-12  David Tardon  <dtardon@redhat.com>  [3456a0677f189ec83cb899456e1dc65f7a8c6000]
+
+	disable handling of lists in Keynote 5 for now
+
+	Change-Id: Ia007ea6a8b2fd750e5cd7bb7497e33927317842e
+
+2016-01-05  David Tardon  <dtardon@redhat.com>  [400fdd20fb89f376ddc69bd4957765a0419b5e0d]
+
+	fix mapping props to text for non-ASCII strings
+
+	Change-Id: Ib384744ed7f2a0ff60d04e9482b0476accb9171b
+
+2016-01-02  David Tardon  <dtardon@redhat.com>  [4fff6e53d66a734c898f94bed7a0a2844dedc6dc]
+
+	keynote5: bullets are the default list type
+
+	Change-Id: I6095bdcde92546cdb685045038c34aa6593ec353
+
+2016-01-02  David Tardon  <dtardon@redhat.com>  [62eb7434387de1d497862fcb31c46e9748de8c0f]
+
+	drop useless message
+
+	Change-Id: I89f4f11ec37d0855d17346cfd319382f91e2900b
+
+2016-01-02  David Tardon  <dtardon@redhat.com>  [41fa3a27f05fea51bde8768910f1fbce5170495a]
+
+	don't print debug message on lists with type 'none'
+
+	Change-Id: I41c34ca8b7d1e3580aa20e95b433bf596aafa245
+
+2016-01-01  David Tardon  <dtardon@redhat.com>  [cf0a6a47416e2b7f40563c6c8faa24a61366012f]
+
+	handle bullets correctly
+
+	Change-Id: If432266d385337d4ebbeea2328d759eaae64bec7
+
+2016-01-01  David Tardon  <dtardon@redhat.com>  [dcb459bbac9553ac07a6fb37c4bbf13527bb6b05]
+
+	drop unneeded include
+
+	Change-Id: I281cc5c07e79316e355b462cadab22fd13e37ea5
+
+2016-01-01  David Tardon  <dtardon@redhat.com>  [f98a2b66f210d5096aa31410093bbf67df89b871]
+
+	fix brain fart
+
+	Change-Id: I714ccf241f1c5a110be3cdc52f924f587f18789a
+
+2015-12-30  David Tardon  <dtardon@redhat.com>  [378ec99e40bab11ebef4ffec74f7182f2f6207a3]
+
+	init. members
+
+	Change-Id: Ieb8ff61d79760c433894f3a1921584b5465dd51f
+
+2015-12-30  David Tardon  <dtardon@redhat.com>  [27ef22b7b8099d0aaf87d3573b30584782bd5a79]
+
+	keynote5: flush opened list levels
+
+	Change-Id: I9c047e2ef38e4d2bde1bee3a0b415791878429d2
+
+2015-12-29  David Tardon  <dtardon@redhat.com>  [126d90c9cf08dc6f2622258ba541426eada43148]
+
+	keynote5: handle lists
+
+	Change-Id: Ie1ecf9298eca61b504c9b4668a212d8806bf6251
+
+2015-12-29  David Tardon  <dtardon@redhat.com>  [8181245a95762496cb9a99b0ba69a7d0e49c91ca]
+
+	list styles are referenceable
+
+	Change-Id: Ic60cdfc993200be5ea3b8ae17f9b876dac1c91e4
+
+2015-12-29  David Tardon  <dtardon@redhat.com>  [ad2459f60aa2736bf1bb2a0984bf299f069439ff]
+
+	recent clang chokes on 'register' keyword
+
+	Change-Id: I853ec9604d66d2c75ccb853c44fcee0b9aa592ed
+
+2015-12-29  David Tardon  <dtardon@redhat.com>  [071ae23930acc5616757ffd1fc7d8bfd3208bc46]
+
+	keynote5: parse image labels
+
+	Change-Id: I6de7e120e77528552d25c128db413123c4d9298f
+
+2015-12-29  David Tardon  <dtardon@redhat.com>  [747a28e2e3eacb740bba61c7c6e7e436d8d489ec]
+
+	keynote5: parse list label type
+
+	Change-Id: I1d7f4fd5bfd081867fe5f217ff22f562427eaeb6
+
+2015-12-29  David Tardon  <dtardon@redhat.com>  [918e640388c18b923f7372c0419813b153bf0e83]
+
+	keynote 5: parse list style props
+
+	Change-Id: I99e0881d48136d008e19c8b292fd7a47bc04e94b
+
+2015-12-29  David Tardon  <dtardon@redhat.com>  [0cf938517917d3ba64f9cb35f12856dcdd506f30]
+
+	generalize collecting of container elements
+
+	Change-Id: Ia69323a75c2c919679a3d773f06ef49b2781abd1
+
+2015-12-28  David Tardon  <dtardon@redhat.com>  [116596c5b4daa86049a5f608b79dc258523b5250]
+
+	keynote 5: start parsing list styles
+
+	Change-Id: I020bee0d4667dc48eb8a5ab8c0015051fe6aaabc
+
+2015-12-28  David Tardon  <dtardon@redhat.com>  [74c2965b71f2909825c57704064c1fbd3230a46e]
+
+	allow to parse props outside of prop. map context
+
+	Change-Id: I9674d80f70c0759ef0a8d8c344a6ea8d80d45b11
+
+2015-12-28  David Tardon  <dtardon@redhat.com>  [4c809065aea31d260aa5f48d665b4ad6bea70b4f]
+
+	allow to handle arrays of refs too
+
+	Change-Id: I9e60a8d2de8691359aa0acb7dd3cf4b961a915fc
+
+2015-12-27  David Tardon  <dtardon@redhat.com>  [722be64f5d62624e12a8282c8f2bc34720445752]
+
+	make --help output more help2man-friendly
+
+	Change-Id: I3a5d8c8089e92986b4e8660640967d8f647e0abb
+
+2015-12-26  David Tardon  <dtardon@redhat.com>  [371ddcdaa6649a3c84fc39f7556a38068c38c07d]
+
+	update AUTHORS
+
+	Change-Id: Id0a7f9533a16f0bb5c1ed2e2d624224bd45088cc
+
+2015-12-26  David Tardon  <dtardon@redhat.com>  [bf72e2351d148cfec088b83ef924a93b67f32d16]
+
+	simplify installation of headers
+
+	Change-Id: I939f231a6ec8e58562a69047acfcf750a287a589
+
+2015-12-26  David Tardon  <dtardon@redhat.com>  [de3fb1a2ad204f03c5d3c7efd73de898d497af52]
+
+	correctly handle lang covering multiple spans
+
+	Change-Id: I9df87155dd650d5550a62c554e5b303e7ea3cc23
+
+2015-12-26  David Tardon  <dtardon@redhat.com>  [2a5832f4bed6dac5f68e7825e58c39bbcbcaeaba]
+
+	mention new dependency
+
+	Change-Id: I1536ce060ca57e68862e8cf774fcb19041107299
+
+2015-12-26  David Tardon  <dtardon@redhat.com>  [e41523e288d30470fbe67a57846725b1380d415d]
+
+	improve handling of text language
+
+	Change-Id: Id437e198bd3e798713254063ac24eb4c181c2076
+
+2015-12-23  David Tardon  <dtardon@redhat.com>  [efa096ef52a445f203456ab32194d38b6f510d7e]
+
+	fix closing paren in list label
+
+	Change-Id: I3a0d41118334906c8a072aa41eec78d837ca5658
+
+2015-12-23  David Tardon  <dtardon@redhat.com>  [f076b5e5511fdf63b1b92508193d8cf37c9c797b]
+
+	update FEATURES
+
+	Change-Id: I96e9cbed373fee476319a641e33992625f1af469
+
+2015-12-22  David Tardon  <dtardon@redhat.com>  [a0a9cdb7ec5616acc487fdb7c8e026f61fadf0bc]
+
+	handle table trafo correctly
+
+	Change-Id: Ie155161c50aa28003eeb72b994232a09506d0a29
+
+2015-12-22  David Tardon  <dtardon@redhat.com>  [7bcaacb3fb3496f25804a0d972556702d255a327]
+
+	group list style props by level
+
+	Change-Id: Icf7e0a47524147b7566fcde0dd59019a7a068e76
+
+2015-12-22  David Tardon  <dtardon@redhat.com>  [103168f3abd6cdf13dee2395e2bbf1ffacba82ef]
+
+	always write the mode
+
+	Change-Id: Ief11ba24f967ca308fd939d5db4c2d674f66bb2f
+
+2015-12-22  David Tardon  <dtardon@redhat.com>  [3287d544723b16aa1ca548ce75d999acf2e9cf45]
+
+	handle list elements with type "none"
+
+	Change-Id: I344a3e2468458e97ceab4e7fa54eaa68c6d6b178
+
+2015-12-21  David Tardon  <dtardon@redhat.com>  [c33fa267913b11c309b4e04d57264bd146161886]
+
+	apply text indent after a bullet
+
+	Change-Id: Iac2284d14feebbedf9f195aedc615b7138a9015a
+
+2015-12-21  David Tardon  <dtardon@redhat.com>  [576d296be341ebf00057e363f4285e097e204dfb]
+
+	list element is used instead of paragraph in lists
+
+	... not wrapping a paragraph as I thought.
+
+	Change-Id: I40f4b9a460244c9271e467e3b6d6d92e587e1906
+
+2015-12-21  David Tardon  <dtardon@redhat.com>  [21e7763707e6fe8f3dc617d5c16315bafe18e5ae]
+
+	handle list level indents
+
+	Change-Id: I2b17235800d09f43345ccc33c8b759af16a94409
+
+2015-12-21  David Tardon  <dtardon@redhat.com>  [696885f4290762d452b059c9cee603db445b4606]
+
+	make sure all opened list levels are closed
+
+	Change-Id: I635469178e47e43b10833be48b8569e6e766f858
+
+2015-12-21  David Tardon  <dtardon@redhat.com>  [b725599f9dc08dd42614927f5147cee0ce47a6aa]
+
+	list levels are 0-based in Keynote 6
+
+	Change-Id: Ibc16aaa01e8b515c08023b6709d9202380877b19
+
+2015-12-21  David Tardon  <dtardon@redhat.com>  [e912bb3635c7b5b3f8026c4b3077d5c45d2d2ae0]
+
+	add debug message
+
+	Change-Id: I98ab3aaba3bd8a6f9f6c41ed7f4070486090f5c0
+
+2015-12-21  David Tardon  <dtardon@redhat.com>  [345ed96c9a1e9a14f1b16e6c6f520200291160bf]
+
+	get props for the right list level
+
+	Change-Id: I6b84664ff4912bbe3bdb0b8754375bd2d8885ec2
+
+2015-12-21  David Tardon  <dtardon@redhat.com>  [2a8e043b64014fc92454e1c7a2b43654b6091cb0]
+
+	fix off-by-1 when accessing list level props
+
+	Change-Id: I2da8fe6be4e293c3e373a58860db7e7bd43524d0
+
+2015-12-19  David Tardon  <dtardon@redhat.com>  [506f1dbe08008ac815304cd02e7c11977e9e05c4]
+
+	parse list levels
+
+	Change-Id: I54975f555c6e01dc27e5e9952b29cd82b713bff7
+
+2015-12-19  David Tardon  <dtardon@redhat.com>  [3b0b416ca1b2362d9d348b3b805e6de59de9d578]
+
+	move comment where it belongs
+
+	Change-Id: Ia04b06326ab81a2fb6b37dd8eb1993c03466f98c
+
+2015-12-19  David Tardon  <dtardon@redhat.com>  [049af39a9bd692154ca7800a9277e04d2d6efb9e]
+
+	parse list style
+
+	Change-Id: I5d2b29ae752c075764f4f5a382c6d36fbdee14bc
+
+2015-12-19  David Tardon  <dtardon@redhat.com>  [0de57c2fe4e211c4b2064d10b348346d30da86a8]
+
+	init members
+
+	Change-Id: Ie722d18a34ed77847183c29a5f99bd7452748073
+
+2015-12-19  David Tardon  <dtardon@redhat.com>  [ec8690b1045d0d2520ec509811fba094726b1781]
+
+	add missing ctor impl.
+
+	Change-Id: I360b72aa0caff7b0db970d173e63b2863ccf211d
+
+2015-12-18  David Tardon  <dtardon@redhat.com>  [dd9451bfabaff331e65f7bc6e1f161139a8bd5cf]
+
+	handle some list props
+
+	Change-Id: I9d3e6547cebf7e252ba3119484142792fdfbd85d
+
+2015-12-18  David Tardon  <dtardon@redhat.com>  [961fc07e4da6349fa87d824cdae441876d920fe0]
+
+	define list types
+
+	Change-Id: Id7f2fe4ee3ae82f3b8645128e241ec0569f09a87
+
+2015-12-18  David Tardon  <dtardon@redhat.com>  [564b6f7182ccae4798055b9096f418577adb9aab]
+
+	start to handle lists
+
+	Change-Id: I8c2862337cda5968c4fe1103f2a256ed26bd3487
+
+2015-12-14  David Tardon  <dtardon@redhat.com>  [6d562b9d08b4cf72b416a91b8d4b2c41e3f74370]
+
+	really parse text language
+
+	Change-Id: I282d13a65d37069c3366394db3e21109e0f73c13
+
+2015-12-13  David Tardon  <dtardon@redhat.com>  [c6e1f7dbe8bf1d326235121b212bdfb42194829e]
+
+	parse links
+
+	Change-Id: Ibb5b81b669bf6e4fa7f0b682a505a5886047cde7
+
+2015-12-13  David Tardon  <dtardon@redhat.com>  [68728102c220750a372619aaaaac3f0669f55f9c]
+
+	use typedef consistently
+
+	Change-Id: I1d63753b4663d0cf09897a34d767f189a304450e
+
+2015-12-13  David Tardon  <dtardon@redhat.com>  [bc27e2355c651990a580b56cfb8e48bec8521a61]
+
+	iwa: refactor handling of text
+
+	Change-Id: Ic68885c3802378442ee9252c17dbb21c6a30f80c
+
+2015-12-12  David Tardon  <dtardon@redhat.com>  [e364b18eb79663be4ebc5ac2bf5e739a7a3acbd6]
+
+	move text parser to a separate source file
+
+	Change-Id: I323adbf760fc1f4292fa9c2a19d9fa3e364f9844
+
+2015-12-12  David Tardon  <dtardon@redhat.com>  [2711034eac33361c57d065489840994475073f5b]
+
+	fix build with boost 1.54/1.55
+
+	Change-Id: I396f7527915447956f5918b331949f2d12fe6453
+
+2015-12-10  David Tardon  <dtardon@redhat.com>  [d6be7d06bfd66eb661b24046234028192bcc8864]
+
+	always reset span style
+
+	Change-Id: Ib0829e57a458fdd10c8ff6f8dda42b12c41f3aba
+
+2015-12-10  David Tardon  <dtardon@redhat.com>  [28ba251446116c1cfddd6e72e7e70e731b3a9720]
+
+	make use of IWORKText simpler
+
+	Change-Id: I1256c214b69a34e648855e6900faa93dfa956d30
+
+2015-12-09  David Tardon  <dtardon@redhat.com>  [1e1b9791270019a284c1cae1e1acc11c8eb95db5]
+
+	add support for inserting additional spaces
+
+	Change-Id: I6c01fc2d29b0af22b4864b7acc70110ec2ae2443
+
+2015-12-05  David Tardon  <dtardon@redhat.com>  [e792a1a4e514737ef139aeb120831b097c4ff9f8]
+
+	add BIPU Numbers 3 parser
+
+	Change-Id: I4838d6a4ec38da28b5c3a7163c1b3df5e1c7b2dd
+
+2015-12-05  David Tardon  <dtardon@redhat.com>  [c87df7e6bfd026ce3d6c93d465e9d182411768d9]
+
+	add BIPU Pages 5 parser
+
+	Change-Id: I4b4248e8065e228160b28563fbebdeb65f5c973f
+
+2015-12-03  David Tardon  <dtardon@redhat.com>  [eee09d8eddbc025b60a37f4de821ebd675d88ef9]
+
+	prepare for a release
+
+	Change-Id: Id58f16ec588704e17491a4a1712b29fa7549c6e9
+
+2015-12-03  David Tardon  <dtardon@redhat.com>  [85a8197a4b7fee1e5b2131c888dbef8a1736707b]
+
+	update REAME etc.
+
+	Change-Id: Ib042c6471067a735becddbf06f4669c8ad0aa7a2
+
+2015-12-03  David Tardon  <dtardon@redhat.com>  [e67c0bcad62559dc8353a06b50c5b9b8c336539c]
+
+	WaE: commas at the end of enumerator lists are a C++11 extension
+
+	Change-Id: I86c71415d60c3eab840eb7a5ec42c3b8b8600f9f
+
+2015-11-30  David Tardon  <dtardon@redhat.com>  [7b9869a43a743fafe117c4c9f7e298dd70e2d918]
+
+	parse table row/column headers
+
+	Change-Id: I8ddd5b0099a93e37741881ed90462025c1df5b64
+
+2015-11-30  David Tardon  <dtardon@redhat.com>  [ba5936ca6d3c9a7f6e7f2b302f96e8786a71b45f]
+
+	parse table style
+
+	Change-Id: I55e4379bbac2b4426acb5f4eb233691f60a76285
+
+2015-11-30  David Tardon  <dtardon@redhat.com>  [e2c5aa3ef426f709cb7f7f2fbf7bae63f98041a1]
+
+	init members
+
+	Change-Id: I0b30015ffc90cb6e58173c18a7a798bb8b7eeb82
+
+2015-11-30  David Tardon  <dtardon@redhat.com>  [c822cc7174068167d13288ab3f8e292ef28f001e]
+
+	drop unused forward decl.
+
+	Change-Id: I3d21968abfca9bc58f84088f5ec9f398a9bf39de
+
+2015-11-30  David Tardon  <dtardon@redhat.com>  [b05c226472a8dcc4b0b2cd33b12e4e873bb02a78]
+
+	drop unneeded include
+
+	Change-Id: I7274deebb918e799ca66fcbc51abff5ff85932f9
+
+2015-11-30  David Tardon  <dtardon@redhat.com>  [9891d2788eb8e1bba4e824a394c0dae93601e4b5]
+
+	remove extraneous whitespace
+
+	Change-Id: I854139ded723dda8e4222427f361b2d4349d3960
+
+2015-11-30  David Tardon  <dtardon@redhat.com>  [e762d787e0ba1399faf437c56652a363949d02ea]
+
+	remove extraneous break
+
+	Change-Id: I8a17ae80c92c2725d4f749b98b42ee473432c106
+
+2015-11-30  David Tardon  <dtardon@redhat.com>  [2515ce7b54e16f535101fd4c66829a4bd178a446]
+
+	keynote 5: parse slide background
+
+	Change-Id: I6dc65be0961f144b95743620652e8507cafd9870
+
+2015-11-30  David Tardon  <dtardon@redhat.com>  [93d846873829192605938ba47a4b1df28e3c9cc5]
+
+	parse more line end types
+
+	Change-Id: I7ba27c48a03838a415ee409bb41df330a66f278e
+
+2015-11-30  David Tardon  <dtardon@redhat.com>  [d9d62c4e44ba5cc682c07b62ec6b17f46cfe2343]
+
+	keynote 6: fix drawing of borders of unfilled shape
+
+	Change-Id: I97bc559a683012d1a152fbbe026d07f19ca3d1c3
+
+2015-11-29  David Tardon  <dtardon@redhat.com>  [5c0ce94b13b7d74d7941b5e2d304714a4523e3e2]
+
+	parse stroke type
+
+	Change-Id: Iafeedaea7bd4af80c669acc139f25943572c4db4
+
+2015-11-29  David Tardon  <dtardon@redhat.com>  [68b0934750a8f34912f2670b84906f48e219d4a9]
+
+	only read pattern if there are any elements
+
+	Change-Id: Ife3fc87a169f2fcf58092fa1193668913a02356f
+
+2015-11-29  David Tardon  <dtardon@redhat.com>  [adef8293fc8138491df91fdbe621cee5a1ba12d1]
+
+	interpret bezier path correctly
+
+	Change-Id: I1a1ede299bb602f3106a5183f87fe4536bee8cf6
+
+2015-11-29  David Tardon  <dtardon@redhat.com>  [cf9142ee2e99821295c5b7741c1c98235602dd5e]
+
+	handle stroke dash
+
+	Change-Id: I66cf228b9042d84ce6ae418e572a9307ddb84c55
+
+2015-11-29  David Tardon  <dtardon@redhat.com>  [d768e030e3892d1ee6267554c9a8f20c17368038]
+
+	parse opacity
+
+	Change-Id: Ifbd8ee16e11161f27b9017030a9de94ec1e0e077
+
+2015-11-29  David Tardon  <dtardon@redhat.com>  [689db51608417462daeb17b658523b773cd372b2]
+
+	keynote 5: parse shadow
+
+	Change-Id: I1562578fd19c878733026f227fd96ae224cbc9f9
+
+2015-11-29  David Tardon  <dtardon@redhat.com>  [2aec5a3aca765004ad12de8775b07bf0d710c75f]
+
+	add a generic parser for single-value elements
+
+	Change-Id: If76beaed31cf19ec93d26e6d7f278dc73877e1e6
+
+2015-11-28  David Tardon  <dtardon@redhat.com>  [c6fc3908f62bbbe2ae9411815b9eff6a248841bf]
+
+	drop some copypasta
+
+	Change-Id: I888aee5b7496ba8df406a63bd58985d352d2aba0
+
+2015-11-28  David Tardon  <dtardon@redhat.com>  [45ad5830de03c4c4ba4ba500233c5c62a4edab04]
+
+	add a generic parser context for containers of elements
+
+	Change-Id: Iab9bbc6df8846b1fde989f9a8c024d7c3fce18ad
+
+2015-11-28  David Tardon  <dtardon@redhat.com>  [59f0298a2545db1c87cd230fad62db9f925dd2b7]
+
+	keynote 5: parse fill bitmap
+
+	Change-Id: I82a2a92811ce761a6d4b57de66abc0fcccbafadb
+
+2015-11-28  David Tardon  <dtardon@redhat.com>  [555e911575ebea30ca687216057ea9e1591fbb62]
+
+	keep token lists lexicographically sorted
+
+	Change-Id: I37ea4fc81dd604b50e8d268ee2f0bf80bbeaa902
+
+2015-11-28  David Tardon  <dtardon@redhat.com>  [ddff65ec633f4dff783ef362b434862371f3f3ff]
+
+	keynote 5: parse gradient
+
+	Change-Id: I6aa3b4fcd836e9d645c830b5e5c24f71a08520b1
+
+2015-11-26  David Tardon  <dtardon@redhat.com>  [23eecd705424545168ada7af452c1c29fa8c8076]
+
+	image size is in points
+
+	Change-Id: Iaa625094852a1ca51b7e77511f61699a749a94fd
+
+2015-11-26  David Tardon  <dtardon@redhat.com>  [631d5d147efd68780d6740a0e84b6604abc3c051]
+
+	the same bitmap can be used repeatedly
+
+	Change-Id: If05af2a9e77c9a7787416930c35b3dd7e78424a4
+
+2015-11-26  David Tardon  <dtardon@redhat.com>  [a6b6b4d3ddc1a5aa09bf17b76c9a12635584bc5d]
+
+	shadow offset is in points
+
+	Change-Id: I8df8a0cd28bc7b2a7422cada585f86162485039d
+
+2015-11-26  David Tardon  <dtardon@redhat.com>  [0569583984c52af16a92fa24029ef2178c5da068]
+
+	no fill is the default
+
+	Change-Id: I9cea7bf9a71458538919dcff32290bf1fb315709
+
+2015-11-26  David Tardon  <dtardon@redhat.com>  [893c4444c358b9627200cc759049e5aa34c6323c]
+
+	handle fill: none correctly
+
+	Change-Id: I3307afa13a0dd773470469af416bc60b9efc7bc4
+
+2015-11-26  David Tardon  <dtardon@redhat.com>  [0fe74e300180ffcc50af73c61fce7deed4225b4e]
+
+	take end iterator from the right sequence
+
+	Change-Id: Ic05d045056158f235194b95aea6d26b54bab74ac
+
+2015-11-26  David Tardon  <dtardon@redhat.com>  [61c822c86a2413f60c3ab038bdd54897f4d7deb4]
+
+	diff. between non-exist. and zero-length field
+
+	Change-Id: I09c0a8a37d73ed994d1b40ef060bba8e3667724f
+
+2015-11-26  David Tardon  <dtardon@redhat.com>  [3db9a78b8eca407ebe44104153f7c68e08832fc1]
+
+	astyle
+
+	Change-Id: Ia4d774a1da385f7de726f9bd80fc072f452c3c39
+
+2015-11-25  David Tardon  <dtardon@redhat.com>  [98dd84843e2714c9615c129038703372d1ba78a6]
+
+	opacity is in percent
+
+	Change-Id: I9cf6e56a540b15291cb16cee72ea9f3a10f74818
+
+2015-11-25  David Tardon  <dtardon@redhat.com>  [2d9391e8394d1dd1754992169c53ef338b83b18e]
+
+	parse graphic style of shapes
+
+	Change-Id: Ifce6380cb9cbf18a2cc40a9a88402d88e945408e
+
+2015-11-25  David Tardon  <dtardon@redhat.com>  [86ab25f05131c115f8986dfdd0ede9842c855256]
+
+	define center of radial gradient
+
+	Change-Id: I04c1e07df7e82d0835e78ac48f39aab667518c5b
+
+2015-11-25  David Tardon  <dtardon@redhat.com>  [af0ecb37648903befbfaea63709f81b51eba795b]
+
+	correctly compute gradient angle
+
+	Change-Id: I5f648f5f6a54d7f9d803b6c2629168a63464968e
+
+2015-11-25  David Tardon  <dtardon@redhat.com>  [792d8d6c20ab113a0ca74a2b125b80d76466e8e1]
+
+	angle is expected in degrees
+
+	Change-Id: I71b00efa195e0cfdb125802ce543a79c3a840d11
+
+2015-11-25  David Tardon  <dtardon@redhat.com>  [12ac0ea00e9f67695be8a45bf1b585703d32228e]
+
+	mime-type must be set
+
+	Change-Id: I3786f0bbe519654371ce1c01ac99c3547ac7104a
+
+2015-11-25  David Tardon  <dtardon@redhat.com>  [f3c8032be35a08ffb5eb8043fc72348123bf59fe]
+
+	intensity is in percents
+
+	Change-Id: I145247e352d36bd6c7190889e6e7cd6659d1f37e
+
+2015-11-25  David Tardon  <dtardon@redhat.com>  [2bbbf3b778e071fc3b55ff2c70f5a3972230daf1]
+
+	fix property name
+
+	Change-Id: I16c903b09aff80cd44c155ca0968c5e19bf139d5
+
+2015-11-22  David Tardon  <dtardon@redhat.com>  [c38d8f5baa85710337787bd1db3e0a3701515a7e]
+
+	really use fill bitmap
+
+	Change-Id: Ie96af1e669c507408acccf8967077f0bece16a80
+
+2015-11-22  David Tardon  <dtardon@redhat.com>  [be6eef0f307eeefd8005b16636cefd451a12d7a4]
+
+	later releases add another way to specify internal file name
+
+	Change-Id: Ib2ee0f6b5fdc66d35729d9a966fe56ab135b3a07
+
+2015-11-22  David Tardon  <dtardon@redhat.com>  [0d301f8b31857c0351a0e59558613c2bf1ea9e35]
+
+	there can be multiple slide lists in the presentation
+
+	Change-Id: I743e75621e16416d90fe9e97d02c1674d5650595
+
+2015-11-22  David Tardon  <dtardon@redhat.com>  [5311dd1702c37638cb52f44e0d810e3e340a619a]
+
+	oops, actually use the just parsed gradient stop
+
+	Change-Id: I3cf132190eea771686e4037c28f80808abf1ab4e
+
+2015-11-22  David Tardon  <dtardon@redhat.com>  [fe67a3f586d434ef100a66a201802b8c5bab5755]
+
+	handle slide background
+
+	Change-Id: I29f264395d2907b9f15cd562caabe6b89dffa739
+
+2015-11-22  David Tardon  <dtardon@redhat.com>  [290c73feda6d367be2c1ea825c7f5c43f3d505e0]
+
+	fix typo
+
+	Change-Id: I1182125568bc60aa50e42ec1ebc16655ece62143
+
+2015-11-22  David Tardon  <dtardon@redhat.com>  [7ae70a40b8c6dea62b5cee0c9ec7ca54b8192fc8]
+
+	fix copypasta
+
+	Change-Id: I3f1bbe2e1f9e67f9404eb551187685bb3393a38b
+
+2015-11-18  David Tardon  <dtardon@redhat.com>  [5907f9c316ca68f12628817b157154397d92d4b8]
+
+	BUILD_EXTRA_DIST does not exist
+
+	Change-Id: I13410ff3ff49ee422b88712f8b6d1b07510a8942
+
+2015-11-18  David Tardon  <dtardon@redhat.com>  [aeac56a8cda7376fa0b9e18e3624f18dab3f5f7d]
+
+	warning C4018: '>=' : signed/unsigned mismatch
+
+	Change-Id: Ia1a1fecf75bcb1be7754b0de373e9957fb44ed52
+
+2015-11-18  David Tardon  <dtardon@redhat.com>  [f6d6c88cb3251cc06c1308f22f7ee9aa3bd690d3]
+
+	fix test on i386
+
+	Change-Id: I7fcf0f54ffca63fd0d9c545e255dfc2f42ab6bcb
+
+2015-11-18  David Tardon  <dtardon@redhat.com>  [e10e50b1bf37a275757de6b4c3f9791c5ef64742]
+
+	fix build on OS X
+
+	Change-Id: If979903fd6877f1b2f562695399e4cbe97efea2c
+
+2015-11-18  David Tardon  <dtardon@redhat.com>  [0beaf8ae8d9fc9049ac684ca169295357275eb85]
+
+	std containers of incomplete types are not allowed
+
+	Change-Id: Icd916b4b0e2e2ae87014b6b53dbba5e56aa43846
+
+2015-11-18  David Tardon  <dtardon@redhat.com>  [f48bd16df9c0a99ba5480d918ecb6d6e48e6f383]
+
+	fix compilation on i386
+
+	Change-Id: Ia8b63e6aeb07f4f697211f4d8ede6f840773a9f2
+
+2015-11-17  David Tardon  <dtardon@redhat.com>  [590ec149d2a6bfbbd2b1b2c37ff85bde8b48c944]
+
+	coverity#1339811 read cannot fail here
+
+	Change-Id: I777a177cc1f775d8b7715f10b3217996e7300916
+
+2015-11-17  David Tardon  <dtardon@redhat.com>  [8a7eafe54d9774f2e2c095882a18ab02f8239bfa]
+
+	coverity#1325214 missing break
+
+	Change-Id: Ic2618dabb5b20d2dfa14622976503f10a022ade8
+
+2015-11-17  David Tardon  <dtardon@redhat.com>  [de2d94586684818fb98e75d2febded11cc704f07]
+
+	improve detection & handling of trailing path elements
+
+	Change-Id: I05f7eb5c065f0b0a98d80b756b6f9a1ec6d7f51c
+
+2015-11-17  David Tardon  <dtardon@redhat.com>  [953a95cb9130b2e0d68e09d513f495117e66d2be]
+
+	missing space
+
+	Change-Id: I1853ac95b84dced443c6458a759bd274bfcdb41a
+
+2015-11-17  David Tardon  <dtardon@redhat.com>  [5ef52ad2231c815f040825cae8fc133b57d4a343]
+
+	coverity#1339812 arguments in wrong order
+
+	Change-Id: Iefcc67c40c1dc17a16d74470b72e90ad0e06863e
+
+2015-11-17  David Tardon  <dtardon@redhat.com>  [02f11779b508b226bb5c43b16b0d2eb3a7059429]
+
+	WaE: comma at end of enumerator list
+
+	Change-Id: I3de54006368d4ed88cc68111987e198ceda6ef8e
+
+2015-11-17  David Tardon  <dtardon@redhat.com>  [568f445607415b74aa812f149afe89e0e07d9607]
+
+	WaE: comma at end of enumerator list
+
+	Change-Id: Idb2c7a1269f65d304b215fd08d7835fc6a9c1d8b
+
+2015-11-17  David Tardon  <dtardon@redhat.com>  [a81cd46b998e7cf6d48e3d461f4254d2cc8cb819]
+
+	use the right variable
+
+	Change-Id: I4c017cf991450ad24decc5be623d20006675d90e
+
+2015-11-17  David Tardon  <dtardon@redhat.com>  [8d2e4278aa2d85e6664ddd83d75d2fa034cf49ca]
+
+	fix extension
+
+	Change-Id: I3decdf127d3fcaf5f64abf5599a58eee0eb7a81a
+
+2015-11-17  David Tardon  <dtardon@redhat.com>  [8a9d8c3958329f60de2fa771dff212d73cb1768f]
+
+	prepare for a release
+
+	Change-Id: I1911e98dc5fb9c815f4d43182cad4a5b6774578b
+
+2015-11-17  David Tardon  <dtardon@redhat.com>  [6435704c577f8821b7ef8f35ad5af0260bcbea31]
+
+	really parse cell properties
+
+	Change-Id: I8da05029af576bad1a86aec72b7291d01ad97a9a
+
+2015-11-17  David Tardon  <dtardon@redhat.com>  [0e9a49384898e57da35f462fcde0a939778f7e07]
+
+	parse cell padding
+
+	Change-Id: I0bcaed90daaae898d251bf9bc771c752c8602786
+
+2015-11-17  David Tardon  <dtardon@redhat.com>  [1ac9c461aeb24d03901471d6194acba28ee505fa]
+
+	add another way to find slide list ref
+
+	Change-Id: Ie946dc62a85ea03c1ea5aa838a4d84eb3545db60
+
+2015-11-16  David Tardon  <dtardon@redhat.com>  [c64ea804c3932f9ee1adae13a0a47b6a372ffa69]
+
+	parse table style
+
+	Change-Id: Id6d73f8873ea3d5e783bbb83d6180506b00f0055
+
+2015-11-16  David Tardon  <dtardon@redhat.com>  [34985343ff2f0bb99a5a75a4a2efee3e90a61330]
+
+	set other table properties
+
+	Change-Id: I6e6db5e3cb83b242af6c562ac791890e27cdaa76
+
+2015-11-16  David Tardon  <dtardon@redhat.com>  [c1887a9fd71a6537f17e4a236df8360eaf1e3f3a]
+
+	handle cell style
+
+	Change-Id: Id09c60584454c167016787edade04b4f8050f701
+
+2015-11-16  David Tardon  <dtardon@redhat.com>  [274107dd53fc6fe0091c9f4b9499f695f63e2e9e]
+
+	narrow scope of try block to reading column data
+
+	Change-Id: I108e963f9223b0f271c4a50e26157b4cb5d81db7
+
+2015-11-16  David Tardon  <dtardon@redhat.com>  [8a9c4d1ae0dcf6a129fdb86b71b1f71cd3d13ed5]
+
+	simplify calls with empty style
+
+	Change-Id: I83b0ff9cd267727c21dc554757a31d463241357e
+
+2015-11-15  David Tardon  <dtardon@redhat.com>  [c42bdee9811e25d819358534cc746231b8a1a8f6]
+
+	shuffle a bit
+
+	Change-Id: Iac312b2db7d832d2d3991004a432ef1331c06ca5
+
+2015-11-15  David Tardon  <dtardon@redhat.com>  [e9276520fd72815599dec410dc2c80f61a988eb9]
+
+	prepare for better handling of cell content formatting
+
+	Change-Id: I1eee1859ee6c02e8cca5a75ee63979c10ef3769a
+
+2015-11-15  David Tardon  <dtardon@redhat.com>  [d768fad82c3e2a8d6e765428a3f1f8121f4c3f81]
+
+	prepare for better handling of cell formatting
+
+	Change-Id: Ia9c71079fb373685aea995b4cf637934b16060a4
+
+2015-11-15  David Tardon  <dtardon@redhat.com>  [9b21342c6bcf882cd9080cfd44836129df9dbd9c]
+
+	split handling of tables out of collector
+
+	Change-Id: I226b237a9e8afd4adba0c5a71cb34ab92c232545
+
+2015-11-15  David Tardon  <dtardon@redhat.com>  [7dc0b8a298a968c53cd93e57a7c0462664148674]
+
+	make createText const
+
+	Change-Id: Id15b3526775b1ecc7f3d778e338d93bb4110460a
+
+2015-11-15  David Tardon  <dtardon@redhat.com>  [1f720e37d880468ed6524117bd0f2ecc82da61f2]
+
+	split handling of text out of collector
+
+	Change-Id: Id4d6a746f5b480bfb8cbe7c9060a19111cbe5080
+
+2015-11-12  David Tardon  <dtardon@redhat.com>  [e0f27f62ba2df793b941264b45df3384e6c7d286]
+
+	collect table style
+
+	Change-Id: Id4d6a746f5b480bfb8cbe7c9060a19111cbe5080
+
+2015-11-12  David Tardon  <dtardon@redhat.com>  [4f065e4831dbc9f33b04cb91a36532d3c9a25d64]
+
+	use default para style for cells
+
+	Change-Id: I01e92f45aeb0c70c52679667cf3f1a96841a4844
+
+2015-11-12  David Tardon  <dtardon@redhat.com>  [69d5bde1dd7e6fc192f114c3d8b683ad9bb2da78]
+
+	prepare to handle more table cell formatting
+
+	Change-Id: I34f0d457a7cd9574607c8b6659c271bd5d632778
+
+2015-11-12  David Tardon  <dtardon@redhat.com>  [fd95582fb02ca826b93f65c8d5ee7ed49f99efe9]
+
+	split writing cell style into a separate function
+
+	Change-Id: I10688991b4462686ba91c9d0eea73b2655d057e7
+
+2015-11-10  David Tardon  <dtardon@redhat.com>  [161aeff52c567de2090ed7f0e75858e40274208a]
+
+	parse cell style
+
+	Change-Id: Ib49e2d944ecb97b0cd3b0133162659f45dab0a1a
+
+2015-11-10  David Tardon  <dtardon@redhat.com>  [8849f84a1dbab9cc6fe86903af686669c54fb3e5]
+
+	output cell text
+
+	Change-Id: I24faade03ab5752ab13986d0260a5fbc859ee0e8
+
+2015-11-10  David Tardon  <dtardon@redhat.com>  [2c10a679dc8172e165b115af2465b5cb5d4c574c]
+
+	automatic bool conversion strikes again
+
+	Change-Id: Ic0a41b846cb2c285583d8c1a69c724a20d9c1268
+
+2015-11-10  David Tardon  <dtardon@redhat.com>  [040962012091df9eca86fe9ba4cd34da8c46372b]
+
+	test for number of elements too
+
+	Change-Id: If55e06bb69fd557156e2fcf85e1365495110b0e7
+
+2015-11-10  David Tardon  <dtardon@redhat.com>  [0d02cd4bd5c4cbc952189101964436b4de8f8599]
+
+	fix copypasta
+
+	Change-Id: I27e75af70377adfeed121b30c7f46dd32235cd25
+
+2015-11-09  David Tardon  <dtardon@redhat.com>  [c9ee230db80fe4cb3e6458d12b82a1da93d99fde]
+
+	parse tables (BIPU)
+
+	Change-Id: I3bf5eb40e57f1cc1cc286b099d04b3ca3351da6b
+
+2015-11-09  David Tardon  <dtardon@redhat.com>  [a0a856ea61fc95d51ed92312cbc438603e0fd3b8]
+
+	add support for bytes field type
+
+	Change-Id: Id0ab21e3b539bbd367964ac13b86e11e2ec48f0f
+
+2015-11-08  David Tardon  <dtardon@redhat.com>  [f7a89ccff446831a215f4fdb15c7b67cfd735a30]
+
+	really parse shape fill and opacity
+
+	Change-Id: I103f09cfd35e048f337d25495736cac99acdd282
+
+2015-11-08  David Tardon  <dtardon@redhat.com>  [a79ee28bd59b5100c4050e085fd7e02f72022f6f]
+
+	fix nesting
+
+	Change-Id: I308c10fd914bf786e69d35d5b20c32a18720eb4a
+
+2015-11-08  David Tardon  <dtardon@redhat.com>  [392003e4c28158ab5b69b0482143565c56c28b49]
+
+	parse shadow
+
+	Change-Id: I20bc7045d5d7cb51d1aafd038645a164997b7af7
+
+2015-11-06  David Tardon  <dtardon@redhat.com>  [eb6b1c5118ac1bdf36bdfd3b78abbc6b6d1240ff]
+
+	parse bitmap fill
+
+	Change-Id: I71ea05576d0d6d10ae013f48287019b5df5e69d7
+
+2015-11-06  David Tardon  <dtardon@redhat.com>  [edbd327271903073c3ffe0a79576234b65c6169f]
+
+	parse gradients
+
+	Change-Id: I25c0d45d5b885c82e604c4a7cbfad7a6757838cb
+
+2015-11-06  David Tardon  <dtardon@redhat.com>  [45386c7c962b521054cd7be6a9651ae93c9fb4cf]
+
+	prepare to handle gradient and bitmap fills
+
+	Change-Id: Ia4fdc1ca2f2f39c4ac13f9afc401825e678f1ca7
+
+2015-11-06  David Tardon  <dtardon@redhat.com>  [45151376d9bfdbc7e84636d3f22e21b313b0c048]
+
+	handle linecap: round
+
+	Change-Id: I902a02022abf3b08687a1f11474c393db1a703a0
+
+2015-11-06  David Tardon  <dtardon@redhat.com>  [63ad5cadb8e3b64dce94a035731cab872a828f70]
+
+	fix after-free memory access in formula output
+
+	Change-Id: I82cbefbe761d45605727c12f6153b505392c1f7b
+
+2015-11-05  David Tardon  <dtardon@redhat.com>  [e1f3856ef8a84ec487059df99b35bf4f60e3c004]
+
+	impl. missing symbols
+
+	Change-Id: I279f14ba8405a7d4a739d3c1daebf333db08b2ac
+
+2015-11-05  David Tardon  <dtardon@redhat.com>  [4a5acfffec1d0027f54b0fc672a587dc1e71ecfe]
+
+	parse shadow
+
+	Change-Id: I2a73566005d1c514c967663a9db15893a810b88f
+
+2015-11-05  David Tardon  <dtardon@redhat.com>  [7846fde1c55d861e762f7ef76779d7bd8f416d42]
+
+	start parsing graphic style
+
+	Change-Id: I4440e2f5b1e4221bdbbdedb78d057851db4e27bd
+
+2015-11-05  David Tardon  <dtardon@redhat.com>  [f18ca8f85494f0c108f2ab2bf788914503d368dd]
+
+	fix copypasta
+
+	Change-Id: Ib4a6505c92ec42291c6811d95b4e6891d01086e9
+
+2015-11-03  David Tardon  <dtardon@redhat.com>  [94cd986303e118c5ac253c6292df0a55bb48750d]
+
+	parse more paragraph props
+
+	Change-Id: I3410682fb095d482ba11c8c15b8683b8f1b9251f
+
+2015-11-03  David Tardon  <dtardon@redhat.com>  [fad742a3ea8ef1b3f4de6a5f939cda8ffccb2f68]
+
+	astyle
+
+	Change-Id: Id479823605bc0f2f4619c36ed2e531f03cd30bc4
+
+2015-11-03  David Tardon  <dtardon@redhat.com>  [ae97f0a498410caf9e508e3383df38accef51dd1]
+
+	fix typo
+
+	Change-Id: Icfdf77948430813a6aa6c270707aede854a344b4
+
+2015-10-22  David Tardon  <dtardon@redhat.com>  [9b9de1cea3de3f20a536750f4dc33bbe3face183]
+
+	fix more automatic conversion bugs
+
+	Change-Id: I03dfc8c1535c493aefcfa53a0935f52d4e40ffb5
+
+2015-10-22  David Tardon  <dtardon@redhat.com>  [67a91b1e13cdfdfac5d1f7820129e6d0a3e45f5b]
+
+	workaround c++11 compile error
+
+	Change-Id: If8d238764c90fc8297e2e0042db0492b9bc5193d
+
+2015-10-22  David Tardon  <dtardon@redhat.com>  [a337fe5e07f912112512e1d91c10de2d632ca3f5]
+
+	fix automatic conversion bug
+
+	This worked in c++98 mode, but it did something else that what was
+	expected.
+
+	Change-Id: Ibaf265fb530e643e10d812e0fe19e97f77e0bd9e
+
+2015-10-22  David Tardon  <dtardon@redhat.com>  [eb4839135782b4ae28f0d8fef4466f7d5340e814]
+
+	workaround c++11 compile error
+
+	    error: call of overloaded ‘make_shared(libetonyek::IWORKPropertyMap&, boost::optional<std::__cxx11::basic_string<char> >&, libetonyek::IWORKStylePtr_t&)’ is ambiguous
+
+	Change-Id: If129deba0fae4f123eff5b6a2f65bd6916c39635
+
+2015-10-22  David Tardon  <dtardon@redhat.com>  [2d6ca4dbf645c097c3c17f4f50217bb6356b20eb]
+
+	remove a stray comma
+
+	Change-Id: I88516d684f3283dbdd556d04b1be26234a893ad3
+
+2015-10-22  David Tardon  <dtardon@redhat.com>  [dad57630d1261c3621eb30e8072743747b155f1c]
+
+	add missing MDDS_CFLAGS
+
+	Change-Id: I5cf5404548afcd9bc5864b8455996499571aba59
+
+2015-10-22  David Tardon  <dtardon@redhat.com>  [db4cd3e296f0773e07b3d7bbf549b983cde7c810]
+
+	still allow to use mdds 0.x
+
+	Change-Id: Ib65810b17719f7fd5546fa9506dabaee0d988b83
+
+2015-10-20  Markus Mohrhard  <markus.mohrhard@googlemail.com>  [754955be40e04ec3f446821e87e6fba96fd44c5c]
+
+	update to mdds-1.0 and c++11
+
+	Change-Id: Ifa2611bc65dc4037f3cae6e68cc967e1f5ab1d58
+
+2015-10-16  David Tardon  <dtardon@redhat.com>  [83c758ef318aea8fb0fe6ca51302cad0ba3b7991]
+
+	parse sticky notes
+
+	Change-Id: I0dcaf21994567d052cd3d0be70f034db08654b73
+
+2015-10-15  David Tardon  <dtardon@redhat.com>  [1b34c5541b940c6e852fba6975cefd4ad06926ee]
+
+	continue with the same para style by default
+
+	Change-Id: I417b24e32c44f1e11c629ee76fd6d9b05252735f
+
+2015-10-15  David Tardon  <dtardon@redhat.com>  [e4a91dd3125a40823f552542ff1a85b48f790288]
+
+	parse notes
+
+	Change-Id: I5ce013c849c2d1fa7806fa6052e25febf5133f16
+
+2015-10-14  David Tardon  <dtardon@redhat.com>  [a052eec91a82df5e9f8e19931d36a672a3166e06]
+
+	parse images
+
+	Change-Id: I07f5bc4ad015f75187cd5dc98ae27bd0bb51d4f6
+
+2015-10-14  David Tardon  <dtardon@redhat.com>  [56c5beb6058624f77164acece84b80ac9d8c6e63]
+
+	save whole file path
+
+	Change-Id: I9b42ab28a717cf802936a5e3c13ab2b7516afad7
+
+2015-10-13  David Tardon  <dtardon@redhat.com>  [fd9815027094f322583747dcf5d5749a93a2617f]
+
+	fix parsing of color
+
+	Change-Id: I8f592d4101fcb948947af0ffd31b1c2641496c9d
+
+2015-10-13  David Tardon  <dtardon@redhat.com>  [9b9a955269cc5f4aaabba08024354291a009e827]
+
+	return const ref
+
+	Change-Id: I578aefe87de5af83085fabdb31bb9eae3de0069c
+
+2015-10-13  David Tardon  <dtardon@redhat.com>  [e5d22da3a6bd4bf9cc68c38c34b14bcd7b46714a]
+
+	do not handle text placeholders as shapes
+
+	Change-Id: I9f68b6eee57a1e38e1fedc26f4267d4e3cecfec7
+
+2015-10-13  David Tardon  <dtardon@redhat.com>  [292083cc8da929eebbdd91deb113f14c04262a76]
+
+	fix copypasta
+
+	Change-Id: I19a1070f0154b1490d0b9abc4ee745f35538020a
+
+2015-10-13  David Tardon  <dtardon@redhat.com>  [1d08c766ce1082f2bd5449c4af4a2bcf61701908]
+
+	fix decompression of a file with multiple blocks
+
+	Change-Id: I6171483456c1e33ebf1d2d1335710e1cec809c9f
+
+2015-10-13  David Tardon  <dtardon@redhat.com>  [733f15d8402e553a25a07ab523872a3983ef3f3f]
+
+	parse para properties
+
+	Change-Id: Ib444a080893bf827a4fe03fe41ee236bd1d66ae5
+
+2015-10-13  David Tardon  <dtardon@redhat.com>  [102d34409107cfcc1ff520a7e4cfbb20ede386df]
+
+	parse char properties
+
+	Change-Id: I3a44ee011e18a97b24eb853929b5946f5c45bd42
+
+2015-10-13  David Tardon  <dtardon@redhat.com>  [ca74c53ff6f2be8f3025324cb91b0aa925eda9d2]
+
+	nitpick: rename member
+
+	Change-Id: Icbaa86588bcae9e1fcaa8e9b8ab026e1a03c5fa5
+
+2015-10-12  David Tardon  <dtardon@redhat.com>  [6ae0acb02e99a227ad97d2d6077381578d288c50]
+
+	parse char and para styles
+
+	Change-Id: I52e1011414f3d3ac585b61caad904fdaf8f1d7db
+
+2015-10-12  David Tardon  <dtardon@redhat.com>  [097ba45c6570d5c261f849aa94e2a25de79d110c]
+
+	parse text
+
+	Change-Id: Ie61fa51a5b39642cf06f6610612625dea1312ec4
+
+2015-10-10  David Tardon  <dtardon@redhat.com>  [3943d634ea31e68e3b68aef68e8927719e4e0280]
+
+	handle editable path
+
+	Change-Id: Ia1e0ee96258ccece34a0114aa63f9bffff5c559f
+
+2015-10-10  David Tardon  <dtardon@redhat.com>  [c0d7558aa36cfcd5280c6278aac7d51f63dbabbc]
+
+	parse shape groups
+
+	Change-Id: I60ca85b037783ec3030d7941b4977c934081e6ae
+
+2015-10-09  David Tardon  <dtardon@redhat.com>  [fbfb76807a33a6790263616592a4c189b845619b]
+
+	allow to query object type
+
+	Change-Id: I4c86b2877d16dc0e4b232a16673c3523caeb1e9a
+
+2015-10-09  David Tardon  <dtardon@redhat.com>  [b8cdb55db37c9e06498128b7911ad6fd3393a869]
+
+	angle is in degrees
+
+	Change-Id: I1589dc1359e0fde228855143c7616138d553dc0f
+
+2015-10-09  David Tardon  <dtardon@redhat.com>  [75b7341e66d6f79b5ff7945c8d8499fdfde4ec30]
+
+	handle transformation
+
+	Change-Id: I5308b624f0f80f279759c91dc80f5db2b792c47d
+
+2015-10-08  David Tardon  <dtardon@redhat.com>  [63e69b623f7cf526a666d639e688256475c6db2b]
+
+	fix clang error
+
+	  error: 'Impl' is a private member of 'libetonyek::IWORKPath'
+
+	Change-Id: Ib68898f9e3a3fc0f7e659b55f6ed4050abad80fa
+
+2015-10-08  David Tardon  <dtardon@redhat.com>  [4ba3497a6c2495fa5ffeff20c83bf601f673f524]
+
+	make the field conversions explicit
+
+	Change-Id: I936b963e4f239ba2063c2dd9ce01dac28109400c
+
+2015-10-08  David Tardon  <dtardon@redhat.com>  [d55e49c492de08bbfb92cc753aec4135eb261b14]
+
+	extend optional interface of IWAField too
+
+	Change-Id: I9be3222cff092f632017e86c0cc0fa87763a6b54
+
+2015-10-08  David Tardon  <dtardon@redhat.com>  [69d98f53b49f785753fd453b8d861030cbb20109]
+
+	allow iteration over fields directly
+
+	Change-Id: I6146c92c2987c8f52ff8d9d4b80fe206bc64ea7a
+
+2015-10-08  David Tardon  <dtardon@redhat.com>  [aa4d4b7330718a571230296fbb89c5a79c1e6ca1]
+
+	allow widening conversions
+
+	Change-Id: I7f4cd5caca554ce654e8ed5cbaba8a46b8b126b5
+
+2015-10-08  David Tardon  <dtardon@redhat.com>  [6cc9d9606a80a46f96ff89e6b46dde4d2d9e64e0]
+
+	fix parsing of right arrow shape
+
+	Change-Id: Ia4e66193257af3ce097ebd486efb0a6e2d31e706
+
+2015-10-08  David Tardon  <dtardon@redhat.com>  [078d076b2b12768ae8a48d2fe76cadc407c0262f]
+
+	print debug messages to stderr
+
+	Change-Id: I3692988df112ee0323bd59d1833fd420abde3d32
+
+2015-10-08  David Tardon  <dtardon@redhat.com>  [c307c931e02bbe64572bc20ca53bfefc88fbaf78]
+
+	parse curves
+
+	Change-Id: Iaeac7b13711d8c83dbe488999b9423e31826db55
+
+2015-10-08  David Tardon  <dtardon@redhat.com>  [a72abebaf2b48f6afb887ba090f634ec90d46da5]
+
+	parse shapes
+
+	Change-Id: I290e4be5507a4ea097e42b9f7b1d69844b6d01d8
+
+2015-10-06  David Tardon  <dtardon@redhat.com>  [ac009b115366bddbb64fa0edae4fdf3b4f40b307]
+
+	avoid possible recursion
+
+	Change-Id: I790c988c28a51361383230c74b316396d14dcb4b
+
+2015-10-05  David Tardon  <dtardon@redhat.com>  [6323be6196ca635faa0a3fe64078d652e149ab06]
+
+	parse slides
+
+	Change-Id: I63d39fb40fe120a875b99c0bdea636386f76c549
+
+2015-10-02  David Tardon  <dtardon@redhat.com>  [5b2372b9a8f674a1a665195ebc1a9de0c3780240]
+
+	save all objects from scanned fragment
+
+	Objects from the same fragment are not referenced in index.
+
+	Change-Id: I6fe422bb2f054bc1b4b5a63cc4c39b14f51b6b62
+
+2015-10-02  David Tardon  <dtardon@redhat.com>  [60156a18ee6c64f6cee4e41aaf8b9fe2e8eaba68]
+
+	add debug messages
+
+	Change-Id: I831e71b512fd92a258d6dd4788348874d4e270c6
+
+2015-10-02  David Tardon  <dtardon@redhat.com>  [f7fcf34702078731d5b6d7ed295c599edae05a24]
+
+	fix parsing of nested messages
+
+	Change-Id: Ibe7625ef1feb151324ddbb3436087611de40fb17
+
+2015-10-02  David Tardon  <dtardon@redhat.com>  [2c8c2891b04f9b24730e195b455225350cd2a422]
+
+	also check the expr. results
+
+	Change-Id: I47b03c360b0a93e63e0ccb1024381ebdc87e2e88
+
+2015-10-02  David Tardon  <dtardon@redhat.com>  [5a0f14b3f0a081e5232c00ccddc615ce25d765f9]
+
+	zero-length message does not make any sense
+
+	Change-Id: I0bc81458c5e5a6913fca1fd520ef9f6282aca748
+
+2015-10-01  David Tardon  <dtardon@redhat.com>  [b93ba3ddf18c092ac22b10cc7a533f77f372fe8f]
+
+	actually parse object index
+
+	Change-Id: I4c91532087e3e20af899d89c0e8e98ebd8bc2a71
+
+2015-10-01  David Tardon  <dtardon@redhat.com>  [5ef411ef6625d8c54b2a86b9d9e3b8809a728b3f]
+
+	avoid null ptr deref.
+
+	Change-Id: If9f78b12defa64fe27f0f6b33e75408e5b7b591d
+
+2015-10-01  David Tardon  <dtardon@redhat.com>  [d9ada5b4b66ad2f84de3ecbc2e0f0a1e68873aa9]
+
+	pass input fragments to the parser correctly
+
+	Change-Id: I6b9a57197dd48aed56b6aca0b9b2a1204f0a96ed
+
+2015-10-01  David Tardon  <dtardon@redhat.com>  [d5f27d3d583f6b7d2c85860ed08ec93abc1b715b]
+
+	lift all fragment scanning code into a separate func.
+
+	Change-Id: I12f7bb1e650e4c1a7b9ccdaa300b59b83e4e5d07
+
+2015-09-30  David Tardon  <dtardon@redhat.com>  [0e4c9bcf8158b747950a23cfd281b1c3b2f61df9]
+
+	start parsing presentation
+
+	Change-Id: Ib43561db9699cd4520a0042bae5559792fbcc97b
+
+2015-09-30  David Tardon  <dtardon@redhat.com>  [eea200fd38cb312b1057246adeca59fbb534abb9]
+
+	add skel. keynote 6 parser
+
+	Change-Id: Ia08bf68c6b58e37ec4773f34fb8dc9a7e19943c2
+
+2015-09-30  David Tardon  <dtardon@redhat.com>  [0ced22cba3a92e0e7c2f6c34a54e67c7cc3d00a7]
+
+	fix a few packaging warts
+
+	Change-Id: I3846f4562ccd1e0dffe7cb8b42a1c3e587a41e5e
+
+2015-09-30  David Tardon  <dtardon@redhat.com>  [bb674410917422d23ce558ed0240c51a0a1fa726]
+
+	add generic binary format parser
+
+	Change-Id: I7f274dce3daac5dbee39dc2112c0f4149e9200bb
+
+2015-09-30  David Tardon  <dtardon@redhat.com>  [54855c31b4c50d735a1f5ff0bbff38da0a5bf06b]
+
+	add convenience conversions to deque and optional
+
+	Change-Id: I9cb9c54ef9386c72fe7a69b409236666e7760fbc
+
+2015-09-30  David Tardon  <dtardon@redhat.com>  [49d79227614aceac2ef6c042246366759407b152]
+
+	simplify construction of a message from obj. record
+
+	Change-Id: I0e964047498f9fdbdb8bf48c98e7ee040f8bf1a5
+
+2015-09-28  David Tardon  <dtardon@redhat.com>  [2044f5f78fec7b5763d928d78598326ea86f1e09]
+
+	reimpl. format detection using message parser
+
+	Change-Id: I311d05dfb0a09ec15ff201371fe9583d61245a77
+
+2015-09-28  David Tardon  <dtardon@redhat.com>  [32c6d2a2d4b0648bd2b54bc21f6bfe55b6798c7f]
+
+	simplify access to nested messages
+
+	Change-Id: I86dbce55c47fc1b3e330d43c662ee0c7730eff55
+
+2015-09-28  David Tardon  <dtardon@redhat.com>  [095cdce7ab7c89ae210554f9328ad4be0385476c]
+
+	add test for nested messages
+
+	Change-Id: Ic69eaa82d91d25a70fe2ca54c6ea5db104fdacb1
+
+2015-09-28  David Tardon  <dtardon@redhat.com>  [af13bbfad963fefd16018091bf5a8d5f2bb3894d]
+
+	fix parsing of messages
+
+	Change-Id: I97a37d2879b51c3ce1eeffcccf0329eb3dc227e9
+
+2015-09-25  David Tardon  <dtardon@redhat.com>  [3fe69a1be8b87d97e2855e8866f278f3a3f5a600]
+
+	add unit tests for message parser
+
+	Change-Id: Ia12d118c0555bd82193c7e52a7c5f19cacb5ddf5
+
+2015-09-25  David Tardon  <dtardon@redhat.com>  [d75d3d0a619bcc8387846e3ce0a3790aef4d0bdd]
+
+	impl. lazy protobuf parser
+
+	Change-Id: I2333cf508604f535dc8ffff087fed01ccb7568c8
+
+2015-09-24  David Tardon  <dtardon@redhat.com>  [804747acd7eb316209a70bf15ac5d17f77e301d4]
+
+	astyle
+
+	Change-Id: Iaa91869900407cc6d31250b3e95243cb76442a03
+
+2015-09-22  David Tardon  <dtardon@redhat.com>  [705156141b0a044a5809af96b5d17e1a9ba1d497]
+
+	dictionaries are specific to the XML2 format
+
+	Change-Id: Ie94d9ec09672dd011f878aa58b0ead47d7ada6e2
+
+2015-09-15  David Tardon  <dtardon@redhat.com>  [c6a15cf59166a2e48b1a6ed0ccfc0d3e8275891c]
+
+	add a test for format detection
+
+	Change-Id: I7ffbcd71d46423ac5a0d5e28bdbcc1ae1109dc61
+
+2015-09-15  David Tardon  <dtardon@redhat.com>  [1ca2e97367860a7c6f099a4b73184269b5feead0]
+
+	differentiate between Keynote and Numbers docs
+
+	Change-Id: I2c0539b6c07888f766fcbd09b5c9842b686b5757
+
+2015-09-14  David Tardon  <dtardon@redhat.com>  [b963dd3aafa5ff9ed44e3f39de2dcdd3a15b29af]
+
+	nitpicking, for consistency
+
+	Change-Id: Ibd07b6a44cefc03be261b079f00707889bf5dd5b
+
+2015-09-14  David Tardon  <dtardon@redhat.com>  [bf3ff610085a22d136e57452097dc24b997d3d93]
+
+	check for the binary format first
+
+	Change-Id: Ia71aef62940ffad9735811d2825d8159acdde6d3
+
+2015-09-14  David Tardon  <dtardon@redhat.com>  [7698fbd7793027985f7d05101e8c033dd46d351e]
+
+	avoid some redundancy
+
+	Change-Id: I930167cd8aede73061b544caac8fe965b39be234
+
+2015-09-14  David Tardon  <dtardon@redhat.com>  [b8dcf0b6b79915d889f5a0c655edcfaac48b1e72]
+
+	fix detection of simple binary files
+
+	Change-Id: I44bd1bcafea80daf2978fabfbe26400a616ff8ee
+
+2015-09-14  David Tardon  <dtardon@redhat.com>  [5615d83ef0fb1b56a65e5762ae683cf5f68fbfed]
+
+	add test for decompression of a complete input
+
+	Change-Id: Ib0d0cf5110c145207586e55fb0572870f5e4ab57
+
+2015-09-14  David Tardon  <dtardon@redhat.com>  [699cb3b1151abb259c724afa33302721f5be395f]
+
+	remove duplicate function
+
+	Change-Id: I342f44d8a14a4b9b2a8d558444b4dedea33d9d4c
+
+2015-09-14  David Tardon  <dtardon@redhat.com>  [3f1cf90923eae252986d2acd80d48bf5bcd9c802]
+
+	block length is not a varint
+
+	Change-Id: I1dd3d044b45ffaf1dd38c47d1a68e9cbedb622de
+
+2015-09-14  David Tardon  <dtardon@redhat.com>  [f5e0be96a5f16a5db880db231ecc7859a90818aa]
+
+	simplify testing of snappy decompression
+
+	Change-Id: I7d06451a73a56ae8f8ce1cf67de712a2ec2047d1
+
+2015-09-14  David Tardon  <dtardon@redhat.com>  [b3266e99fd07ba2e6d614629a9cc6ce1ba16e7c1]
+
+	make ctor explicit
+
+	Change-Id: Id49d7a39cdd96faf846ca8c797c17fefe3038948
+
+2015-09-14  David Tardon  <dtardon@redhat.com>  [97029d9ba323088e479d89731c90a82ec8bb6b42]
+
+	implement binary format detection
+
+	Change-Id: I2f423436c9172002356824b2be798ad159e7258a
+
+2015-09-11  David Tardon  <dtardon@redhat.com>  [1bbc9de001547b78797ec1faac0f37a6c147664e]
+
+	add dummy detection of the binary format
+
+	Change-Id: I4c3968633ca44df0fa0050df4e8a6c6d9f7f927c
+
+2015-09-11  David Tardon  <dtardon@redhat.com>  [86130cb3f4a817ae97cdd812fd8a88210fb17e3a]
+
+	check for package too
+
+	Change-Id: I74058b859df0c1fa086dc610d02beab2f882fe91
+
+2015-09-11  David Tardon  <dtardon@redhat.com>  [c41d7ad3731462d5f8424e3960eaeb442e7ad148]
+
+	reduce copypasta
+
+	Change-Id: Ic246dfb878b96aee9a7451f4eaf1a803cbc6713b
+
+2015-09-11  David Tardon  <dtardon@redhat.com>  [385cc9d4e3a3dce0647f96c00a42560dec6ecfe4]
+
+	refactor file format detection
+
+	Change-Id: I5c1ef21ed829e66ede81b5100dda8299471c907d
+
+2015-09-11  David Tardon  <dtardon@redhat.com>  [747ec340b58c4ae4dc73bced7cf88d8d755d6b9e]
+
+	fix copypasta
+
+	Change-Id: I4f6cf86a8730e84423d1d481c8f26ef9f9776fe5
+
+2015-09-10  David Tardon  <dtardon@redhat.com>  [55bee910d206d7e2815c8728ee473058e053e0ac]
+
+	only detect the format kind
+
+	Change-Id: I7eecaba2cf36dc8b36f432cc0ce6420ddf22c634
+
+2015-09-10  David Tardon  <dtardon@redhat.com>  [5e93b1d613067329c597c9e8282455fb6b26a9b1]
+
+	add m_ prefix to struct members
+
+	Change-Id: I38f0d2b209b2b576803c3e27777fb7ad6bd5b270
+
+2015-09-10  David Tardon  <dtardon@redhat.com>  [30ad10e89f3d0b63235ed176553d95d026ad7fa2]
+
+	add unit test for Snappy decompression
+
+	Change-Id: I7f844c423bb23d2dd5c448d45ff241de9e9f44c5
+
+2015-09-10  David Tardon  <dtardon@redhat.com>  [a34b415d91dcce78ac6a2fb379dddcd6f52191f0]
+
+	fix decompression
+
+	Change-Id: Ib4e18a898dbb51a9e60cfa48871d11c265586be0
+
+2015-09-10  David Tardon  <dtardon@redhat.com>  [9e9725f76f6bfc13ab4a04c54274e1d1d2141b35]
+
+	astyle
+
+	Change-Id: Ie274da542f4f92af7f1e085ad8fc8e34ddd5a064
+
+2015-09-10  David Tardon  <dtardon@redhat.com>  [7b1fa9d54b3c53a5ca45f3ef41f776e5f32ef482]
+
+	add missing function impl.
+
+	Change-Id: Iafc28bb2b65342c9adcbe5ed3dca9468e3b22bca
+
+2015-09-09  David Tardon  <dtardon@redhat.com>  [181667ff7487b976db7fa676ccd6e3708082d38e]
+
+	add skeleton test for Snappy decompression
+
+	Change-Id: I0fa8f10135f87fd05393651800ada3c352df29c1
+
+2015-09-09  David Tardon  <dtardon@redhat.com>  [17c1150d19f3cd8160463acb99804d6feb3c5189]
+
+	impl. Snappy decompression
+
+	Change-Id: I5e1b8c7f7bac4aa6e4ef970dd93a12804fc795c6
+
+2015-09-09  David Tardon  <dtardon@redhat.com>  [b5e9bd722b27cfea4d4116b337789c20dc985e9f]
+
+	add unit test for varints
+
+	Change-Id: If043c9de9cf1faeba1b658482e6a301b3b7fb1b1
+
+2015-09-09  David Tardon  <dtardon@redhat.com>  [268cf797e7cf9246981929df649adf5a79ec6286]
+
+	iwa: impl. reading of var. length numbers
+
+	Change-Id: Ib3e65811885f1ddeb79a75c1e441104b53d6db0a
+
+2015-08-13  Anurag Kanungo  <anuragkanungo@gmail.com>  [0ab599aeba4c87318a3bf894b00162f9370e3ba7]
+
+	output date as standard dd/mm/yyyy format
+
+	Change-Id: Ic86123e76813a7f9c492f1b7794d71ed267fe4dd
+
+2015-08-13  Anurag Kanungo  <anuragkanungo@gmail.com>  [171d0b8a8bedad97b1cb7c7b80a75aa08ac619cb]
+
+	output duration as standard time format
+
+	Change-Id: Iff3a37b1b7f05afaedeebb9bda5a5d5352283259
+
+2015-08-13  Anurag Kanungo  <anuragkanungo@gmail.com>  [9545772a92170be5cb99bdc5d47d3237924ae722]
+
+	reset style after cell is collected
+
+	Change-Id: I6e2fbd1ca9c2b68974a60f966b814231e44ecc00
+
+2015-08-13  Anurag Kanungo  <anuragkanungo@gmail.com>  [022554c1df483c2dae4e468509877bcd568d3510]
+
+	parse pop-up menu cell type element
+
+	Change-Id: Ia3b27bf106fe2fbedf6291e254b52ae0c2a80f85
+
+2015-08-06  David Tardon  <dtardon@redhat.com>  [d81c87323c1d73384240473feac9deda9220c272]
+
+	afl: handle nested stylesheets in broken docs
+
+	Change-Id: Ic80e14baa8716fb966c5ed1347de686498fc4e0a
+
+2015-08-06  David Tardon  <dtardon@redhat.com>  [74a8535b6566169bd43b15462c57226bf055171c]
+
+	afl: avoid null ptr deref.
+
+	It is possible that there is no stylesheet if this is called from
+	the discard context.
+
+	Change-Id: I3052693b1e38af0e1315c87e88fa20ee17045b52
+
+2015-07-31  Anurag Kanungo  <anuragkanungo@gmail.com>  [08d256acdd8da4f8abe9ce1f54ebf977e28468a5]
+
+	set type to number format in rn cell element
+
+	Change-Id: I744e1ddd606e27e50320718e6e38bc1478da4263
+
+2015-07-31  Anurag Kanungo  <anuragkanungo@gmail.com>  [04585a28316eb914139bef87df2fabc80200c94a]
+
+	parse rt cell element
+
+	Change-Id: I5a4d59b67af8f0c01a8f1d0e58e00330a1dc8f91
+
+2015-07-30  Anurag Kanungo  <anuragkanungo@gmail.com>  [d1336887d085f067e087192da9acbf26f4909030]
+
+	slider and stepper contain number format cell types
+
+	Change-Id: Ia781e1f02d522fd5804a39db2691e37138014451
+
+2015-07-30  Anurag Kanungo  <anuragkanungo@gmail.com>  [391ef69864f988a163d5ecf0415a1bd26011f2e1]
+
+	handle checkbox cell type as bool format
+
+	Change-Id: I3b69346449ae1d3113af9e8cd46198ca9f1c43d1
+
+2015-07-30  Anurag Kanungo  <anuragkanungo@gmail.com>  [d7d7980cfd810aedb2713cc5edcd0debd88f3978]
+
+	parse stepper cell type
+
+	Change-Id: I06751f2e18c7d7ad113c310e29ff347f8ef90fe3
+
+2015-07-30  Anurag Kanungo  <anuragkanungo@gmail.com>  [fa934c8385b4fa19bae859797ae990d17a5257f2]
+
+	parse slider cell type
+
+	Change-Id: I7e882c095c867a240f623f1a79a95467c2cacd9c
+
+2015-07-30  Anurag Kanungo  <anuragkanungo@gmail.com>  [1b669ba2400dcb4faa59ff639c78d3d415326995]
+
+	insert duration cell type
+
+	Change-Id: Iec394f6b6b6d109f4cfa863e75b5070f87cdbbb1
+
+2015-07-30  David Tardon  <dtardon@redhat.com>  [28570843d282942676ba344c62e7cd360b8bfa3a]
+
+	these quantities are very unlikely to be double
+
+	Change-Id: Icfb4377e1f50822c61557762e3b1c2ae6a14bbcc
+
+2015-07-29  Anurag Kanungo  <anuragkanungo@gmail.com>  [ee7a6b4814c48149a7d73d415477dbaf9de67a5c]
+
+	output cell value in table cell
+
+	Change-Id: Ida0dc1af8a27c7758d239d858ddde7b4cc30f18e
+
+2015-07-29  Anurag Kanungo  <anuragkanungo@gmail.com>  [aed0bbce626393789eca5b8ec1ad36a9ea3f2e23]
+
+	insert formula into cell
+
+	Change-Id: I4b0119225d3137085390f9763199a54c0ac65005
+
+2015-07-29  Anurag Kanungo  <anuragkanungo@gmail.com>  [bd9f7f8ac5d5af18e19f583e5b3b1fd27140f2cc]
+
+	reset formula after a cell is parsed
+
+	Change-Id: Ifaa586c6c92b5c144db5f82ae663438b914f0645
+
+2015-07-29  Anurag Kanungo  <anuragkanungo@gmail.com>  [56a18f1fabb371b71489ab819ae968540ce289b9]
+
+	parse checkBox table cell type
+
+	Change-Id: Idb638bc1e155b44e2abf648f844e8693f2eaf9f1
+
+2015-07-27  Anurag Kanungo  <anuragkanungo@gmail.com>  [4a234c31d55d290ddae3c17970b05e3973f8118f]
+
+	fix bug with parsing of dateTime element
+
+	Change-Id: Icb65475b850083a2c9d4c91f06a2253d27271699
+
+2015-07-26  Anurag Kanungo  <anuragkanungo@gmail.com>  [487655d4434c30c19ed9714fc5d19fe92dd3962e]
+
+	enum cell number format types
+
+	Change-Id: I44d9c3b828e96a9575a7a4023d331fdd7e1a53d1
+
+2015-07-26  Anurag Kanungo  <anuragkanungo@gmail.com>  [2f67f21b4c8c993a30afda1edca17619c7d286c2]
+
+	refactor group element to enable group parsing in apple numbers format
+
+	Change-Id: If4c882dd0049496d354d4dec44f64fa4212b51e5
+
+2015-07-26  Anurag Kanungo  <anuragkanungo@gmail.com>  [ab627c9c65a3b6ff983b7bfc4368d9e3411d60db]
+
+	enable shape parsin of apple number format
+
+	Change-Id: Iaab9d303be6d0687bc742852a397947dcabc3eea
+
+2015-07-26  Anurag Kanungo  <anuragkanungo@gmail.com>  [3f43c062c9a947a115c49e1d9dc310ac88acecab]
+
+	fix bug in formula initialization check
+
+	Change-Id: Ia47dd5d01b936fec6f83f94ec927fbf69d8bb020
+
+2015-07-20  Anurag Kanungo  <anuragkanungo@gmail.com>  [209cc6437e22f5544ce394ec716662fe5eb26580]
+
+	enable media parsing of apple numbers
+
+	Change-Id: I50265ccd468f1b766a0048c2f42c3f60f7d611cb
+
+2015-07-20  Anurag Kanungo  <anuragkanungo@gmail.com>  [c5b450cbf0849f52f200b870bb02966f3c981209]
+
+	parse cell DateTime
+
+	Change-Id: I5c2f7fbf8366ed82baeb237cb7440e3a44f17e51
+
+2015-07-17  Anurag Kanungo  <anuragkanungo@gmail.com>  [7cd919c5ffce538e4a393d7845b6ff6b8332dac0]
+
+	write cell format
+
+	Change-Id: I737a1b6f5afc8d41e93cc2c0d3dc4ccd61f942f1
+
+2015-07-16  Anurag Kanungo  <anuragkanungo@gmail.com>  [63feefce1d3b39e765f8ba095b616294d1c92090]
+
+	parse numerical base number format
+
+	Change-Id: Iea2e493ef4afa52e972ee580cb88c33199ebbab5
+
+2015-07-15  Anurag Kanungo  <anuragkanungo@gmail.com>  [f6b0f4ea34979461efcb32341ca46dbc09859e4b]
+
+	collect cell style
+
+	Change-Id: Iab72836f71894c9c468274be64c87ff598ec02a6
+
+2015-07-14  Anurag Kanungo  <anuragkanungo@gmail.com>  [a83010179796d0d5c7522db21ebc01b69a5b9c0d]
+
+	parse cell styles
+
+	Change-Id: Ib7fef5090bb1c14a4f56d5dd67f7298c7fcf1b40
+
+2015-07-13  Anurag Kanungo  <anuragkanungo@gmail.com>  [6f7f066bf44f07b607bbb2811c0e1a911a898314]
+
+	parse cell dateTime-format
+
+	Change-Id: Icb31125119fd88c7f3dfa25e344ec66b912edc4d
+
+2015-07-13  Anurag Kanungo  <anuragkanungo@gmail.com>  [aa90e23a7da816db9b7fa39ad2f9cdd45793ccec]
+
+	parsing cell number-format
+
+	Change-Id: Ia041b8de7e36f80064f0b388db7822a409c6d0b1
+
+2015-07-10  David Tardon  <dtardon@redhat.com>  [6f616065f799aac7a6e45270980c5d1eb7413a92]
+
+	capitalize class names for consistency
+
+	Change-Id: Idc2f0a609fbef6748c0d6465fe7eddc7f3e8da00
+
+2015-07-10  Anurag Kanungo  <anuragkanungo@gmail.com>  [acb655104d9b9cd16e91987df2cb5ae0c2d218b2]
+
+	output tableName instead of tableId in formula cells
+
+	Change-Id: Ic8102bc096ed8ed616bfff0e8fd927617f5287ba
+
+2015-07-04  Anurag Kanungo  <anuragkanungo@gmail.com>  [48f597b0c0068558e672b18725dd78bb2d9cfd71]
+
+	add basic chart parsing contexts
+
+	Change-Id: I04b4d66369459ce5f76be75eadece2f7a2b26d99
+
+2015-07-04  Anurag Kanungo  <anuragkanungo@gmail.com>  [d9f765a2162b2eda3066bece14e5b102e915cd6e]
+
+	add IWORKChart class
+
+	Change-Id: I84960ab3fa451f46528ec4f7278568bf85615231
+
+2015-07-04  David Tardon  <dtardon@redhat.com>  [71d8e4190d507418c2a7393d8008d0ecbfb5b2db]
+
+	rename string-formatting function
+
+	Change-Id: Ifba2bbf65839b1e0460d5566fd7ba82b551f184e
+
+2015-07-04  David Tardon  <dtardon@redhat.com>  [f255ab9c317bf857f4bfab9c4add0828f5a1257b]
+
+	libetonyek_utils.h is internal header
+
+	Change-Id: I383df94b82a1dcac32130c681a0f8f3bff76846e
+
+2015-07-04  Anurag Kanungo  <anuragkanungo@gmail.com>  [2e5dc3356a97c671514617a8adf3551f2353a199]
+
+	add openFormulaCell output element for delayed writing of cells with formula
+
+	Change-Id: I11a7358e0f9360515a9fb67675a0df2edd23bdc6
+
+2015-07-02  David Tardon  <dtardon@redhat.com>  [ca6db155afa6cc1b338929bbf3fb94b476861a99]
+
+	astyle
+
+	It seems that different versions of astyle format this in a different
+	way...
+
+	Change-Id: Ic4c72805ed40310fbcd1d3f0a6d6d4932c13e843
+
+2015-07-02  Anurag Kanungo  <anuragkanungo@gmail.com>  [b1db6c5acd4211544f884861381d3280c0ea5f21]
+
+	parse table name,id and store in a map
+
+	Change-Id: I94e59798ae03eb1947b1b5959286f99fd4c37efc
+
+2015-07-01  Anurag Kanungo  <anuragkanungo@gmail.com>  [5bcaee5935f6ad1baa44d6a6c734c9ad9fda564f]
+
+	refactor formula element context
+
+	Change-Id: I155456e6e233d7b108fa39e9c3ddaa71765d42f6
+
+2015-06-30  Anurag Kanungo  <anuragkanungo@gmail.com>  [077b5b787af0f20c9a81583ab93a3ad236c5d696]
+
+	add function argument seperator in string method of formula and enable tests
+
+	Change-Id: Ic551904eb3f1d73efadf44e95d6aec14545c00d7
+
+2015-06-30  Anurag Kanungo  <anuragkanungo@gmail.com>  [e9a80c42659da6323ab9135cf16d7d43104bf68d]
+
+	handle special address and range in formula parser
+
+	Change-Id: Ic5206280f86d701a6016523392b36fafbf24c5c9
+
+2015-06-29  Anurag Kanungo  <anuragkanungo@gmail.com>  [1250f038104b3667e63f496f3d485bf6e80679af]
+
+	fix address range not allowed in arbitrary context in formula parser
+
+	Change-Id: Ic29adc7e8bcdf5726a0fd94fb1918c22617c1069
+
+2015-06-28  Anurag Kanungo  <anuragkanungo@gmail.com>  [4d88d4e44df3de8a1b5187d180e99a69008a2b74]
+
+	add unit test to check invalid formula parsing
+
+	Change-Id: Ia9f9515e88e96f41decda344d8c37ff45e6fa870
+
+2015-06-28  David Tardon  <dtardon@redhat.com>  [d84e2aaec65f7f660c96166f9df4bf84f86926c8]
+
+	split too long line
+
+	Change-Id: I11fc01c4540d16aeee4f2e978f68cd083ad45d74
+
+2015-06-28  David Tardon  <dtardon@redhat.com>  [f7e82261de396d49787ad552d8a23018e6bb246e]
+
+	use temp. variable
+
+	Change-Id: I65aada544c8fd813348eda86475a2080ebe62bd3
+
+2015-06-28  Anurag Kanungo  <anuragkanungo@gmail.com>  [b17cc7c46e2444c036db55fbf17421a8280cd323]
+
+	derive from correct class for non-cell context element
+
+	Change-Id: I905a825a712da87f934f8353c41dc7d2eef72a8a
+
+2015-06-27  David Tardon  <dtardon@redhat.com>  [2e8f7dbef493f19be760fd01c5e40f19488274b3]
+
+	add conversion of IWORKPath to SVG
+
+	Change-Id: I87aea4851a878eabe19436008522654b834b8a2f
+
+2015-06-27  David Tardon  <dtardon@redhat.com>  [921b8cb968d571df8081c7ebdae9c485b1c10919]
+
+	rewrite path parser
+
+	Change-Id: I578174268533dc2eb5b3a1d8f9f6e184296a665b
+
+2015-06-27  David Tardon  <dtardon@redhat.com>  [54649fbeb72e87888688ba5f2886188ea18cf000]
+
+	name the grammar as well
+
+	Change-Id: I3579eb0fba3f39607a238ddfbc7cf9a4af20f9ab
+
+2015-06-27  David Tardon  <dtardon@redhat.com>  [7422ade9d470fccd3e818ae56a6eb3720ebb7f41]
+
+	match rule name and var. name
+
+	Change-Id: Ib64e9146be32756ca8f7ada6fa48a2e25d63a8e6
+
+2015-06-27  Anurag Kanungo  <anuragkanungo@gmail.com>  [170b3e39eda579bc335a119467d0730ca7c89d86]
+
+	fix postfix operator parse order in formula parser and add test
+
+	Change-Id: Ie4beb4357ad6a0d6950bfedfd6cfc94245787c38
+
+2015-06-27  Anurag Kanungo  <anuragkanungo@gmail.com>  [bf1d4ba4f4fcdee730f9c43f4c91a096d68dac98]
+
+	add support for comparision operators in formula parsing
+
+	Change-Id: I003ed1ffeaeaee97ff8ca554385de88958218581
+
+2015-06-26  David Tardon  <dtardon@redhat.com>  [e446ecb3813d3e3929811c1588e811ef7e2da681]
+
+	astyle
+
+	Change-Id: I9ebaaaa82ebcb4d25d542cc1a5f298361cf65c91
+
+2015-06-27  Anurag Kanungo  <anuragkanungo@gmail.com>  [561edc5cff2c45bf720c43a6bcefd0e76c985efc]
+
+	handle alphanumeric function name in formula parser
+
+	Change-Id: I18b692e97076cf5cd788cd808ac39d9d679f37fd
+
+2015-06-26  Anurag Kanungo  <anuragkanungo@gmail.com>  [b3824c390ea1cc7350e9a1daf3096d85a03b42df]
+
+	remove worksheet parsing and correct table seperator in formula parser
+
+	Change-Id: Ibbba15739dc248f51f9f49dfc58c5cea0abea876
+
+2015-06-26  Anurag Kanungo  <anuragkanungo@gmail.com>  [7cf00895845c2de5c14011bbb00176ca41b4c569]
+
+	fix string literal in formula parser and unit test
+
+	Change-Id: Iae8ce9343891934c92a531f3e20d8e87461b227f
+
+2015-06-26  Anurag Kanungo  <anuragkanungo@gmail.com>  [7070aeb883db7bb0d311ffa21ab9ff2c21f327db]
+
+	add support for parenthesis in formula parsing
+
+	Change-Id: Id61b0e506c7e2ce335c71095101774baf36c566e
+
+2015-06-26  Anurag Kanungo  <anuragkanungo@gmail.com>  [5e001c266b51c14e0d496ba9fb5d3edc1a8baea5]
+
+	fix formula string formatter for cell address range
+
+	Change-Id: I35f3cf9e958b2ee1752e6444e00d7f3c4b5d6ed9
+
+2015-06-26  Anurag Kanungo  <anuragkanungo@gmail.com>  [5091a3d6f5c880994107109b4f096325107d4d99]
+
+	fix function argument seperator in formula parser
+
+	Change-Id: If0e84109b59c8d0b7fb6c6b666497ebefc7f19b3
+
+2015-06-26  Anurag Kanungo  <anuragkanungo@gmail.com>  [26c4aa784b0ad3943c638187ffacdf53c9d1e8be]
+
+	fix address range and binary operator order in formula parsing
+
+	Change-Id: Ia90cec4a87265dbab20f25e2058eed9e26a4829f
+
+2015-06-25  Anurag Kanungo  <anuragkanungo@gmail.com>  [f0920a140a3a4242c8e52b95048ad03b598e19e7]
+
+	add support for postfix operator in formula parsing
+
+	Change-Id: I96ae61a8b0cf541cf100d8cecb8297ff5647e9f1
+
+2015-06-25  David Tardon  <dtardon@redhat.com>  [f7ca931e581f2d63f73bcd324da50f5ee3ae1f59]
+
+	try to fix build on Windows
+
+	Change-Id: Iff2aa943aef9c23c60e400f092f884fc00de4ccf
+
+2015-06-25  David Tardon  <dtardon@redhat.com>  [00f7e36ce2a3996ebef672561014ab101eee7f3a]
+
+	add missing include
+
+	Change-Id: I8bfcacb064b3d0f9d7d5db9d2f32108b0ceea792
+
+2015-06-24  Anurag Kanungo  <anuragkanungo@gmail.com>  [83f6ca75dcf49b5a53e3224daa7ebff8c93084a7]
+
+	Implementing cell formulas
+
+	Change-Id: Ib8082d05deed87e40b6f0a9103a4ebea129911c7
+
+2015-06-24  David Tardon  <dtardon@redhat.com>  [3389a3d8fcf30a0aec781f48f1b2bb05ae564303]
+
+	save some vertical space by avoiding extra var.
+
+	Change-Id: I4d92769020222442d6d3d1e7cb580cacef1393dc
+
+2015-06-24  David Tardon  <dtardon@redhat.com>  [2fc9630e819d74205bfb6de8dd4af5277b2c75ba]
+
+	use ODF Formula syntax for testing
+
+	Change-Id: I33e5dd7a66fb5e63155e872464c35526bbd53c4c
+
+2015-06-24  David Tardon  <dtardon@redhat.com>  [33f0db22794274129b1ad8ee0f04cd49fa645565]
+
+	avoid temporaries when formatting formula
+
+	Change-Id: Ieae16a089f1c23f3009e052b3f290274b18b0eac
+
+2015-06-24  Anurag Kanungo  <anuragkanungo@gmail.com>  [59a0ef145ddad0dcbb07b1419aa682cf3ab172e8]
+
+	Unit test for formula parser
+
+	Change-Id: Icf84f091caa06ceeb9592269fefbde08820e983e
+
+2015-06-24  Anurag Kanungo  <anuragkanungo@gmail.com>  [acd6fb7ebb8ba685326c1b736e540f862614a4ba]
+
+	Column name to number implementaton
+
+	Change-Id: I6253da8f69aa190b029b0575afdc3942051f7d33
+
+2015-06-24  David Tardon  <dtardon@redhat.com>  [9bab021aa972c94237115f47ee14ba42e941b8ca]
+
+	update news
+
+	Change-Id: I6722ce9e01fdff2127b64ea194012d7c4a785a60
+
+2015-06-24  David Tardon  <dtardon@redhat.com>  [7b1d3354e2ccdacb60cfbe74210e5e22a304aeef]
+
+	accept documents of any version
+
+	Change-Id: Ib83a1ef52467064883a75a7a53be7a751ef240bd
+
+2015-06-24  David Tardon  <dtardon@redhat.com>  [cffd62315df894678fa7e00de29dac32b5e52c98]
+
+	accept documents of any version
+
+	Change-Id: I3fa93548af08716a4b3c950bef86569dc8effdf4
+
+2015-06-24  David Tardon  <dtardon@redhat.com>  [8df2b23a47b82aab37d9b0aa220b41b411736d71]
+
+	column width and spacing are relative
+
+	Change-Id: Icfcc8a003f2d15f10d43f3f0695ad7bc9125de0d
+
+2015-06-24  David Tardon  <dtardon@redhat.com>  [bb9b8c52893a6ed3c1564fc02e9d8dab122cc158]
+
+	parse more multi-column properties
+
+	Change-Id: I021c3ad1504d12783e7c424d2e1b0bad4ec5e242
+
+2015-06-23  David Tardon  <dtardon@redhat.com>  [70600daede06a215634f0f5f089c86060c4f9562]
+
+	prepare for a release
+
+	Change-Id: Ifad1b644d6e4a2bd2bd3bffef8366473bd4ed16c
+
+2015-06-23  David Tardon  <dtardon@redhat.com>  [7f38c6447b5374e52fb6e9cef3e56c416d902848]
+
+	do not require gperf for build
+
+	Change-Id: Ia1d69bc6dbf2f83262de5865b19beaa26c2dead4
+
+2015-06-23  David Tardon  <dtardon@redhat.com>  [183a228449b073976e9f206237c4822f32181442]
+
+	parse multi-column text
+
+	Change-Id: Ieacac84cd14981a7900715220be5d9d44b051997
+
+2015-06-23  David Tardon  <dtardon@redhat.com>  [6f72df0acf95fe47bfa33d07fc4ad260a2009eda]
+
+	parse line stroke
+
+	Change-Id: I3933ec3ac023c6fa3d2d979ee61447920655c1c6
+
+2015-06-23  David Tardon  <dtardon@redhat.com>  [8f18bd9c38d4b08132afcca1c8a4f0026c998eb4]
+
+	really parse shape fill color
+
+	Change-Id: Iba08e33e2f9d028c953e45cfc62e00f318c70b89
+
+2015-06-23  David Tardon  <dtardon@redhat.com>  [2067a23575d0f48976deacc7ba877c35c298f5a4]
+
+	reformat
+
+	Change-Id: I3eff10cddbc2a1165256a791ee2bd16302632cba
+
+2015-06-23  David Tardon  <dtardon@redhat.com>  [39df81b2b5ce3225089a0489bad478c8812cf281]
+
+	fix parsing of operators
+
+	Change-Id: I045d5cca026ca1acb2afea58221290c68fa4f196
+
+2015-06-23  David Tardon  <dtardon@redhat.com>  [618c7b1c256e69599fc677e2cdb21ef29b297513]
+
+	parse shape fill color
+
+	Change-Id: Id1ac60e3c83d6e881a9736e10deba36cf0eceba6
+
+2015-06-23  David Tardon  <dtardon@redhat.com>  [d29ebbcd3fa1e118ce674fc77081db67e702591b]
+
+	get rid of last mentions of libwpg
+
+	Change-Id: Ie627b3b53e70d7689c6ecdf751c674ccb1c510b1
+
+2015-06-23  David Tardon  <dtardon@redhat.com>  [9a1587010f8f836c030a32396867310a97537406]
+
+	nitpick
+
+	Change-Id: I3bcacc02421848595dc1623c695bf5c4f46de5b5
+
+2015-06-23  David Tardon  <dtardon@redhat.com>  [cea938f953b48ea6ed558dc00b6c72a8640d5621]
+
+	rename
+
+	Change-Id: I8ab79fd27ecdcfbeb53bbfe731eb66cbad57d091
+
+2015-06-23  David Tardon  <dtardon@redhat.com>  [907e5a1613617b041b9a7e1197d1400843f02f6f]
+
+	do not duplicate type info
+
+	Change-Id: I1b428f6d3dea21590dd5cc9e84a6e121afc823de
+
+2015-06-23  David Tardon  <dtardon@redhat.com>  [8b00c07f0eec388813acb8b619eb8df4bf0179d8]
+
+	nitpick
+
+	Change-Id: I3de80bfd187bc7fd0327fa3ec09336b2c0d2403c
+
+2015-06-23  David Tardon  <dtardon@redhat.com>  [cc33f8f209e9d691e69f8ae888ebe509236982d2]
+
+	simplify defining of property parser contexts
+
+	Change-Id: I97a5b2fc47b3607d99487b9950c8d9763d9e7008
+
+2015-06-23  David Tardon  <dtardon@redhat.com>  [c4667a25426320e873f8d2756fdb59f9dfccb6ec]
+
+	create BIPU formula parser
+
+	Change-Id: I204b8697c734e07e56127f9fb6feb81d53de1221
+
+2015-06-22  David Tardon  <dtardon@redhat.com>  [6c79a354e1b1e5673c63a17b357f8f9c6dafa484]
+
+	pages: parse shapes
+
+	Change-Id: I629549a68ab5ef1104d087e7a99eab0462aa4cfd
+
+2015-06-22  David Tardon  <dtardon@redhat.com>  [59db94eec8b57ae44efd0d4ea7224cd98ac17c25]
+
+	allow format-specific drawing of shapes
+
+	Change-Id: I36132676007d60deaedc22a3f9b7f42350618dc6
+
+2015-06-22  David Tardon  <dtardon@redhat.com>  [5e96c167e85ab3b6299f8bded7da1790d3e8d667]
+
+	prepare shape parser context to be used from pages parser
+
+	Change-Id: I3b9b7e77c717aaee63b065a1561dbb933ff97e99
+
+2015-06-22  David Tardon  <dtardon@redhat.com>  [fcefa83c1f74f61f54b092e2e408b088873eaac4]
+
+	parse character-anchored images
+
+	Change-Id: If822a4c5226ef0d5dfe3bbe7b823a7e7c8c08a7f
+
+2015-06-22  David Tardon  <dtardon@redhat.com>  [92281e1b1db7361caf60cd9ab0d982afa2f5429a]
+
+	parse page-anchored images
+
+	Change-Id: I82f0bba5c940d5f1ceac727b9231e57912fe3dc8
+
+2015-06-21  David Tardon  <dtardon@redhat.com>  [8c87e6804dff98aea096d7d79d8df8c04f384334]
+
+	allow format-specific drawing of images
+
+	Change-Id: Ie94f44431b998492ca45fc6c975c2f74a4d1f5b7
+
+2015-06-21  David Tardon  <dtardon@redhat.com>  [cd7237d50b75d5f01a3c1b12364061c0bb96d0ea]
+
+	use original footnote label
+
+	Change-Id: Ida66581efc3afe9dd950b6ecaaab639a45457eec
+
+2015-06-21  David Tardon  <dtardon@redhat.com>  [2b098c26f7665623e1514e526d0b31282c656923]
+
+	move current footnote state into parser state
+
+	Change-Id: I1b3ad990f7b58023731ab7f98e16866591dbc0fa
+
+2015-06-21  David Tardon  <dtardon@redhat.com>  [c34f3a7cb399c69162573858ce8ebcb4951c6f4c]
+
+	handle endnotes
+
+	Change-Id: Iebf73c291744af58998f2d2bcd1c16499cf810b6
+
+2015-06-21  David Tardon  <dtardon@redhat.com>  [d46e6dc9753ebcdd6bf20f3d18ab7505b00d8ae8]
+
+	parse footnote settings
+
+	Change-Id: Icf7809c131fd949eb1d44727975eed6cda8c173c
+
+2015-06-20  David Tardon  <dtardon@redhat.com>  [3aef76fd9c731ea8519c8d43d5ac19e99865d303]
+
+	parse footnotes
+
+	Change-Id: I38a647f976e5f34548587b11ae5108879bfb6408
+
+2015-06-20  David Tardon  <dtardon@redhat.com>  [0f00c8cdbdc414c997d70e4c2f3d15200a820ee7]
+
+	we need to stack text scopes
+
+	Change-Id: I00342278d7be5a0a352ce5cf6e62eb6c5045388c
+
+2015-06-19  David Tardon  <dtardon@redhat.com>  [ea86633da2c48f9a29d853e69fee980943de98ae]
+
+	do not crash when there are multiple sections
+
+	Change-Id: I9dbab7f5710f568d52479137d1fed0372f0c1cfa
+
+2015-06-19  David Tardon  <dtardon@redhat.com>  [d305b80095d4dd3b17faa52e0ade03557ff0e8b9]
+
+	ignore headers/footers without content
+
+	Change-Id: Id541740893d625848a3f3d9bfc7700ac788a5acc
+
+2015-06-18  David Tardon  <dtardon@redhat.com>  [8f703790be0fcd14e36806500372739e53c69fac]
+
+	handle separate first page master
+
+	Change-Id: I9efc5f61d57f579edb4f708d02639c816f4549c9
+
+2015-06-18  David Tardon  <dtardon@redhat.com>  [c54eb8a7cde57fe7b5a8eebef1f876e83c18c259]
+
+	fix typo
+
+	Change-Id: I2fd7d1aeb301edab23f4f231250ec0f563300e05
+
+2015-06-18  David Tardon  <dtardon@redhat.com>  [16b88ec13be9ca36b8a07b1351508f0a27884e70]
+
+	attempt to handle section props. set in default style
+
+	Change-Id: I7d2f99738cdc10b9af2b71a79b5cd1787ec2c645
+
+2015-06-18  David Tardon  <dtardon@redhat.com>  [dc8c84aea3272b8134b288264672634bdc437d29]
+
+	do not produce value if no attrs. were parsed
+
+	Change-Id: I9c041b1d44d7fd6254043e197b132b77106ffdcd
+
+2015-06-18  David Tardon  <dtardon@redhat.com>  [20fc6eac5c00d31ff6fd42f08c3b07ea3c4d8b60]
+
+	do not write header block if there is no header
+
+	Change-Id: If1ca7543562de6fdcc8297a75123706c705f5fc0
+
+2015-06-18  David Tardon  <dtardon@redhat.com>  [dffdff9acce31409786c70539f6d787a833e95e6]
+
+	enable lookup of section styles
+
+	Change-Id: I574dbb416851b8eafbbdccd41fe87132c5e56e7c
+
+2015-06-18  David Tardon  <dtardon@redhat.com>  [a94ac8aa4f4c72bfc8daf5fae85a21e058177f32]
+
+	rework handling of stylesheets
+
+	Some elements refer to a style by ident, not ID, which requires the
+	currently applied stylesheet.
+
+	Change-Id: I338ed4c8006a5f3313e3fefd5ae3991a1b91a643
+
+2015-06-16  David Tardon  <dtardon@redhat.com>  [1c381565dcfe067dafe0d992681dd533e58f5dd1]
+
+	init member var.
+
+	Change-Id: Id41201a96696c8b9e4bd994d310af3b659cb3023
+
+2015-06-16  Anurag Kanungo  <anuragkanungo@gmail.com>  [2767679b3f11cf6f479c810b0b5d7f6ab418ea5c]
+
+	Fix table-cell border lookup
+
+	Change-Id: I7e7ddb3199830908bba008966ef87e0d3af5c4dd
+
+2015-06-15  David Tardon  <dtardon@redhat.com>  [b3ff5bf2e0b121d6e464d49a0e6d1e81ba327209]
+
+	fix build
+
+	Change-Id: I20eee809bd0afb957340926b0b78fb26bb7f0e8b
+
+2015-06-15  David Tardon  <dtardon@redhat.com>  [e02b51c2e370fa8e33bd40945b2be24922e6db73]
+
+	add mdds to the list of requirements
+
+	Change-Id: I4cd49fa7f13fde21eb0be9e8d6ae7d612e763777
+
+2015-06-15  David Tardon  <dtardon@redhat.com>  [4f0c331d7dc93d8a777ff4de87a2636c4ea2a142]
+
+	include lists are getting too long
+
+	Change-Id: Ie4f7b4ab8e6fca75fe15b964b0172fff0abf38f2
+
+2015-06-15  Anurag Kanungo  <anuragkanungo@gmail.com>  [78065fb2fd1cf2e359003359a04044467990dacd]
+
+	border implementation for table cell
+
+	Change-Id: I6bb54807debb60e4a6d98eb069ac49da051bed6d
+
+2015-06-14  David Tardon  <dtardon@redhat.com>  [c82021654c4e9809b75502ec6899232ed1c07168]
+
+	move handling of stylesheet into parser
+
+	Change-Id: I8579e537612dbf4c8b6fff0006ab00ab5ad65343
+
+2015-06-14  David Tardon  <dtardon@redhat.com>  [e7747ff61e479650ad024a731d2f9b1e1bd9babd]
+
+	numbers: parse stylesheet
+
+	Change-Id: Ibe28cbb6f6b8e6bc0ad1436aeeae19847035217b
+
+2015-06-14  David Tardon  <dtardon@redhat.com>  [4b32a3ece4c82ff70bc72b040c08e1219ecf026b]
+
+	fix typo
+
+	Change-Id: Icf403b67f2daeda9b667092df96341403e704ded
+
+2015-06-14  David Tardon  <dtardon@redhat.com>  [de48d002c40cd59a55e4e309344020a496ebc51d]
+
+	reorder private and public data
+
+	Change-Id: I26e5003358ca9e21e6a0f03e63b5b8bb81e19c45
+
+2015-06-14  David Tardon  <dtardon@redhat.com>  [48f23a088bc335f39b4c35b2f0de6a8a4e62e1a8]
+
+	define the type globally
+
+	Change-Id: Ic8ca9517dff8899b2a9d4bcabdf91c27cfd2ed6e
+
+2015-06-14  David Tardon  <dtardon@redhat.com>  [bde3d24e103defb855f5cdffa875b1a9d7efb822]
+
+	keep the list sorted
+
+	Change-Id: I8acb24e59830cbf747eb50d66627f907fd9a3fdc
+
+2015-06-14  David Tardon  <dtardon@redhat.com>  [0e8cc3b877665c5610fb33cd6a0d391144d9515c]
+
+	sf:style is style ident, not ID
+
+	Change-Id: I6b0af7f491072347325bb8be87f1f167495bd828
+
+2015-06-14  David Tardon  <dtardon@redhat.com>  [7f66a0e21d7e1e754f9b80de04f2a3c0508c2cae]
+
+	fix debug msg
+
+	Change-Id: Ic53a856cb44af135409790151dff975001ce4634
+
+2015-06-14  David Tardon  <dtardon@redhat.com>  [72ec2bff7dbbb28a93f40557ec91ab72a5461b3b]
+
+	parse section prototypes' stylesheets
+
+	Change-Id: Id37e0db288b2256619b37f01b4e686f6b02ad2bd
+
+2015-06-14  David Tardon  <dtardon@redhat.com>  [0e818cfb6d253673f6c36db5bd6d31ce21cda306]
+
+	handle headers and footers
+
+	Change-Id: Ie0b3831fe5a864fb0f287e4bc3584a6ad13aa68a
+
+2015-06-14  David Tardon  <dtardon@redhat.com>  [12ec41f8e255ccbbe521db65ce39865fda89af15]
+
+	fix copypasta
+
+	Change-Id: I04abfec6644395952272f61fcf4667340256ea59
+
+2015-06-13  David Tardon  <dtardon@redhat.com>  [2a8e51b1ef1e2f3fca838a44c7029c80b6077343]
+
+	make the base property context classes global
+
+	Change-Id: Ia73a4bf33db80819de9a0394db02d9670a82af9d
+
+2015-06-13  David Tardon  <dtardon@redhat.com>  [a2c2bb5965d43c4b9c58a45126424b253eed0674]
+
+	parse headers and footers
+
+	Change-Id: Ie9ef036e6837a201bae3259d359c1e3c7e6c5f15
+
+2015-06-12  David Tardon  <dtardon@redhat.com>  [38a5fdf1cb946257d0dd2eb7361a8f3bb3101086]
+
+	get rid of last remains of libwpg
+
+	This fixes output of shapes and images.
+
+	Change-Id: I85302c72005cbb5a5a378fa8ac15666d2918c3b6
+
+2015-06-12  David Tardon  <dtardon@redhat.com>  [b7583e2c0ecc3d4b05812ce6425e1e03a35c9582]
+
+	ignore invalid path
+
+	Change-Id: Ifabb11a8af46f9f84895a29086266744faf6bc64
+
+2015-06-12  David Tardon  <dtardon@redhat.com>  [9b66e5a707e5932595987053c1cd929ef75af4dc]
+
+	drop unneeded include
+
+	Change-Id: I31627259a9316267a8bdae205f475a1eecd90f64
+
+2015-06-12  David Tardon  <dtardon@redhat.com>  [f181c1512e307106938e90195345fee1a46ab6ee]
+
+	init. all members
+
+	Change-Id: I4936ffba757fc15bcee22bdfcd5c3c6d91235383
+
+2015-06-12  David Tardon  <dtardon@redhat.com>  [db232ac9062fb330565dcce5cc1187c1988520ba]
+
+	handle media type in parser already
+
+	Change-Id: Ibf351079bfc00baebce4a41f69dcb6bc1d32d2c4
+
+2015-06-12  David Tardon  <dtardon@redhat.com>  [a5a16569de7ef7de207203e3044eb4e9dca8cd27]
+
+	parse ID
+
+	Change-Id: I78957eb839137b490163a7f3017d3427eb3f6fce
+
+2015-06-12  David Tardon  <dtardon@redhat.com>  [bdaf4f373e12e014b5d992e36efffce0deb98864]
+
+	ignore invalid type
+
+	Change-Id: Id9afb664cb700f5f4b0db45dcf38592a3d696bc6
+
+2015-06-12  David Tardon  <dtardon@redhat.com>  [7f460a64f37875337231243d73d01a08f1f95051]
+
+	ignore invalid values
+
+	Change-Id: I3faec462de54fe5d0b97956540f950de40a40ee9
+
+2015-06-12  David Tardon  <dtardon@redhat.com>  [5439eeb645041ee1aa51fbc6d8076a504c1d3181]
+
+	ignore bad color values
+
+	Change-Id: Ifb28a054122e3bb88784b6ad09f05b7aae0d7691
+
+2015-06-12  David Tardon  <dtardon@redhat.com>  [fa908a74b9e91c52412be43eb3619fea3ee6a616]
+
+	avoid use of empty optional
+
+	Change-Id: I57e23f5722d584dddec35b9bd3dd91f21a60ab35
+
+2015-06-11  David Tardon  <dtardon@redhat.com>  [ddd2409279cdd76eddd6c28b32dcde3fe8c78bad]
+
+	afl: finish parsing in case of broken XML
+
+	Change-Id: Ia31c88d04f5f2596821a3be0ae81728be835557a
+
+2015-06-11  David Tardon  <dtardon@redhat.com>  [3658b7561a05cc6b5c48d4a985f6c9acf99665ed]
+
+	remove space
+
+	Change-Id: I559e96fa85cf83f288f317e41eb07502ce215b08
+
+2015-06-06  David Tardon  <dtardon@redhat.com>  [1bedb3b14256476db260ae4c7580bbfba6405f39]
+
+	reduce copy-pasta
+
+	Change-Id: I4115125d6b7f6db46b98a798a310412c55db6f4e
+
+2015-06-06  David Tardon  <dtardon@redhat.com>  [40c146c3acbaa21681e76d5c6a50b1c28ac1af09]
+
+	keynote: parse metadata
+
+	Change-Id: Idc8de9eed2915ff147e52e1948d45318affa9490
+
+2015-06-06  David Tardon  <dtardon@redhat.com>  [6c22d8dff931f7d2d5915d64b9f35c8565650dcb]
+
+	remove useless function
+
+	Change-Id: Ia4a99ce8e6b955f5970206f6262e7219483d1b65
+
+2015-06-06  David Tardon  <dtardon@redhat.com>  [9f98189c0df2bc3d4b1a3f7b1cad9e70de267318]
+
+	defer writing slides to the end of doc
+
+	... in preparation for parsing metadata, which are placed at the end of
+	the document, after slides.
+
+	Change-Id: Ieb4ce3049b5a04e1bcad5744b68a6f7d1ae6e41d
+
+2015-06-06  David Tardon  <dtardon@redhat.com>  [04d4b67f3ebb5840f9e3d155e9e46ac612dfc748]
+
+	drop unneeded functions
+
+	Change-Id: I652063ce6abf2485d7afa926ef20394567f6a9f6
+
+2015-06-06  David Tardon  <dtardon@redhat.com>  [dc3a811ff85b67792a7173a1c808642eb23f7289]
+
+	just call parent class functions
+
+	Change-Id: Icbd824494e14d2b6c430767b48153374db3f9051
+
+2015-06-06  David Tardon  <dtardon@redhat.com>  [67dcf8e4f783818d489baa28e87bd7bd99a9e9ac]
+
+	remove unneeded functions
+
+	Change-Id: Id4a91036862d35cb41349ade99516d3fe90e4d4e
+
+2015-06-06  David Tardon  <dtardon@redhat.com>  [f811eabc55442b216965523215faca18927ae538]
+
+	drop unused function
+
+	Change-Id: I582ffd31536e66e80a87f1151e1ebfafc63813c1
+
+2015-06-06  David Tardon  <dtardon@redhat.com>  [8667a41591b86c092e96936af49736d5b3c25ef8]
+
+	remove empty line
+
+	Change-Id: Id64647418258f5f4cbf9cac2e51f86e8f542c47b
+
+2015-06-06  David Tardon  <dtardon@redhat.com>  [ae5f266b3f7e504f7d36e9acc559fc0fc8623924]
+
+	numbers: parse metadata
+
+	Change-Id: I3de0e972d4579ca7d6e4c927734e321d4d671d62
+
+2015-06-06  David Tardon  <dtardon@redhat.com>  [c26e130cc3dab3c62467752da088592a238d4767]
+
+	move handling of metadata to common code
+
+	Change-Id: Ied6f86758a81764530a63431d05e797fa7be8d83
+
+2015-06-04  David Tardon  <dtardon@redhat.com>  [b2caae2d48cb2499a2a0dc01e99fecf9045cbe81]
+
+	move (most of) metadata parser to common code
+
+	Change-Id: I1747feb456b35932eb3fb7c345d35ffad9bfac33
+
+2015-06-04  David Tardon  <dtardon@redhat.com>  [a7225fa669907162ea14404f7f7149302eeb74eb]
+
+	parse real document metadata
+
+	The sf:array elements are only present in empty entries. Filled entry
+	contains a sf:string.
+
+	Change-Id: I0e76b28a6d2974512e7224559443256a90904198
+
+2015-06-03  David Tardon  <dtardon@redhat.com>  [3f5a0f84ce7d754b39eb2139ef774372c34036ad]
+
+	move path-related parser contexts to a separate source
+
+	Change-Id: Ib99b8d978e0c251f84e8df06771b167fbf96bb4d
+
+2015-06-03  David Tardon  <dtardon@redhat.com>  [8b61373e23f94f6360bead99fff967492d127276]
+
+	parse ref-able elements in skipped parts - Keynote
+
+	Change-Id: I52cef002a905cf64d3911a96df8198a3efdfc04b
+
+2015-06-03  David Tardon  <dtardon@redhat.com>  [a53a5ee5e47266704b7aca08983e8d192948f27f]
+
+	parse ref-able elements in skipped parts
+
+	Change-Id: I33c543edf09f68f992d7cf3ae9ddb2e2dc42df2b
+
+2015-06-03  David Tardon  <dtardon@redhat.com>  [6be35a1a3dfbfd7eff3e0a43442dfb988c9c79c9]
+
+	fix brain fart
+
+	Change-Id: I92d3c0d6d75b6d120f2ebca51e6ce6ff3a65e2af
+
+2015-06-01  David Tardon  <dtardon@redhat.com>  [c2abae5fc45a09915299660427c7541defaaa154]
+
+	create parser-specific discard context
+
+	Change-Id: Ia146cb393239b36f5b44b5f3a5771b0177b341d5
+
+2015-06-01  David Tardon  <dtardon@redhat.com>  [d484bc30c112d3b947accb6448296737b24b388e]
+
+	add a mode for gathering ref. sources
+
+	Change-Id: I64ea0788b47c2fffb02546ff13c18302de9f4c4d
+
+2015-06-01  David Tardon  <dtardon@redhat.com>  [a69b3bd40a00ce51c37da4c3124ecff0d646dfb4]
+
+	pass collector by ref
+
+	Change-Id: I3745de9aed97b548951b8e1a287caff934c083c5
+
+2015-06-01  David Tardon  <dtardon@redhat.com>  [154c67bcc603f46af62deb03fb611baf66527c04]
+
+	this is not needed anymore
+
+	Change-Id: I798cd313d1281956d47cf6bcf0f4c55d7cf2e1f9
+
+2015-06-01  Anurag Kanungo  <anuragkanungo@gmail.com>  [9c1bf2b01e2857730675271b3d1f61a19f3b0be5]
+
+	Simplify Implementation of StyleRefContext
+
+	Change-Id: I6cbfc8aebbfe21531faf1d49c2e7b62575bfd21a
+
+2015-06-01  Anurag Kanungo  <anuragkanungo@gmail.com>  [425da1b7f1916e8132aafe0e3b70d22debd27fe1]
+
+	simplify implementation of StyleContext
+
+	Change-Id: I8d54b8ee2b1937480cdedad7498bae4d51ac556f
+
+2015-05-31  David Tardon  <dtardon@redhat.com>  [662bce6962833f3a892ddbde0995efad0ffc831b]
+
+	parse metadata
+
+	Change-Id: I6e2148e98b5b9e244852321702de15774069f04e
+
+2015-05-31  David Tardon  <dtardon@redhat.com>  [528a6513114c421e75487ff2656e690edd2ebb04]
+
+	move start/endDocument to document context
+
+	Change-Id: I3333935a45a1c2e4f82f97501e262eba53697bf1
+
+2015-05-31  David Tardon  <dtardon@redhat.com>  [f2cff187bbb031b5cb5bf03b0c7bd82e39809713]
+
+	add tags to .gitignore
+
+	Change-Id: I7fe86f6b3ed12217a6c6d189259366a766d86d3e
+
+2015-05-31  David Tardon  <dtardon@redhat.com>  [c2fc9fcc3b23aff26b8be9a59de08fe41006a36b]
+
+	parse paragraph borders
+
+	Change-Id: I32f35e2de05df95a4cf7fc481a04ff5193eb754e
+
+2015-05-31  David Tardon  <dtardon@redhat.com>  [e76f48d6e70f6f08e294c27a0f365a6fa39bd58a]
+
+	parse page break before paragraph
+
+	Change-Id: Ifb4fe2532483e65f6ebec67d743d24e30ec87514
+
+2015-05-31  David Tardon  <dtardon@redhat.com>  [7deed374dde13f3c6f0cf5cdc75f624045027f84]
+
+	handle properties reset to default
+
+	Change-Id: Ic0bdf1e9f555e6f5f82ab85e8a26e7b8f4e37c90
+
+2015-05-31  David Tardon  <dtardon@redhat.com>  [174c3ea11e80928e6815d17ff5fbfec9c0ec3f21]
+
+	add TODO
+
+	Change-Id: I6561553cec9f906d4d0f482cc34d144a69049291
+
+2015-05-31  David Tardon  <dtardon@redhat.com>  [bf8a1d1c5448d4535e95fbbc22f7c341be62224d]
+
+	simplify handling of numeric properties
+
+	Change-Id: I7dc1f0a8195a439bd604618e6c5cfaf753df3f64
+
+2015-05-31  David Tardon  <dtardon@redhat.com>  [63241f4019ae263505a3dd43b9eb45e2a0ff1033]
+
+	add support for cleared properties
+
+	At least Pages uses empty property tag to reset a property to its
+	default value.
+
+	Change-Id: I740c9a098c75e1bd8975889044b5127f3b117f31
+
+2015-05-31  David Tardon  <dtardon@redhat.com>  [7dd42422b307b336b819658815248d3bee96cc95]
+
+	handle text position
+
+	Change-Id: I837165060896c6f13a8d79e6da7e761ceceaba91
+
+2015-05-31  David Tardon  <dtardon@redhat.com>  [0901322a5320a3bd4b659a6cdfe4b5729d53402f]
+
+	parse letter spacing
+
+	Change-Id: I31864bce1ae4b193ca7baec8b91e63696328c518
+
+2015-05-30  David Tardon  <dtardon@redhat.com>  [d0fe2c15e41ae1945228d9e4be985df407eb2bb1]
+
+	use app-specific table props
+
+	Change-Id: Ibd913626cb4af26f5a95777f980030ed127280f0
+
+2015-05-30  David Tardon  <dtardon@redhat.com>  [d41474161c5cb644ca625d1581718fad89d3747e]
+
+	ignore props with unknown numeric value
+
+	Change-Id: If719de76461beb3e378aa2944bbedb5c4192d0b7
+
+2015-05-30  David Tardon  <dtardon@redhat.com>  [60c22fc853d7db4ff3ffc1661202fb3db537dbd7]
+
+	avoid use of uninitialized value
+
+	Change-Id: I61c695ca8366ac366d3d450ef8e45cd4eba33fda
+
+2015-05-30  David Tardon  <dtardon@redhat.com>  [db072f0c7ac7b9c108d635c1499b3491b9df95d2]
+
+	drop unused includes
+
+	Change-Id: I4d42281f56a350ecc3da55f367e95927510bc21d
+
+2015-05-30  David Tardon  <dtardon@redhat.com>  [a45a7bb83bc866ab9d03cc40d547127c802a9049]
+
+	use Spirit V2
+
+	Change-Id: Iae75b116c0d618b0b18f09836e8ba47eeef8dcdb
+
+2015-05-27  Anurag Kanungo  <anuragkanungo@gmail.com>  [3fadbf4bc5161f6818339f33c74aa9ca041886a7]
+
+	move current table data into parser state
+
+	Change-Id: If5e39e1bf77747d739992d3673880de23ed60ead
+
+2015-05-26  David Tardon  <dtardon@redhat.com>  [91d39222d9f120211c0189f69299898702a65d3d]
+
+	remove surplus breaks
+
+	Change-Id: Ib98a4a5bcd7d9f9eb03874f0715b45bb141ef12d
+
+2015-05-26  David Tardon  <dtardon@redhat.com>  [54c63c653deb070c49621bea8acbc18f76118238]
+
+	add missing breaks
+
+	Change-Id: I6a6afd517e61aff89319348de5af3aa97093bd1d
+
+2015-05-25  Anurag Kanungo  <anuragkanungo@gmail.com>  [16d185d8514fd63dd4587cf598bd717008ab415e]
+
+	Removed clone method from IWORKOutputElements
+
+	Change-Id: I1fb8d57ab63c9e1ecc91759d5cb7b1faccfa05c6
+	Reviewed-on: https://gerrit.libreoffice.org/15894
+	Tested-by: David Tardon <dtardon@redhat.com>
+	Reviewed-by: David Tardon <dtardon@redhat.com>
+
+2015-05-25  David Tardon  <dtardon@redhat.com>  [6af2a34df824e75e4698004d5a26600746515caf]
+
+	we don't need separate functions for this
+
+	Change-Id: Ied408710a6547174e02196ab63231db4b298e799
+
+2015-05-25  Anurag Kanungo  <anuragkanungo@gmail.com>  [800df8c2f0f26ecb331b60a8e56192e8e64a5805]
+
+	draw sticky notes immediately
+
+	Change-Id: I56f672b73725cd09c0df74d2b3e40671ffe75cc3
+
+2015-05-25  Anurag Kanungo  <anuragkanungo@gmail.com>  [50b7570c461077e75c7b09d5bfaffce7a7e65a5a]
+
+	Renamed IWORKZoneManager to IWORKOutputManager to make association visible
+
+	Change-Id: I38987fb4298a14f738fc5e16d36ae4e848552063
+	Reviewed-on: https://gerrit.libreoffice.org/15889
+	Tested-by: David Tardon <dtardon@redhat.com>
+	Reviewed-by: David Tardon <dtardon@redhat.com>
+
+2015-05-24  David Tardon  <dtardon@redhat.com>  [a4f9eb15bb0d9d2e9b127be0d371b25d0fe39892]
+
+	add some hacking notes
+
+	Change-Id: Ib0fd2ae0eae1e83ec9f4de961148ab0506c96cb5
+
+2015-05-24  David Tardon  <dtardon@redhat.com>  [4d9c13619fedc122a390b4a48d76b5087e3c9968]
+
+	add some notes on coding style
+
+	Change-Id: If4801e3f2202a2ad89d9dd5c66e2b2ad6fdf999a
+
+2015-05-20  David Tardon  <dtardon@redhat.com>  [5bb538c7c9984d2f68b81eb182ca9bf4c12593a9]
+
+	fix test on i386
+
+	Change-Id: I54379bec41f724d5c3ff8bf9e559c5bda7a9c57d
+
+2015-05-19  David Tardon  <dtardon@redhat.com>  [3663b7b44646e1ed1218598aeb0bdf7326934029]
+
+	missing include
+
+	Change-Id: Ie7a733b49a5b9a056671f4274b5194c3891569ae
+
+2015-05-19  David Tardon  <dtardon@redhat.com>  [111afd56a8fe028a9b353bfb9a190ce62c059dd6]
+
+	add include for assert()
+
+	Change-Id: I24d1d7f15e41f94f5f9f5c99a8053e088f9a2df6
+
+2015-05-19  David Tardon  <dtardon@redhat.com>  [aaa35710f741d09e86c347a8e80436e30c13cae2]
+
+	blind fix for windows build error
+
+	error C2593: 'operator ||' is ambiguous
+	...
+	while trying to match the argument list '(boost::logic::tribool, int)'
+
+	Change-Id: I8c380018c3d0143e4fa4b0ef469195d404e024b0
+
+2015-05-19  David Tardon  <dtardon@redhat.com>  [c7d2c4a00c5c32189b2f9c551a0a6942e2240229]
+
+	fix copypasta
+
+	Change-Id: Idb16cf04ff64046223e35daf362c6d9f334064ab
+
 2015-05-19  David Tardon  <dtardon@redhat.com>  [3a41faf9227bb946d002a4f100636fb8b946fd3e]
 
 	prepare for a release

@@ -10,9 +10,7 @@
 #include "IWORKParser.h"
 
 #include <cassert>
-
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <libxml/xmlreader.h>
 
@@ -23,47 +21,11 @@
 #include "IWORKXMLContextBase.h"
 #include "IWORKXMLParserState.h"
 
-using boost::shared_ptr;
+using std::shared_ptr;
 using std::stack;
 
 namespace libetonyek
 {
-
-namespace
-{
-
-class DiscardContext : public IWORKXMLContext, public boost::enable_shared_from_this<DiscardContext>
-{
-private:
-  virtual void startOfElement();
-  void attribute(int name, const char *value);
-  IWORKXMLContextPtr_t element(int name);
-  void text(const char *value);
-  virtual void endOfElement();
-};
-
-void DiscardContext::startOfElement()
-{
-}
-
-void DiscardContext::attribute(int, const char *)
-{
-}
-
-IWORKXMLContextPtr_t DiscardContext::element(int)
-{
-  return shared_from_this();
-}
-
-void DiscardContext::text(const char *)
-{
-}
-
-void DiscardContext::endOfElement()
-{
-}
-
-}
 
 namespace
 {
@@ -89,7 +51,7 @@ IWORKParser::~IWORKParser()
 
 bool IWORKParser::parse()
 {
-  const shared_ptr<xmlTextReader> sharedReader(xmlReaderForIO(readFromStream, closeStream, m_input.get(), "", 0, 0), xmlFreeTextReader);
+  const shared_ptr<xmlTextReader> sharedReader(xmlReaderForIO(readFromStream, closeStream, m_input.get(), "", nullptr, 0), xmlFreeTextReader);
   if (!sharedReader)
     return false;
 
@@ -97,7 +59,7 @@ bool IWORKParser::parse()
   assert(reader);
 
   const IWORKTokenizer &tokenizer = getTokenizer();
-  stack <IWORKXMLContextPtr_t> contextStack;
+  stack<IWORKXMLContextPtr_t> contextStack;
 
   int ret = xmlTextReaderRead(reader);
   contextStack.push(createDocumentContext());
@@ -113,7 +75,7 @@ bool IWORKParser::parse()
       IWORKXMLContextPtr_t newContext = contextStack.top()->element(id);
 
       if (!newContext)
-        newContext.reset(new DiscardContext());
+        newContext = createDiscardContext();
 
       const bool isEmpty = xmlTextReaderIsEmptyElement(reader);
 
@@ -154,6 +116,12 @@ bool IWORKParser::parse()
 
     ret = xmlTextReaderRead(reader);
 
+  }
+
+  while (!contextStack.empty()) // finish parsing in case of broken XML
+  {
+    contextStack.top()->endOfElement();
+    contextStack.pop();
   }
   xmlTextReaderClose(reader);
 

@@ -53,6 +53,12 @@ public:
     */
   void push();
 
+  /** Push a style onto the active styles stack.
+    *
+    * The previous top style becomes a dynamic parent @c style.
+    */
+  void push(const IWORKStylePtr_t &style);
+
   /** Pop a style from the active styles stack.
     */
   void pop();
@@ -64,8 +70,13 @@ public:
   {
     for (Stack_t::const_iterator it = m_stack.begin(); m_stack.end() != it; ++it)
     {
-      if (*it && (*it)->getPropertyMap().has<Property>(lookInParent))
-        return true;
+      if (*it)
+      {
+        if ((*it)->getPropertyMap().has<Property>(lookInParent))
+          return true;
+        else if ((*it)->getPropertyMap().clears<Property>(lookInParent))
+          break;
+      }
     }
     return false;
   }
@@ -75,8 +86,13 @@ public:
   {
     for (Stack_t::const_iterator it = m_stack.begin(); m_stack.end() != it; ++it)
     {
-      if (*it && (*it)->getPropertyMap().has<Property>(lookInParent))
-        return (*it)->getPropertyMap().get<Property>(lookInParent);
+      if (*it)
+      {
+        if ((*it)->getPropertyMap().has<Property>(lookInParent))
+          return (*it)->getPropertyMap().get<Property>(lookInParent);
+        else if ((*it)->getPropertyMap().clears<Property>(lookInParent))
+          break;
+      }
     }
     throw IWORKPropertyMap::NotFoundException();
   }

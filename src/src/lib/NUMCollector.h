@@ -27,7 +27,12 @@ public:
   // helper functions
   void startDocument();
   void endDocument();
-  void endWorkSpaceArray();
+
+private:
+  void drawTable() override;
+  void drawMedia(double x, double y, double w, double h, const std::string &mimetype, const librevenge::RVNGBinaryData &data) override;
+  void fillShapeProperties(librevenge::RVNGPropertyList &props) override;
+  void drawTextBox(const IWORKTextPtr_t &text, const glm::dmat3 &trafo, const IWORKGeometryPtr_t &boundingBox) override;
 };
 
 } // namespace libetonyek

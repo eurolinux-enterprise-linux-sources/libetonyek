@@ -22,55 +22,6 @@ using std::string;
 namespace test
 {
 
-namespace
-{
-
-double in2pt(const double in)
-{
-  return 72 * in;
-}
-
-string toSVG(const IWORKPath &path)
-{
-  std::ostringstream output;
-
-  const librevenge::RVNGPropertyListVector vec = path.toWPG();
-
-  bool first = true;
-
-  librevenge::RVNGPropertyListVector::Iter it(vec);
-  while (!it.last())
-  {
-    const librevenge::RVNGPropertyList &element = it();
-
-    CPPUNIT_ASSERT(0 != element["libwpg:path-action"]);
-
-    if (first)
-      first = false;
-    else
-      output << ' ';
-    output << element["libwpg:path-action"]->getStr().cstr();
-    if (element["svg:x1"])
-      output << ' ' << in2pt(element["svg:x1"]->getDouble());
-    if (element["svg:y1"])
-      output << ' ' << in2pt(element["svg:y1"]->getDouble());
-    if (element["svg:x2"])
-      output << ' ' << in2pt(element["svg:x2"]->getDouble());
-    if (element["svg:y2"])
-      output << ' ' << in2pt(element["svg:y2"]->getDouble());
-    if (element["svg:x"])
-      output << ' ' << in2pt(element["svg:x"]->getDouble());
-    if (element["svg:y"])
-      output << ' ' << in2pt(element["svg:y"]->getDouble());
-
-    it.next();
-  }
-
-  return output.str();
-}
-
-}
-
 class IWORKPathTest : public CPPUNIT_NS::TestFixture
 {
 public:
@@ -99,82 +50,27 @@ void IWORKPathTest::tearDown()
 void  IWORKPathTest::testConstruction()
 {
   {
-    const string src = "M 0.0 0.0";
-    IWORKPath refPath;
-    refPath.appendMoveTo(0, 0);
-
-    IWORKPath testPath(src);
-
-    CPPUNIT_ASSERT(refPath == testPath);
-  }
-
-  {
-    const string src = "L 0.0 0.0";
-    IWORKPath refPath;
-    refPath.appendLineTo(0, 0);
-
-    IWORKPath testPath(src);
-
-    CPPUNIT_ASSERT(refPath == testPath);
-  }
-
-  {
-    const string src = "C 0.5 0.5 0 0 1 1";
-    IWORKPath refPath;
-    refPath.appendCurveTo(0.5, 0.5, 0, 0, 1, 1);
-
-    IWORKPath testPath(src);
-
-    CPPUNIT_ASSERT(refPath == testPath);
-  }
-
-  {
-    const string src = "Z";
-    IWORKPath refPath;
-    refPath.appendClose();
-
-    IWORKPath testPath(src);
-
-    CPPUNIT_ASSERT(refPath == testPath);
-  }
-
-  {
     const string src = "M 0 0 L 1 1";
-    IWORKPath refPath;
-    refPath.appendMoveTo(0, 0);
-    refPath.appendLineTo(1, 1);
-
-    IWORKPath testPath(src);
-
-    CPPUNIT_ASSERT(refPath == testPath);
+    CPPUNIT_ASSERT_NO_THROW((IWORKPath(src)));
+    CPPUNIT_ASSERT_EQUAL(string("M 0 0 L 1 1"), IWORKPath(src).str());
   }
 
   {
-    const string src = "M 0 0 L 1 0 L 1 1 L 0 1 Z L 0 0";
-    IWORKPath refPath;
-    refPath.appendMoveTo(0, 0);
-    refPath.appendLineTo(1, 0);
-    refPath.appendLineTo(1, 1);
-    refPath.appendLineTo(0, 1);
-    refPath.appendClose();
-    refPath.appendLineTo(0, 0);
-
-    IWORKPath testPath(src);
-
-    CPPUNIT_ASSERT(refPath == testPath);
+    const string src = "M 0 0 C 0.5 0.5 0 0 1 1";
+    CPPUNIT_ASSERT_NO_THROW((IWORKPath(src)));
+    CPPUNIT_ASSERT_EQUAL(string("M 0 0 C 0.5 0.5 0 0 1 1"), IWORKPath(src).str());
   }
 
   {
-    const string src = "M 0.0 0.0 L 0 1 C 1 1 0.5 0.5 0 0 Z";
-    IWORKPath refPath;
-    refPath.appendMoveTo(0, 0);
-    refPath.appendLineTo(0, 1);
-    refPath.appendCurveTo(1, 1, 0.5, 0.5, 0, 0);
-    refPath.appendClose();
+    const string src = "M 0 0 L 1 0 L 1 1 L 0 1 Z M 0 0";
+    CPPUNIT_ASSERT_NO_THROW((IWORKPath(src)));
+    CPPUNIT_ASSERT_EQUAL(string("M 0 0 L 1 0 L 1 1 L 0 1 Z"), IWORKPath(src).str());
+  }
 
-    IWORKPath testPath(src);
-
-    CPPUNIT_ASSERT(refPath == testPath);
+  {
+    const string src = "M 0.0 0.0 L 0 1 C 1 1 0.5 0.5 0 0 Z M 0 0";
+    CPPUNIT_ASSERT_NO_THROW((IWORKPath(src)));
+    CPPUNIT_ASSERT_EQUAL(string("M 0 0 L 0 1 C 1 1 0.5 0.5 0 0 Z"), IWORKPath(src).str());
   }
 }
 
@@ -185,7 +81,7 @@ void  IWORKPathTest::testConversion()
     IWORKPath path;
     path.appendMoveTo(0, 0);
 
-    CPPUNIT_ASSERT_EQUAL(ref, toSVG(path));
+    CPPUNIT_ASSERT_EQUAL(ref, path.str());
   }
 
   {
@@ -193,7 +89,7 @@ void  IWORKPathTest::testConversion()
     IWORKPath path;
     path.appendLineTo(0, 0);
 
-    CPPUNIT_ASSERT_EQUAL(ref, toSVG(path));
+    CPPUNIT_ASSERT_EQUAL(ref, path.str());
   }
 
   {
@@ -201,15 +97,7 @@ void  IWORKPathTest::testConversion()
     IWORKPath path;
     path.appendCurveTo(1, 1, 0, 0, 0.5, 0.5);
 
-    CPPUNIT_ASSERT_EQUAL(ref, toSVG(path));
-  }
-
-  {
-    const string ref = "Z";
-    IWORKPath path;
-    path.appendClose();
-
-    CPPUNIT_ASSERT_EQUAL(ref, toSVG(path));
+    CPPUNIT_ASSERT_EQUAL(ref, path.str());
   }
 
   {
@@ -218,7 +106,7 @@ void  IWORKPathTest::testConversion()
     path.appendMoveTo(0, 0);
     path.appendLineTo(1, 1);
 
-    CPPUNIT_ASSERT_EQUAL(ref, toSVG(path));
+    CPPUNIT_ASSERT_EQUAL(ref, path.str());
   }
 
   {
@@ -228,10 +116,10 @@ void  IWORKPathTest::testConversion()
     path.appendLineTo(1, 0);
     path.appendLineTo(1, 1);
     path.appendLineTo(0, 1);
-    path.appendClose();
     path.appendLineTo(0, 0);
+    path.appendClose();
 
-    CPPUNIT_ASSERT_EQUAL(ref, toSVG(path));
+    CPPUNIT_ASSERT_EQUAL(ref, path.str());
   }
 
   {
@@ -242,7 +130,7 @@ void  IWORKPathTest::testConversion()
     path.appendCurveTo(1, 1, 0.5, 0.5, 0, 0);
     path.appendClose();
 
-    CPPUNIT_ASSERT_EQUAL(ref, toSVG(path));
+    CPPUNIT_ASSERT_EQUAL(ref, path.str());
   }
 }
 

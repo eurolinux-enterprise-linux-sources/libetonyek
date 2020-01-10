@@ -18,7 +18,7 @@ namespace libetonyek
 {
 
 IWORKMemoryStream::IWORKMemoryStream(const RVNGInputStreamPtr_t &input)
-  : m_data(0)
+  : m_data()
   , m_length(0)
   , m_pos(0)
 {
@@ -35,15 +35,15 @@ IWORKMemoryStream::IWORKMemoryStream(const RVNGInputStreamPtr_t &input)
 }
 
 IWORKMemoryStream::IWORKMemoryStream(const RVNGInputStreamPtr_t &input, const unsigned length)
-  : m_data(0)
+  : m_data()
   , m_length(0)
   , m_pos(0)
 {
   read(input, length);
 }
 
-IWORKMemoryStream::IWORKMemoryStream(std::vector<unsigned char> &data)
-  : m_data(0)
+IWORKMemoryStream::IWORKMemoryStream(const std::vector<unsigned char> &data)
+  : m_data()
   , m_length(data.size())
   , m_pos(0)
 {
@@ -54,7 +54,7 @@ IWORKMemoryStream::IWORKMemoryStream(std::vector<unsigned char> &data)
 }
 
 IWORKMemoryStream::IWORKMemoryStream(const unsigned char *const data, const unsigned length)
-  : m_data(0)
+  : m_data(nullptr)
   , m_length(length)
   , m_pos(0)
 {
@@ -66,7 +66,6 @@ IWORKMemoryStream::IWORKMemoryStream(const unsigned char *const data, const unsi
 
 IWORKMemoryStream::~IWORKMemoryStream()
 {
-  delete[] m_data;
 }
 
 bool IWORKMemoryStream::isStructured()
@@ -81,17 +80,17 @@ unsigned IWORKMemoryStream::subStreamCount()
 
 const char *IWORKMemoryStream::subStreamName(unsigned)
 {
-  return 0;
+  return nullptr;
 }
 
 librevenge::RVNGInputStream *IWORKMemoryStream::getSubStreamByName(const char *)
 {
-  return 0;
+  return nullptr;
 }
 
 librevenge::RVNGInputStream *IWORKMemoryStream::getSubStreamById(unsigned)
 {
-  return 0;
+  return nullptr;
 }
 
 const unsigned char *IWORKMemoryStream::read(unsigned long numBytes, unsigned long &numBytesRead) try
@@ -99,7 +98,7 @@ const unsigned char *IWORKMemoryStream::read(unsigned long numBytes, unsigned lo
   numBytesRead = 0;
 
   if (0 == numBytes)
-    return 0;
+    return nullptr;
 
   if ((m_pos + numBytes) >= static_cast<unsigned long>(m_length))
     numBytes = static_cast<unsigned long>(m_length - m_pos);
@@ -108,11 +107,11 @@ const unsigned char *IWORKMemoryStream::read(unsigned long numBytes, unsigned lo
   m_pos += numBytes;
 
   numBytesRead = numBytes;
-  return m_data + oldPos;
+  return m_data.get() + oldPos;
 }
 catch (...)
 {
-  return 0;
+  return nullptr;
 }
 
 int IWORKMemoryStream::seek(const long offset, librevenge::RVNG_SEEK_TYPE seekType) try
@@ -158,9 +157,8 @@ void IWORKMemoryStream::assign(const unsigned char *const data, const unsigned l
 {
   assert(0 != length);
 
-  unsigned char *buffer = new unsigned char[length];
-  std::copy(data, data + length, buffer);
-  m_data = buffer;
+  m_data.reset(new unsigned char[length]);
+  std::copy(data, data + length, m_data.get());
 }
 
 void IWORKMemoryStream::read(const RVNGInputStreamPtr_t &input, const unsigned length)

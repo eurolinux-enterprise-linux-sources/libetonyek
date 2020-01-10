@@ -9,37 +9,41 @@
 
 #include <libetonyek/libetonyek.h>
 
-#include <boost/scoped_ptr.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/logic/tribool.hpp>
+#include <cassert>
+#include <memory>
+
+#include <boost/optional.hpp>
 
 #include <libxml/xmlreader.h>
 
 #include "libetonyek_utils.h"
 #include "libetonyek_xml.h"
+#include "IWAMessage.h"
+#include "IWASnappyStream.h"
 #include "IWORKPresentationRedirector.h"
 #include "IWORKSpreadsheetRedirector.h"
 #include "IWORKTextRedirector.h"
 #include "IWORKTokenizer.h"
 #include "IWORKZlibStream.h"
 #include "KEY1Parser.h"
+#include "KEY2Dictionary.h"
 #include "KEY2Parser.h"
 #include "KEY2Token.h"
+#include "KEY6Parser.h"
 #include "KEYCollector.h"
-#include "KEYDictionary.h"
 #include "NUMCollector.h"
-#include "NUMDictionary.h"
+#include "NUM1Dictionary.h"
 #include "NUM1Parser.h"
 #include "NUM1Token.h"
+#include "NUM3Parser.h"
 #include "PAGCollector.h"
+#include "PAG1Dictionary.h"
 #include "PAG1Parser.h"
 #include "PAG1Token.h"
-#include "PAGDictionary.h"
+#include "PAG5Parser.h"
 
-using boost::logic::indeterminate;
-using boost::logic::tribool;
-using boost::scoped_ptr;
-using boost::shared_ptr;
+
+using std::shared_ptr;
 using std::string;
 
 using librevenge::RVNG_SEEK_SET;
@@ -50,165 +54,67 @@ namespace libetonyek
 namespace
 {
 
-enum CheckType
+enum Format
 {
-  CHECK_TYPE_NONE = 0,
-  CHECK_TYPE_KEYNOTE = 1 << 1,
-  CHECK_TYPE_NUMBERS = 1 << 2,
-  CHECK_TYPE_PAGES = 1 << 3,
-  CHECK_TYPE_ANY = CHECK_TYPE_KEYNOTE | CHECK_TYPE_NUMBERS | CHECK_TYPE_PAGES
+  FORMAT_UNKNOWN,
+  FORMAT_XML1,
+  FORMAT_XML2,
+  FORMAT_BINARY
 };
 
 struct DetectionInfo
 {
-  DetectionInfo();
+  explicit DetectionInfo(EtonyekDocument::Type type = EtonyekDocument::TYPE_UNKNOWN);
 
-  RVNGInputStreamPtr_t input;
-  RVNGInputStreamPtr_t package;
-  EtonyekDocument::Confidence confidence;
-  EtonyekDocument::Type type;
-  unsigned version;
+  RVNGInputStreamPtr_t m_input;
+  RVNGInputStreamPtr_t m_package;
+  RVNGInputStreamPtr_t m_fragments;
+  EtonyekDocument::Confidence m_confidence;
+  EtonyekDocument::Type m_type;
+  Format m_format;
 };
 
-DetectionInfo::DetectionInfo()
-  : input()
-  , package()
-  , confidence(EtonyekDocument::CONFIDENCE_NONE)
-  , type(EtonyekDocument::TYPE_UNKNOWN)
-  , version(0)
+DetectionInfo::DetectionInfo(const EtonyekDocument::Type type)
+  : m_input()
+  , m_package()
+  , m_fragments()
+  , m_confidence(EtonyekDocument::CONFIDENCE_NONE)
+  , m_type(type)
+  , m_format(FORMAT_UNKNOWN)
 {
 }
 
-typedef bool (*ProbeXMLFun_t)(const RVNGInputStreamPtr_t &, unsigned &, xmlTextReaderPtr);
-
-
-std::string queryAttribute(xmlTextReaderPtr reader, const int name, const int ns, const IWORKTokenizer &tokenizer)
+bool probeXMLFormat(const Format format, const EtonyekDocument::Type type, const int docId,
+                    const IWORKTokenizer &tokenizer, const char *const name, const char *const ns,
+                    DetectionInfo &info)
 {
-  if (xmlTextReaderHasAttributes(reader))
+  if (((info.m_format == format) || (info.m_format == FORMAT_UNKNOWN))
+      && ((info.m_type == type) || info.m_type == EtonyekDocument::TYPE_UNKNOWN))
   {
-    int ret = xmlTextReaderMoveToFirstAttribute(reader);
-    while (1 == ret)
+    if (tokenizer.getQualifiedId(name, ns) == docId)
     {
-      const int id = tokenizer.getQualifiedId(char_cast(xmlTextReaderConstLocalName(reader)), char_cast(xmlTextReaderConstNamespaceUri(reader)));
-      if ((ns | name) == id)
-        return char_cast(xmlTextReaderConstValue(reader));
-
-      ret = xmlTextReaderMoveToNextAttribute(reader);
-    }
-  }
-
-  return "";
-}
-
-
-bool probeKeynote1XML(const RVNGInputStreamPtr_t &input, unsigned &version, xmlTextReaderPtr reader)
-{
-  // TODO: implement me
-  (void) input;
-  (void) version;
-  (void) reader;
-  return false;
-}
-
-bool probeKeynote2XML(const RVNGInputStreamPtr_t &input, unsigned &version, xmlTextReaderPtr reader)
-{
-  if (input->isEnd())
-    return false;
-
-  const IWORKTokenizer &tokenizer(KEY2Token::getTokenizer());
-  assert(reader);
-
-  const int id = tokenizer.getQualifiedId(char_cast(xmlTextReaderConstLocalName(reader)), char_cast(xmlTextReaderConstNamespaceUri(reader)));
-
-  if ((KEY2Token::NS_URI_KEY | KEY2Token::presentation) == id)
-  {
-    const std::string v = queryAttribute(reader, KEY2Token::version, KEY2Token::NS_URI_KEY, tokenizer);
-
-    switch (tokenizer.getId(v.c_str()))
-    {
-    case KEY2Token::VERSION_STR_2 :
-      version = 2;
-      return true;
-    case KEY2Token::VERSION_STR_3 :
-      version = 3;
-      return true;
-    case KEY2Token::VERSION_STR_4 :
-      version = 4;
-      return true;
-    case KEY2Token::VERSION_STR_5 :
-      version = 5;
+      info.m_format = format;
+      info.m_type = type;
       return true;
     }
   }
-
   return false;
 }
 
-bool probeKeynoteXML(const RVNGInputStreamPtr_t &input, unsigned &version, xmlTextReaderPtr reader)
+namespace
 {
-  if (probeKeynote2XML(input, version, reader))
-    return true;
-
-  input->seek(0, RVNG_SEEK_SET);
-
-  return probeKeynote1XML(input, version, reader);
+void handleError(void * /*arg*/, const char * /*msg*/, xmlParserSeverities /*severity*/, xmlTextReaderLocatorPtr /*locator*/)
+{
+}
 }
 
-bool probeNumbersXML(const RVNGInputStreamPtr_t &input, unsigned &version, xmlTextReaderPtr reader)
+bool probeXML(DetectionInfo &info)
 {
-  if (input->isEnd())
-    return false;
-
-  const IWORKTokenizer &tokenizer(NUM1Token::getTokenizer());
-  assert(reader);
-
-  const int id = tokenizer.getQualifiedId(char_cast(xmlTextReaderConstLocalName(reader)), char_cast(xmlTextReaderConstNamespaceUri(reader)));
-
-  if ((NUM1Token::NS_URI_LS | NUM1Token::document) == id)
-  {
-    const std::string v = queryAttribute(reader, NUM1Token::version, NUM1Token::NS_URI_LS, tokenizer);
-
-    switch (tokenizer.getId(v.c_str()))
-    {
-    case NUM1Token::VERSION_STR_2 :
-      version = 2;
-      return true;
-    }
-  }
-
-  return false;
-}
-
-bool probePagesXML(const RVNGInputStreamPtr_t &input, unsigned &version, xmlTextReaderPtr reader)
-{
-  if (input->isEnd())
-    return false;
-
-  const IWORKTokenizer &tokenizer(PAG1Token::getTokenizer());
-  assert(reader);
-
-  const int id = tokenizer.getQualifiedId(char_cast(xmlTextReaderConstLocalName(reader)), char_cast(xmlTextReaderConstNamespaceUri(reader)));
-
-  if ((PAG1Token::NS_URI_SL | PAG1Token::document) == id)
-  {
-    const std::string v = queryAttribute(reader, PAG1Token::version, PAG1Token::NS_URI_SL, tokenizer);
-
-    switch (tokenizer.getId(v.c_str()))
-    {
-    case PAG1Token::VERSION_STR_4 :
-      version = 4;
-      return true;
-    }
-  }
-
-  return false;
-}
-
-bool probeXMLImpl(const RVNGInputStreamPtr_t &input, const ProbeXMLFun_t probe, const EtonyekDocument::Type type, DetectionInfo &info)
-{
-  const shared_ptr<xmlTextReader> reader(xmlReaderForIO(readFromStream, closeStream, input.get(), "", 0, 0), xmlFreeTextReader);
+  const shared_ptr<xmlTextReader> reader(xmlReaderForIO(readFromStream, closeStream, info.m_input.get(), "", nullptr, 0), xmlFreeTextReader);
   if (!reader)
     return false;
+
+  xmlTextReaderSetErrorHandler(reader.get(), handleError, nullptr);
 
   int ret = 0;
   do
@@ -220,171 +126,194 @@ bool probeXMLImpl(const RVNGInputStreamPtr_t &input, const ProbeXMLFun_t probe, 
   if (1 != ret)
     return false;
 
-  if (probe(input, info.version, reader.get()))
-  {
-    info.type = type;
+  const char *const name = char_cast(xmlTextReaderConstLocalName(reader.get()));
+  const char *const ns = char_cast(xmlTextReaderConstNamespaceUri(reader.get()));
+
+  if (probeXMLFormat(FORMAT_XML2, EtonyekDocument::TYPE_KEYNOTE, KEY2Token::NS_URI_KEY | KEY2Token::presentation,
+                     KEY2Token::getTokenizer(), name, ns, info))
     return true;
-  }
+  if (probeXMLFormat(FORMAT_XML2, EtonyekDocument::TYPE_NUMBERS, NUM1Token::NS_URI_LS | NUM1Token::document,
+                     NUM1Token::getTokenizer(), name, ns, info))
+    return true;
+  if (probeXMLFormat(FORMAT_XML2, EtonyekDocument::TYPE_PAGES, PAG1Token::NS_URI_SL | PAG1Token::document,
+                     PAG1Token::getTokenizer(), name, ns, info))
+    return true;
 
   return false;
 }
 
-bool probeXML(const ProbeXMLFun_t probe, const EtonyekDocument::Type type, tribool &isGzipped, DetectionInfo &info)
+bool probeBinary(DetectionInfo &info)
 {
-  if (isGzipped || indeterminate(isGzipped))
+  const uint64_t headerLen = readUVar(info.m_input);
+  if (headerLen < 8)
+    return false;
+
+  EtonyekDocument::Type detected = EtonyekDocument::TYPE_UNKNOWN;
+
+  const IWAMessage header(info.m_input, headerLen);
+
+  if (header.uint32(1) && header.message(2) && header.message(2).uint32(1) && (header.uint32(1).get() == 1))
   {
-    try
+    switch (header.message(2).uint32(1).get())
     {
-      const RVNGInputStreamPtr_t uncompressed(new IWORKZlibStream(info.input));
-      isGzipped = true;
-
-      if (probeXMLImpl(uncompressed, probe, type, info))
-      {
-        info.input = uncompressed;
-        return true;
-      }
-      else
-      {
-        return false; // compressed, but invalid format
-      }
+    case 1 :
+      // The app-specific object types for Keynote and Numbers overlap.
+      // So we use a structure check earlier to provisionally set the type as Keynote (or not).
+      // TODO: We likely need a better detection here: either parse the first
+      // object or find the document kind info somewhere in the document
+      // (Metadata/Properties.plist?).
+      detected = (info.m_type == EtonyekDocument::TYPE_KEYNOTE) ? EtonyekDocument::TYPE_KEYNOTE : EtonyekDocument::TYPE_NUMBERS;
+      break;
+    case 10000 :
+      detected = EtonyekDocument::TYPE_PAGES;
+      break;
     }
-    catch (...)
-    {
-      if (isGzipped) // decompression failed? most probably a broken file...
-        return false;
-
-      isGzipped = false;
-    }
-
-    info.input->seek(0, RVNG_SEEK_SET);
   }
 
-  assert(!isGzipped);
-
-  return probeXMLImpl(info.input, probe, type, info);
+  if ((info.m_type == EtonyekDocument::TYPE_UNKNOWN) || (info.m_type == detected))
+  {
+    info.m_type = detected;
+    return true;
+  }
+  return false;
 }
 
-bool detect(const RVNGInputStreamPtr_t &input, unsigned checkTypes, DetectionInfo &info)
+RVNGInputStreamPtr_t getSubStream(const RVNGInputStreamPtr_t &input, const char *const name)
 {
-  info.confidence = EtonyekDocument::CONFIDENCE_SUPPORTED_PART;
-  bool isXML = true;
-  tribool isGzipped = indeterminate;
-  tribool isKeynote1 = indeterminate;
+  return RVNGInputStreamPtr_t(input->getSubStreamByName(name));
+}
 
+RVNGInputStreamPtr_t getUncompressedSubStream(const RVNGInputStreamPtr_t &input, const char *const name, bool snappy = false) try
+{
+  const RVNGInputStreamPtr_t compressed(input->getSubStreamByName(name));
+  if (bool(compressed))
+  {
+    if (snappy)
+      return RVNGInputStreamPtr_t(new IWASnappyStream(compressed));
+    return RVNGInputStreamPtr_t(new IWORKZlibStream(compressed));
+  }
+  return RVNGInputStreamPtr_t();
+}
+catch (...)
+{
+  return RVNGInputStreamPtr_t();
+}
+
+bool detect(const RVNGInputStreamPtr_t &input, DetectionInfo &info)
+{
   if (input->isStructured())
   {
-    info.package = input;
+    info.m_package = input;
 
-    // check which format it might be
-    if (CHECK_TYPE_KEYNOTE & checkTypes)
+    if ((info.m_format == FORMAT_BINARY) || (info.m_format == FORMAT_UNKNOWN))
     {
-      if (input->existsSubStream("index.apxl"))
+      RVNGInputStreamPtr_t binaryInput(input);
+      const bool isPackage(binaryInput->existsSubStream("Metadata/DocumentIdentifier"));
+      if (binaryInput->existsSubStream("Index.zip"))
       {
-        checkTypes = CHECK_TYPE_KEYNOTE;
-        isGzipped = false;
-        isKeynote1 = false;
-        info.input.reset(input->getSubStreamByName("index.apxl"));
+        RVNGInputStreamPtr_t zipInput = getSubStream(binaryInput, "Index.zip");
+        if (bool(zipInput))
+          binaryInput = zipInput;
       }
-      else if (input->existsSubStream("index.apxl.gz"))
+      info.m_fragments = binaryInput;
+      if (binaryInput->existsSubStream("Index/Document.iwa"))
       {
-        checkTypes = CHECK_TYPE_KEYNOTE;
-        isGzipped = true;
-        isKeynote1 = false;
-        info.input.reset(input->getSubStreamByName("index.apxl.gz"));
+        if (!isPackage)
+          info.m_package.reset();
+        info.m_format = FORMAT_BINARY;
+        info.m_input = getUncompressedSubStream(binaryInput, "Index/Document.iwa", true);
       }
-      else if (input->existsSubStream("presentation.apxl"))
+      if ((info.m_type == EtonyekDocument::TYPE_UNKNOWN) && binaryInput->existsSubStream("Index/MasterSlide.iwa"))
+        info.m_type = EtonyekDocument::TYPE_KEYNOTE;
+    }
+
+    if ((info.m_format == FORMAT_XML2) || (info.m_format == FORMAT_UNKNOWN))
+    {
+      if ((info.m_type == EtonyekDocument::TYPE_KEYNOTE) || (info.m_type == EtonyekDocument::TYPE_UNKNOWN))
       {
-        checkTypes = CHECK_TYPE_KEYNOTE;
-        isGzipped = false;
-        isKeynote1 = true;
-        info.input.reset(input->getSubStreamByName("presentation.apxl"));
+        if (input->existsSubStream("index.apxl"))
+        {
+          info.m_format = FORMAT_XML2;
+          info.m_type = EtonyekDocument::TYPE_KEYNOTE;
+          info.m_input = getSubStream(input, "index.apxl");
+        }
+        else if (input->existsSubStream("index.apxl.gz"))
+        {
+          info.m_format = FORMAT_XML2;
+          info.m_type = EtonyekDocument::TYPE_KEYNOTE;
+          info.m_input = getUncompressedSubStream(input, "index.apxl.gz");
+        }
+      }
+
+      if ((info.m_type == EtonyekDocument::TYPE_NUMBERS) || (info.m_type == EtonyekDocument::TYPE_PAGES) || (info.m_type == EtonyekDocument::TYPE_UNKNOWN))
+      {
+        if (input->existsSubStream("index.xml"))
+        {
+          info.m_format = FORMAT_XML2;
+          info.m_input = getSubStream(input, "index.xml");
+        }
+        else if (input->existsSubStream("index.xml.gz"))
+        {
+          info.m_format = FORMAT_XML2;
+          info.m_input = getUncompressedSubStream(input, "index.xml.gz");
+        }
+      }
+    }
+
+    if ((info.m_format == FORMAT_XML1) || (info.m_format == FORMAT_UNKNOWN))
+    {
+      if (input->existsSubStream("presentation.apxl"))
+      {
+        info.m_type = EtonyekDocument::TYPE_KEYNOTE;
+        info.m_format = FORMAT_XML1;
+        info.m_input = getSubStream(input, "presentation.apxl");
       }
       else if (input->existsSubStream("presentation.apxl.gz"))
       {
-        checkTypes = CHECK_TYPE_KEYNOTE;
-        isGzipped = true;
-        isKeynote1 = true;
-        info.input.reset(input->getSubStreamByName("presentation.apxl.gz"));
+        info.m_type = EtonyekDocument::TYPE_KEYNOTE;
+        info.m_format = FORMAT_XML1;
+        info.m_input = getUncompressedSubStream(input, "presentation.apxl.gz");
       }
-    }
-
-    if ((CHECK_TYPE_NUMBERS | CHECK_TYPE_PAGES) & checkTypes)
-    {
-      if (input->existsSubStream("index.xml"))
-      {
-        checkTypes &= (CHECK_TYPE_NUMBERS | CHECK_TYPE_PAGES);
-        isGzipped = false;
-        info.input.reset(input->getSubStreamByName("index.xml"));
-      }
-      else if (input->existsSubStream("index.xml.gz"))
-      {
-        checkTypes &= (CHECK_TYPE_NUMBERS | CHECK_TYPE_PAGES);
-        isGzipped = false;
-        info.input.reset(input->getSubStreamByName("index.xml.gz"));
-      }
-    }
-
-    if (!info.input && (CHECK_TYPE_ANY & checkTypes))
-    {
-      if (input->existsSubStream("Index.zip"))
-      {
-        isXML = false;
-        info.input.reset(input->getSubStreamByName("Index.zip"));
-      }
-    }
-
-    if (!info.input)
-    {
-      // nothing detected
-      // TODO: this might also be Index.zip...
-      return EtonyekDocument::CONFIDENCE_NONE;
-    }
-
-    info.confidence = EtonyekDocument::CONFIDENCE_EXCELLENT; // this is either a valid package of a false positive
-  }
-  else
-  {
-    info.input = input;
-  }
-
-  assert(bool(info.input));
-
-  if (isXML)
-  {
-    assert(CHECK_TYPE_ANY & checkTypes);
-    assert(!info.input->isStructured());
-
-    info.input->seek(0, RVNG_SEEK_SET);
-
-    if (CHECK_TYPE_KEYNOTE & checkTypes)
-    {
-      const ProbeXMLFun_t probe = (isKeynote1 ? probeKeynote1XML : ((!isKeynote1) ? probeKeynote2XML : probeKeynoteXML));
-      if (probeXML(probe, EtonyekDocument::TYPE_KEYNOTE, isGzipped, info))
-        return true;
-
-      info.input->seek(0, RVNG_SEEK_SET);
-    }
-
-    if (CHECK_TYPE_NUMBERS & checkTypes)
-    {
-      if (probeXML(probeNumbersXML, EtonyekDocument::TYPE_NUMBERS, isGzipped, info))
-        return true;
-
-      info.input->seek(0, RVNG_SEEK_SET);
-    }
-
-    if (CHECK_TYPE_PAGES & checkTypes)
-    {
-      if (probeXML(probePagesXML, EtonyekDocument::TYPE_PAGES, isGzipped, info))
-        return true;
     }
   }
   else
   {
-    // TODO: detect type in binary format
+    try
+    {
+      info.m_input.reset(new IWORKZlibStream(input));
+    }
+    catch (...)
+    {
+      info.m_input = input;
+    }
   }
 
-  return EtonyekDocument::CONFIDENCE_NONE;
+  if (bool(info.m_input))
+  {
+    assert(!info.m_input->isStructured());
+    info.m_input->seek(0, RVNG_SEEK_SET);
+
+    bool supported = false;
+    if (info.m_format == FORMAT_BINARY)
+      supported = probeBinary(info);
+    else
+      supported = probeXML(info);
+    if (supported)
+      info.m_confidence = bool(info.m_package) ? EtonyekDocument::CONFIDENCE_EXCELLENT : EtonyekDocument::CONFIDENCE_SUPPORTED_PART;
+  }
+
+  if (info.m_confidence != EtonyekDocument::CONFIDENCE_NONE)
+  {
+    assert(EtonyekDocument::TYPE_UNKNOWN != info.m_type);
+    assert(FORMAT_UNKNOWN != info.m_format);
+    assert(bool(info.m_input));
+    if (info.m_confidence == EtonyekDocument::CONFIDENCE_EXCELLENT)
+    {
+      assert(bool(info.m_package));
+    }
+  }
+
+  return info.m_confidence != EtonyekDocument::CONFIDENCE_NONE;
 }
 
 }
@@ -392,7 +321,7 @@ bool detect(const RVNGInputStreamPtr_t &input, unsigned checkTypes, DetectionInf
 namespace
 {
 
-shared_ptr<IWORKParser> makeKeynoteParser(const unsigned version, const RVNGInputStreamPtr_t &input, const RVNGInputStreamPtr_t &package, KEYCollector *const collector, KEYDictionary &dict)
+shared_ptr<IWORKParser> makeKeynoteParser(const unsigned version, const RVNGInputStreamPtr_t &input, const RVNGInputStreamPtr_t &package, KEYCollector &collector, KEY2Dictionary &dict)
 {
   shared_ptr<IWORKParser> parser;
 
@@ -418,15 +347,11 @@ ETONYEKAPI EtonyekDocument::Confidence EtonyekDocument::isSupported(librevenge::
 
   DetectionInfo info;
 
-  if (detect(RVNGInputStreamPtr_t(input, EtonyekDummyDeleter()), CHECK_TYPE_ANY, info))
+  if (detect(RVNGInputStreamPtr_t(input, EtonyekDummyDeleter()), info))
   {
-    assert(TYPE_UNKNOWN != info.type);
-    assert(CONFIDENCE_NONE != info.confidence);
-    assert(bool(info.input));
-
     if (type)
-      *type = info.type;
-    return info.confidence;
+      *type = info.m_type;
+    return info.m_confidence;
   }
 
   return CONFIDENCE_NONE;
@@ -441,23 +366,29 @@ ETONYEKAPI bool EtonyekDocument::parse(librevenge::RVNGInputStream *const input,
   if (!input || !generator)
     return false;
 
-  DetectionInfo info;
+  DetectionInfo info(EtonyekDocument::TYPE_KEYNOTE);
 
-  if (!detect(RVNGInputStreamPtr_t(input, EtonyekDummyDeleter()), CHECK_TYPE_KEYNOTE, info))
+  if (!detect(RVNGInputStreamPtr_t(input, EtonyekDummyDeleter()), info))
     return false;
 
-  assert(TYPE_UNKNOWN != info.type);
-  assert(CONFIDENCE_NONE != info.confidence);
-  assert(bool(info.input));
-  assert(0 != info.version);
+  info.m_input->seek(0, librevenge::RVNG_SEEK_SET);
 
-  info.input->seek(0, librevenge::RVNG_SEEK_SET);
-
-  KEYDictionary dict;
   IWORKPresentationRedirector redirector(generator);
   KEYCollector collector(&redirector);
-  const shared_ptr<IWORKParser> parser = makeKeynoteParser(info.version, info.input, info.package, &collector, dict);
-  return parser->parse();
+  if (info.m_format == FORMAT_XML2)
+  {
+    KEY2Dictionary dict;
+    const shared_ptr<IWORKParser> parser = makeKeynoteParser(info.m_format, info.m_input, info.m_package, collector, dict);
+    return parser->parse();
+  }
+  else if (info.m_format == FORMAT_BINARY)
+  {
+    KEY6Parser parser(info.m_fragments, info.m_package, collector);
+    return parser.parse();
+  }
+
+  ETONYEK_DEBUG_MSG(("EtonyekDocument::parse: unhandled format %d\n", info.m_format));
+  return false;
 }
 catch (...)
 {
@@ -469,23 +400,29 @@ ETONYEKAPI bool EtonyekDocument::parse(librevenge::RVNGInputStream *const input,
   if (!input || !document)
     return false;
 
-  DetectionInfo info;
+  DetectionInfo info(EtonyekDocument::TYPE_NUMBERS);
 
-  if (!detect(RVNGInputStreamPtr_t(input, EtonyekDummyDeleter()), CHECK_TYPE_NUMBERS, info))
+  if (!detect(RVNGInputStreamPtr_t(input, EtonyekDummyDeleter()), info))
     return false;
 
-  assert(TYPE_UNKNOWN != info.type);
-  assert(CONFIDENCE_NONE != info.confidence);
-  assert(bool(info.input));
-  assert(0 != info.version);
-
-  info.input->seek(0, librevenge::RVNG_SEEK_SET);
+  info.m_input->seek(0, librevenge::RVNG_SEEK_SET);
 
   IWORKSpreadsheetRedirector redirector(document);
   NUMCollector collector(&redirector);
-  NUMDictionary dict;
-  NUM1Parser parser(info.input, info.package, &collector, &dict);
-  return parser.parse();
+  if (info.m_format == FORMAT_XML2)
+  {
+    NUM1Dictionary dict;
+    NUM1Parser parser(info.m_input, info.m_package, collector, &dict);
+    return parser.parse();
+  }
+  else if (info.m_format == FORMAT_BINARY)
+  {
+    NUM3Parser parser(info.m_fragments, info.m_package, collector);
+    return parser.parse();
+  }
+
+  ETONYEK_DEBUG_MSG(("EtonyekDocument::parse: unhandled format %d\n", info.m_format));
+  return false;
 }
 catch (...)
 {
@@ -497,23 +434,29 @@ ETONYEKAPI bool EtonyekDocument::parse(librevenge::RVNGInputStream *const input,
   if (!input || !document)
     return false;
 
-  DetectionInfo info;
+  DetectionInfo info(EtonyekDocument::TYPE_PAGES);
 
-  if (!detect(RVNGInputStreamPtr_t(input, EtonyekDummyDeleter()), CHECK_TYPE_PAGES, info))
+  if (!detect(RVNGInputStreamPtr_t(input, EtonyekDummyDeleter()), info))
     return false;
 
-  assert(TYPE_UNKNOWN != info.type);
-  assert(CONFIDENCE_NONE != info.confidence);
-  assert(bool(info.input));
-  assert(0 != info.version);
-
-  info.input->seek(0, librevenge::RVNG_SEEK_SET);
+  info.m_input->seek(0, librevenge::RVNG_SEEK_SET);
 
   IWORKTextRedirector redirector(document);
   PAGCollector collector(&redirector);
-  PAGDictionary dict;
-  PAG1Parser parser(info.input, info.package, &collector, &dict);
-  return parser.parse();
+  if (info.m_format == FORMAT_XML2)
+  {
+    PAG1Dictionary dict;
+    PAG1Parser parser(info.m_input, info.m_package, collector, &dict);
+    return parser.parse();
+  }
+  else if (info.m_format == FORMAT_BINARY)
+  {
+    PAG5Parser parser(info.m_fragments, info.m_package, collector);
+    return parser.parse();
+  }
+
+  ETONYEK_DEBUG_MSG(("EtonyekDocument::parse: unhandled format %d\n", info.m_format));
+  return false;
 }
 catch (...)
 {

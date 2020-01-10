@@ -11,20 +11,24 @@
 #define IWORKOUTPUTELEMENTS_H_INCLUDED
 
 #include <deque>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
+#include <unordered_map>
 
 #include <librevenge/librevenge.h>
+
+#include "IWORKTypes_fwd.h"
 
 namespace libetonyek
 {
 
 class IWORKDocumentInterface;
+class IWORKFormula;
 class IWORKOutputElement;
+
 
 class IWORKOutputElements
 {
-  typedef std::deque<boost::shared_ptr<IWORKOutputElement> > ElementList_t;
+  typedef std::deque<std::shared_ptr<IWORKOutputElement> > ElementList_t;
 
 public:
   IWORKOutputElements();
@@ -34,6 +38,7 @@ public:
   void clear();
   bool empty() const;
 
+  void addCloseComment();
   void addCloseEndnote();
   void addCloseFooter();
   void addCloseFootnote();
@@ -42,7 +47,6 @@ public:
   void addCloseLink();
   void addCloseListElement();
   void addCloseOrderedListLevel();
-  void addClosePageSpan();
   void addCloseParagraph();
   void addCloseSection();
   void addCloseSpan();
@@ -53,6 +57,8 @@ public:
   void addDrawGraphicObject(const librevenge::RVNGPropertyList &propList);
   void addDrawPath(const librevenge::RVNGPropertyList &propList);
   void addDrawPolyline(const librevenge::RVNGPropertyList &propList);
+  void addEndLayer();
+  void addEndNotes();
   void addEndTextObject();
   void addInsertBinaryObject(const librevenge::RVNGPropertyList &propList);
   void addInsertCoveredTableCell(const librevenge::RVNGPropertyList &propList);
@@ -60,7 +66,9 @@ public:
   void addInsertSpace();
   void addInsertTab();
   void addInsertText(const librevenge::RVNGString &text);
+  void addOpenComment(const librevenge::RVNGPropertyList &propList);
   void addOpenEndnote(const librevenge::RVNGPropertyList &propList);
+  void addOpenFormulaCell(const librevenge::RVNGPropertyList &propList, const IWORKFormula &formula, const IWORKTableNameMapPtr_t &tableNameMap);
   void addOpenFooter(const librevenge::RVNGPropertyList &propList);
   void addOpenFootnote(const librevenge::RVNGPropertyList &propList);
   void addOpenFrame(const librevenge::RVNGPropertyList &propList);
@@ -68,7 +76,6 @@ public:
   void addOpenLink(const librevenge::RVNGPropertyList &propList);
   void addOpenListElement(const librevenge::RVNGPropertyList &propList);
   void addOpenOrderedListLevel(const librevenge::RVNGPropertyList &propList);
-  void addOpenPageSpan(const librevenge::RVNGPropertyList &propList);
   void addOpenParagraph(const librevenge::RVNGPropertyList &propList);
   void addOpenSection(const librevenge::RVNGPropertyList &propList);
   void addOpenSpan(const librevenge::RVNGPropertyList &propList);
@@ -77,6 +84,8 @@ public:
   void addOpenTableRow(const librevenge::RVNGPropertyList &propList);
   void addOpenUnorderedListLevel(const librevenge::RVNGPropertyList &propList);
   void addSetStyle(const librevenge::RVNGPropertyList &propList);
+  void addStartLayer(const librevenge::RVNGPropertyList &propList);
+  void addStartNotes(const librevenge::RVNGPropertyList &propList);
   void addStartTextObject(const librevenge::RVNGPropertyList &propList);
 
 private:

@@ -7,10 +7,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <memory>
 #include <stdio.h>
 #include <string.h>
-
-#include <boost/shared_ptr.hpp>
 
 #include <librevenge/librevenge.h>
 #include <librevenge-generators/librevenge-generators.h>
@@ -22,27 +21,36 @@
 #include "config.h"
 #endif
 
+#ifndef PACKAGE
+#define PACKAGE "libetonyek"
+#endif
 #ifndef VERSION
 #define VERSION "UNKNOWN VERSION"
 #endif
+
+#define TOOL "pages2raw"
 
 namespace
 {
 
 int printUsage()
 {
-  printf("Usage: pages2raw [OPTION] <Pages Document> | <Pages Directory>\n");
+  printf("`" TOOL "' is used to test Apple Pages import in " PACKAGE ".\n");
+  printf("\n");
+  printf("Usage: " TOOL " [OPTION] INPUT\n");
   printf("\n");
   printf("Options:\n");
-  printf("--callgraph           Display the call graph nesting level\n");
-  printf("--help                Shows this help message\n");
-  printf("--version             Output pages2raw version \n");
+  printf("\t--callgraph           display the call graph nesting level\n");
+  printf("\t--help                show this help message\n");
+  printf("\t--version             show version information\n");
+  printf("\n");
+  printf("Report bugs to <https://bugs.documentfoundation.org/>.\n");
   return -1;
 }
 
 int printVersion()
 {
-  printf("pages2raw %s\n", VERSION);
+  printf(TOOL " " VERSION "\n");
   return 0;
 }
 
@@ -53,7 +61,7 @@ using libetonyek::EtonyekDocument;
 int main(int argc, char *argv[])
 {
   bool printIndentLevel = false;
-  char *file = 0;
+  char *file = nullptr;
 
   if (argc < 2)
     return printUsage();
@@ -73,7 +81,7 @@ int main(int argc, char *argv[])
   if (!file)
     return printUsage();
 
-  using boost::shared_ptr;
+  using std::shared_ptr;
 
   shared_ptr<librevenge::RVNGInputStream> input;
   if (librevenge::RVNGDirectoryStream::isDirectory(file))

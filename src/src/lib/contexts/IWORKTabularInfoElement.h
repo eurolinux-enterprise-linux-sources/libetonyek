@@ -10,8 +10,6 @@
 #ifndef IWORKTABULARINFOELEMENT_H_INCLUDED
 #define IWORKTABULARINFOELEMENT_H_INCLUDED
 
-#include <boost/shared_ptr.hpp>
-
 #include "IWORKXMLContextBase.h"
 
 namespace libetonyek
@@ -19,18 +17,13 @@ namespace libetonyek
 
 class IWORKTabularInfoElement : public IWORKXMLElementContextBase
 {
-  struct Impl;
-
 public:
   explicit IWORKTabularInfoElement(IWORKXMLParserState &state);
 
 private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
-
-private:
-  boost::shared_ptr<Impl> m_impl;
+  void startOfElement() override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 };
 
 }

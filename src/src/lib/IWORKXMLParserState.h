@@ -10,12 +10,21 @@
 #ifndef IWORKXMLPARSERSTATE_H_INCLUDED
 #define IWORKXMLPARSERSTATE_H_INCLUDED
 
+#include <memory>
+
+#include "IWORKStylesheet.h"
+#include "IWORKLanguageManager.h"
+#include "IWORKTypes.h"
+#include "IWORKTypes_fwd.h"
+
 namespace libetonyek
 {
 
 class IWORKCollector;
 struct IWORKDictionary;
 class IWORKParser;
+class IWORKTable;
+class IWORKText;
 class IWORKTokenizer;
 
 class IWORKXMLParserState
@@ -25,16 +34,27 @@ class IWORKXMLParserState
   IWORKXMLParserState &operator=(const IWORKXMLParserState &);
 
 public:
-  IWORKXMLParserState(IWORKParser &parser, IWORKCollector *collector, IWORKDictionary &dict);
+  IWORKXMLParserState(IWORKParser &parser, IWORKCollector &collector, IWORKDictionary &dict);
 
   IWORKParser &getParser();
   IWORKDictionary &getDictionary();
-  IWORKCollector *getCollector() const;
+  IWORKCollector &getCollector() const;
   const IWORKTokenizer &getTokenizer() const;
+
+public:
+  IWORKTableDataPtr_t m_tableData;
+  IWORKStylesheetPtr_t m_stylesheet;
+  // When false, nothing should be sent to collector. This is used to
+  // gather referenceable entities in skipped parts of the file.
+  bool m_enableCollector;
+  IWORKTableNameMapPtr_t m_tableNameMap;
+  IWORKLanguageManager m_langManager;
+  std::shared_ptr<IWORKTable> m_currentTable;
+  std::shared_ptr<IWORKText> m_currentText;
 
 private:
   IWORKParser &m_parser;
-  IWORKCollector *const m_collector;
+  IWORKCollector &m_collector;
   IWORKDictionary &m_dict;
 };
 

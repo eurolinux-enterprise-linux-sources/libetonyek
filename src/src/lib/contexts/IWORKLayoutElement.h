@@ -10,6 +10,7 @@
 #ifndef IWORKLAYOUTELEMENT_H_INCLUDED
 #define IWORKLAYOUTELEMENT_H_INCLUDED
 
+#include "IWORKStyle_fwd.h"
 #include "IWORKXMLContextBase.h"
 
 namespace libetonyek
@@ -21,8 +22,17 @@ public:
   explicit IWORKLayoutElement(IWORKXMLParserState &state);
 
 protected:
-  virtual void attribute(int name, const char *value);
-  virtual IWORKXMLContextPtr_t element(int name);
+  void attribute(int name, const char *value) override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
+
+  void open();
+
+protected:
+  bool m_opened;
+
+private:
+  IWORKStylePtr_t m_style;
 };
 
 }

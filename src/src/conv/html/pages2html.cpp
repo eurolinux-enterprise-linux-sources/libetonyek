@@ -7,10 +7,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <memory>
 #include <stdio.h>
 #include <string.h>
-
-#include <boost/shared_ptr.hpp>
 
 #include <librevenge/librevenge.h>
 #include <librevenge-generators/librevenge-generators.h>
@@ -26,22 +25,28 @@
 #define VERSION "UNKNOWN VERSION"
 #endif
 
+#define TOOL "pages2html"
+
 namespace
 {
 
 int printUsage()
 {
-  printf("Usage: pages2html [OPTION] <Pages Document> | <Pages Directory>\n");
+  printf("`" TOOL "' converts Apple Pages documents to HTML.\n");
+  printf("\n");
+  printf("Usage: " TOOL " [OPTION] INPUT\n");
   printf("\n");
   printf("Options:\n");
-  printf("--help                Shows this help message\n");
-  printf("--version             Output pages2html version\n");
+  printf("\t--help                show this help message\n");
+  printf("\t--version             show version information\n");
+  printf("\n");
+  printf("Report bugs to <https://bugs.documentfoundation.org/>.\n");
   return -1;
 }
 
 int printVersion()
 {
-  printf("pages2html %s\n", VERSION);
+  printf(TOOL " " VERSION "\n");
   return 0;
 }
 
@@ -54,7 +59,7 @@ int main(int argc, char *argv[])
   if (argc < 2)
     return printUsage();
 
-  char *file = 0;
+  char *file = nullptr;
 
   for (int i = 1; i < argc; i++)
   {
@@ -69,7 +74,7 @@ int main(int argc, char *argv[])
   if (!file)
     return printUsage();
 
-  using boost::shared_ptr;
+  using std::shared_ptr;
 
   shared_ptr<librevenge::RVNGInputStream> input;
   if (librevenge::RVNGDirectoryStream::isDirectory(file))

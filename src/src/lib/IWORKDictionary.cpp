@@ -13,16 +13,27 @@ namespace libetonyek
 {
 
 IWORKDictionary::IWORKDictionary()
-  : m_characterStyles()
+  : m_cellStyles()
+  , m_characterStyles()
   , m_graphicStyles()
+  , m_layoutStyles()
+  , m_listStyles()
   , m_paragraphStyles()
+  , m_tabularStyles()
+  , m_vectorStyles()
   , m_stylesheets()
   , m_beziers()
   , m_data()
+  , m_binaries()
   , m_unfiltereds()
   , m_filteredImages()
   , m_images()
   , m_tabs()
+  , m_filterDescriptors()
+  , m_listLabelTypeInfos()
+  , m_textLabels()
+  , m_listLabelGeometries()
+  , m_doubleArrays()
 {
 }
 

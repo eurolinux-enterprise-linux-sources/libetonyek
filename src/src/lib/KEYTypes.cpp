@@ -20,7 +20,7 @@ namespace libetonyek
 
 KEYLayer::KEYLayer()
   : m_type()
-  , m_zoneId()
+  , m_outputId()
 {
 }
 
@@ -30,18 +30,6 @@ KEYPlaceholder::KEYPlaceholder()
   , m_style()
   , m_geometry()
   , m_text()
-{
-}
-
-KEYStickyNote::KEYStickyNote()
-  : m_geometry()
-  , m_text()
-{
-}
-
-KEYStickyNote::KEYStickyNote(const IWORKGeometryPtr_t &geometry_, const IWORKTextPtr_t &text_)
-  : m_geometry(geometry_)
-  , m_text(text_)
 {
 }
 

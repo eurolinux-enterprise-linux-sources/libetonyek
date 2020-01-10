@@ -31,23 +31,35 @@ enum
   sl,
 
   // elements
+  SLCreationDateProperty,
+  date,
   document,
+  drawables,
   header,
+  kSFWPFootnoteGapProperty,
+  kSFWPFootnoteKindProperty,
   layout,
+  number,
+  page_group,
+  prototype,
+  publication_info,
   section,
   section_prototypes,
   stylesheet,
 
   // attributes
+  page,
+  rpage,
   version,
 
   // attribute values
+  VERSION_STR_4,
   body,
   cell,
+  footer,
   footnote,
   note,
   textbox,
-  VERSION_STR_4,
 
   LAST_TOKEN
 };

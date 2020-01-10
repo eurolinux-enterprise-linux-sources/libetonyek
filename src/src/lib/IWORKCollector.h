@@ -11,33 +11,36 @@
 #define IWORKCOLLECTOR_H_INCLUDED
 
 #include <deque>
+#include <memory>
 #include <stack>
 #include <string>
 
 #include <boost/optional.hpp>
 
-#include <glm/glm.hpp>
-
 #include "libetonyek_utils.h"
 #include "IWORKPath_fwd.h"
+#include "IWORKShape.h"
 #include "IWORKStyle.h"
 #include "IWORKStyleStack.h"
 #include "IWORKStylesheet.h"
-#include "IWORKTable.h"
-#include "IWORKText_fwd.h"
 #include "IWORKTransformation.h"
 #include "IWORKTypes.h"
-#include "IWORKZoneManager.h"
+#include "IWORKOutputManager.h"
 
 namespace libetonyek
 {
 
 class IWORKDocumentInterface;
+class IWORKLanguageManager;
 class IWORKPropertyMap;
+class IWORKRecorder;
+class IWORKTable;
+class IWORKText;
 struct IWORKSize;
 
 class IWORKCollector
 {
+private:
   struct Level
   {
     IWORKGeometryPtr_t m_geometry;
@@ -51,9 +54,11 @@ public:
   explicit IWORKCollector(IWORKDocumentInterface *document);
   ~IWORKCollector();
 
+  void setRecorder(const std::shared_ptr<IWORKRecorder> &recorder);
+
   // collector functions
 
-  void collectStyle(const IWORKStylePtr_t &style, bool anonymous);
+  void collectStyle(const IWORKStylePtr_t &style);
 
   void setGraphicStyle(const IWORKStylePtr_t &style);
 
@@ -74,29 +79,21 @@ public:
 
   void collectMedia(const IWORKMediaContentPtr_t &content);
 
-  IWORKStylesheetPtr_t collectStylesheet(const IWORKStylesheetPtr_t &parent = IWORKStylesheetPtr_t());
+  void collectStylesheet(const IWORKStylesheetPtr_t &stylesheet);
 
-  void collectText(const std::string &text);
-  void collectTab();
-  void collectLineBreak();
+  void collectMetadata(const IWORKMetadata &metadata);
 
-  void collectTableSizes(const IWORKTable::RowSizes_t &rowSizes, const IWORKTable::ColumnSizes_t &columnSizes);
-  void collectTableCell(unsigned row, unsigned column, const boost::optional<std::string> &content, unsigned rowSpan, unsigned columnSpan);
-  void collectCoveredTableCell(unsigned row, unsigned column);
-  void collectTableRow();
-  void collectTable();
+  void collectHeader(const std::string &name);
+  void collectFooter(const std::string &name);
+
+  void collectTable(const std::shared_ptr<IWORKTable> &table);
+  void collectText(const std::shared_ptr<IWORKText> &text);
+
+  void startDocument();
+  void endDocument();
 
   void startGroup();
   void endGroup();
-
-  void startParagraph(const IWORKStylePtr_t &style);
-  void endParagraph();
-  void openSpan(const IWORKStylePtr_t &style);
-  void closeSpan();
-  void openLink(const std::string &url);
-  void closeLink();
-  void startText();
-  void endText();
 
   void startLevel();
   void endLevel();
@@ -104,23 +101,55 @@ public:
   void pushStyle();
   void popStyle();
 
-  IWORKZoneManager &getZoneManager();
+  void pushStylesheet(const IWORKStylesheetPtr_t &stylesheet);
+  void popStylesheet();
+  IWORKStylesheetPtr_t getStylesheet() const
+  {
+    if (m_stylesheetStack.empty())
+      return IWORKStylesheetPtr_t();
+    return m_stylesheetStack.top();
+  }
+  IWORKOutputManager &getOutputManager();
+
+public:
+  virtual std::shared_ptr<IWORKTable> createTable(const IWORKTableNameMapPtr_t &tableNameMap, const IWORKLanguageManager &langManager) const;
+  virtual std::shared_ptr<IWORKText> createText(const IWORKLanguageManager &langManager, bool discardEmptyContent = false) const;
+
+protected:
+  void fillMetadata(librevenge::RVNGPropertyList &props);
+
+  static void writeFill(const IWORKFill &fill, librevenge::RVNGPropertyList &props);
 
 private:
   void pushStyle(const IWORKStylePtr_t &style);
   void resolveStyle(IWORKStyle &style);
 
+  void collectHeaderFooter(const std::string &name, IWORKHeaderFooterMap_t &map);
+
+  void drawMedia(const IWORKMediaPtr_t &media);
+  void drawShape(const IWORKShapePtr_t &shape);
+
+  virtual void drawTable() = 0;
+  virtual void drawMedia(double x, double y, double w, double h, const std::string &mimetype, const librevenge::RVNGBinaryData &data) = 0;
+  virtual void fillShapeProperties(librevenge::RVNGPropertyList &props) = 0;
+  virtual void drawTextBox(const IWORKTextPtr_t &text, const glm::dmat3 &trafo, const IWORKGeometryPtr_t &boundingBox) = 0;
+
 protected:
   IWORKDocumentInterface *m_document;
+  std::shared_ptr<IWORKRecorder> m_recorder;
 
   std::stack<Level> m_levelStack;
   IWORKStyleStack m_styleStack;
-  IWORKZoneManager m_zoneManager;
+  std::stack<IWORKStylesheetPtr_t> m_stylesheetStack;
+  IWORKOutputManager m_outputManager;
 
-  IWORKStylesheetPtr_t m_currentStylesheet;
   std::deque<IWORKStylePtr_t> m_newStyles;
 
-  IWORKTextPtr_t m_currentText;
+  std::shared_ptr<IWORKTable> m_currentTable;
+  std::shared_ptr<IWORKText> m_currentText;
+
+  IWORKHeaderFooterMap_t m_headers;
+  IWORKHeaderFooterMap_t m_footers;
 
 private:
   IWORKPathPtr_t m_currentPath;
@@ -129,7 +158,8 @@ private:
   IWORKMediaContentPtr_t m_currentFiltered;
   IWORKMediaContentPtr_t m_currentLeveled;
   IWORKMediaContentPtr_t m_currentContent;
-  IWORKTable m_currentTable;
+
+  IWORKMetadata m_metadata;
 
   int m_groupLevel;
 };

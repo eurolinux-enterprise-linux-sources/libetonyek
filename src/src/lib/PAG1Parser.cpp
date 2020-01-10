@@ -9,22 +9,37 @@
 
 #include "PAG1Parser.h"
 
-#include "libetonyek_xml.h"
+#include <functional>
+
+#include <boost/optional.hpp>
+
 #include "IWORKChainedTokenizer.h"
-#include "IWORKLayoutElement.h"
-#include "IWORKPElement.h"
-#include "IWORKRefContext.h"
+#include "IWORKDiscardContext.h"
+#include "IWORKHeaderFooterContext.h"
+#include "IWORKMediaElement.h"
+#include "IWORKMetadataElement.h"
+#include "IWORKNumberConverter.h"
+#include "IWORKNumberElement.h"
+#include "IWORKShapeContext.h"
+#include "IWORKStyleRefContext.h"
 #include "IWORKStylesContext.h"
-#include "IWORKTabularInfoElement.h"
-#include "IWORKTextBodyElement.h"
-#include "IWORKTextStorageElement.h"
+#include "IWORKStylesheetBase.h"
 #include "IWORKToken.h"
-#include "PAGCollector.h"
-#include "PAGDictionary.h"
+#include "PAG1Dictionary.h"
+#include "PAG1StyleContext.h"
+#include "PAG1TextStorageElement.h"
 #include "PAG1Token.h"
 #include "PAG1XMLContextBase.h"
+#include "PAGCollector.h"
+#include "PAGTypes.h"
+#include "libetonyek_xml.h"
 
+using boost::none;
 using boost::optional;
+
+using namespace std::placeholders;
+
+using std::string;
 
 namespace libetonyek
 {
@@ -43,24 +58,6 @@ unsigned getVersion(const int token)
   return 0;
 }
 
-struct PageFrame
-{
-  PageFrame();
-
-  optional<double> m_w;
-  optional<double> m_h;
-  optional<double> m_x;
-  optional<double> m_y;
-};
-
-PageFrame::PageFrame()
-  : m_w()
-  , m_h()
-  , m_x()
-  , m_y()
-{
-}
-
 }
 
 namespace
@@ -72,7 +69,7 @@ public:
   explicit FootersElement(PAG1ParserState &state);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  IWORKXMLContextPtr_t element(int name) override;
 };
 
 FootersElement::FootersElement(PAG1ParserState &state)
@@ -80,9 +77,11 @@ FootersElement::FootersElement(PAG1ParserState &state)
 {
 }
 
-IWORKXMLContextPtr_t FootersElement::element(int)
+IWORKXMLContextPtr_t FootersElement::element(const int name)
 {
-  // TODO: parse
+  if (name == (IWORKToken::NS_URI_SF | IWORKToken::footer))
+    return makeContext<IWORKHeaderFooterContext>(getState(),
+                                                 std::bind(&IWORKCollector::collectFooter, std::ref(getCollector()), _1));
   return IWORKXMLContextPtr_t();
 }
 
@@ -97,7 +96,7 @@ public:
   explicit HeadersElement(PAG1ParserState &state);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  IWORKXMLContextPtr_t element(int name) override;
 };
 
 HeadersElement::HeadersElement(PAG1ParserState &state)
@@ -105,9 +104,11 @@ HeadersElement::HeadersElement(PAG1ParserState &state)
 {
 }
 
-IWORKXMLContextPtr_t HeadersElement::element(int)
+IWORKXMLContextPtr_t HeadersElement::element(const int name)
 {
-  // TODO: parse
+  if (name == (IWORKToken::NS_URI_SF | IWORKToken::header))
+    return makeContext<IWORKHeaderFooterContext>(getState(),
+                                                 std::bind(&IWORKCollector::collectHeader, std::ref(getCollector()), _1));
   return IWORKXMLContextPtr_t();
 }
 
@@ -116,18 +117,51 @@ IWORKXMLContextPtr_t HeadersElement::element(int)
 namespace
 {
 
-class StylesheetElement : public PAG1XMLElementContextBase
+class StylesContext : public PAG1XMLContextBase<IWORKStylesContext>
+{
+public:
+  StylesContext(PAG1ParserState &state, bool anonymous);
+
+private:
+  IWORKXMLContextPtr_t element(int name) override;
+};
+
+StylesContext::StylesContext(PAG1ParserState &state, const bool anonymous)
+  : PAG1XMLContextBase<IWORKStylesContext>(state, anonymous)
+{
+}
+
+IWORKXMLContextPtr_t StylesContext::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::sectionstyle :
+    // TODO: setting of the default parent would also be a good candidate for leaveElement(),
+    // if we ever add this, as it seems to be limited to a few style types.
+    return makeContext<PAG1StyleContext>(getState(), &getState().getDictionary().m_sectionStyles, "section-style-default");
+  case IWORKToken::NS_URI_SF | IWORKToken::sectionstyle_ref :
+    return makeContext<IWORKStyleRefContext>(getState(), getState().getDictionary().m_sectionStyles);
+  }
+
+  return PAG1XMLContextBase<IWORKStylesContext>::element(name);
+}
+
+}
+
+namespace
+{
+
+class StylesheetElement : public PAG1XMLContextBase<IWORKStylesheetBase>
 {
 public:
   explicit StylesheetElement(PAG1ParserState &state);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  IWORKXMLContextPtr_t element(int name) override;
 };
 
 StylesheetElement::StylesheetElement(PAG1ParserState &state)
-  : PAG1XMLElementContextBase(state)
+  : PAG1XMLContextBase<IWORKStylesheetBase>(state)
 {
 }
 
@@ -136,17 +170,38 @@ IWORKXMLContextPtr_t StylesheetElement::element(const int name)
   switch (name)
   {
   case IWORKToken::NS_URI_SF | IWORKToken::anon_styles :
-    return makeContext<IWORKStylesContext>(getState(), true);
+    return makeContext<StylesContext>(getState(), true);
   case IWORKToken::NS_URI_SF | IWORKToken::styles :
-    return makeContext<IWORKStylesContext>(getState(), false);
+    return makeContext<StylesContext>(getState(), false);
   }
 
-  return IWORKXMLContextPtr_t();
+  return PAG1XMLContextBase<IWORKStylesheetBase>::element(name);
 }
 
-void StylesheetElement::endOfElement()
+}
+
+namespace
 {
-  getCollector()->collectStylesheet();
+
+class PrototypeElement : public PAG1XMLElementContextBase
+{
+public:
+  explicit PrototypeElement(PAG1ParserState &state);
+
+private:
+  IWORKXMLContextPtr_t element(int name) override;
+};
+
+PrototypeElement::PrototypeElement(PAG1ParserState &state)
+  : PAG1XMLElementContextBase(state)
+{
+}
+
+IWORKXMLContextPtr_t PrototypeElement::element(const int name)
+{
+  if (name == (IWORKToken::NS_URI_SF | IWORKToken::stylesheet))
+    return makeContext<StylesheetElement>(getState());
+  return IWORKXMLContextPtr_t();
 }
 
 }
@@ -160,7 +215,7 @@ public:
   explicit SectionPrototypesElement(PAG1ParserState &state);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  IWORKXMLContextPtr_t element(int name) override;
 };
 
 SectionPrototypesElement::SectionPrototypesElement(PAG1ParserState &state)
@@ -168,9 +223,10 @@ SectionPrototypesElement::SectionPrototypesElement(PAG1ParserState &state)
 {
 }
 
-IWORKXMLContextPtr_t SectionPrototypesElement::element(int)
+IWORKXMLContextPtr_t SectionPrototypesElement::element(const int name)
 {
-  // TODO: parse
+  if (name == (PAG1Token::NS_URI_SL | PAG1Token::prototype))
+    return makeContext<PrototypeElement>(getState());
   return IWORKXMLContextPtr_t();
 }
 
@@ -179,263 +235,28 @@ IWORKXMLContextPtr_t SectionPrototypesElement::element(int)
 namespace
 {
 
-class MetadataElement : public PAG1XMLElementContextBase
+class DateElement : public PAG1XMLEmptyContextBase
 {
 public:
-  explicit MetadataElement(PAG1ParserState &state);
+  DateElement(PAG1ParserState &state, optional<string> &value);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  void attribute(int name, const char *value) override;
+
+private:
+  optional<string> &m_value;
 };
 
-MetadataElement::MetadataElement(PAG1ParserState &state)
-  : PAG1XMLElementContextBase(state)
-{
-}
-
-IWORKXMLContextPtr_t MetadataElement::element(int)
-{
-  // TODO: parse
-  return IWORKXMLContextPtr_t();
-}
-
-}
-
-namespace
-{
-
-class AttachmentElement : public PAG1XMLElementContextBase
-{
-public:
-  explicit AttachmentElement(PAG1ParserState &state);
-
-private:
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
-
-private:
-  bool m_known;
-};
-
-AttachmentElement::AttachmentElement(PAG1ParserState &state)
-  : PAG1XMLElementContextBase(state)
-  , m_known(false)
-{
-}
-
-IWORKXMLContextPtr_t AttachmentElement::element(const int name)
-{
-  if (name == (IWORKToken::NS_URI_SF | IWORKToken::tabular_info))
-  {
-    m_known = true;
-    getCollector()->getZoneManager().push();
-    return makeContext<IWORKTabularInfoElement>(getState());
-  }
-
-  return IWORKXMLContextPtr_t();
-}
-
-void AttachmentElement::endOfElement()
-{
-  if (m_known)
-  {
-    if (getId())
-      getState().getDictionary().m_attachments[get(getId())] = getCollector()->getZoneManager().save();
-    getCollector()->getZoneManager().pop();
-  }
-}
-
-}
-
-namespace
-{
-
-class AttachmentsElement : public PAG1XMLElementContextBase
-{
-public:
-  explicit AttachmentsElement(PAG1ParserState &state);
-
-private:
-  virtual IWORKXMLContextPtr_t element(int name);
-};
-
-AttachmentsElement::AttachmentsElement(PAG1ParserState &state)
-  : PAG1XMLElementContextBase(state)
-{
-}
-
-IWORKXMLContextPtr_t AttachmentsElement::element(const int name)
-{
-  if (name == (IWORKToken::NS_URI_SF | IWORKToken::attachment))
-    return makeContext<AttachmentElement>(getState());
-  return IWORKXMLContextPtr_t();
-}
-
-}
-
-namespace
-{
-
-class PElement : public PAG1XMLContextBase<IWORKPElement>
-{
-public:
-  explicit PElement(PAG1ParserState &state);
-
-private:
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
-
-private:
-  optional<ID_t> m_ref;
-};
-
-PElement::PElement(PAG1ParserState &state)
-  : PAG1XMLContextBase<IWORKPElement>(state)
-  , m_ref()
-{
-}
-
-IWORKXMLContextPtr_t PElement::element(const int name)
-{
-  if (name == (IWORKToken::NS_URI_SF | IWORKToken::attachment_ref))
-  {
-    // It is possible that there can be 2 or more attachments in the same para.
-    // In that case the code would have to be adapted to handle that.
-    assert(!m_ref);
-    return makeContext<IWORKRefContext>(getState(), m_ref);
-  }
-
-  return IWORKPElement::element(name);
-}
-
-void PElement::endOfElement()
-{
-  if (m_ref)
-  {
-    const IWORKZoneMap_t::const_iterator it = getState().getDictionary().m_attachments.find(get(m_ref));
-    if (it != getState().getDictionary().m_attachments.end())
-      getCollector()->collectAttachment(it->second);
-  }
-
-  IWORKPElement::endOfElement();
-}
-
-}
-
-namespace
-{
-
-class LayoutElement : public PAG1XMLContextBase<IWORKLayoutElement>
-{
-public:
-  explicit LayoutElement(PAG1ParserState &state);
-
-private:
-  virtual IWORKXMLContextPtr_t element(int name);
-};
-
-LayoutElement::LayoutElement(PAG1ParserState &state)
-  : PAG1XMLContextBase<IWORKLayoutElement>(state)
-{
-}
-
-IWORKXMLContextPtr_t LayoutElement::element(const int name)
-{
-  if (name == (IWORKToken::NS_URI_SF | IWORKToken::p))
-    return makeContext<PElement>(getState());
-
-  return IWORKLayoutElement::element(name);
-}
-
-}
-
-namespace
-{
-
-class SectionElement : public PAG1XMLElementContextBase
-{
-public:
-  SectionElement(PAG1ParserState &state, const PageFrame &pageFrame);
-
-private:
-  virtual void startOfElement();
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
-
-private:
-  const PageFrame &m_pageFrame;
-};
-
-SectionElement::SectionElement(PAG1ParserState &state, const PageFrame &pageFrame)
-  : PAG1XMLElementContextBase(state)
-  , m_pageFrame(pageFrame)
-{
-}
-
-void SectionElement::startOfElement()
-{
-  const double w(get_optional_value_or(m_pageFrame.m_w, 0));
-  const double h(get_optional_value_or(m_pageFrame.m_h, 0));
-  const double x(get_optional_value_or(m_pageFrame.m_x, 0));
-  const double y(get_optional_value_or(m_pageFrame.m_y, 0));
-
-  // TODO: This assumes that the left/right and top/bottom margins are always equal.
-  getCollector()->openSection(pt2in(w + 2 * x), pt2in(h + 2 * y), pt2in(x), pt2in(y));
-}
-
-IWORKXMLContextPtr_t SectionElement::element(const int name)
-{
-  if ((IWORKToken::NS_URI_SF | IWORKToken::layout) == name)
-    return makeContext<LayoutElement>(getState());
-
-  return IWORKXMLContextPtr_t();
-}
-
-void SectionElement::endOfElement()
-{
-  getCollector()->closeSection();
-}
-
-}
-
-namespace
-{
-
-class ContainerHintElement : public PAG1XMLEmptyContextBase
-{
-public:
-  ContainerHintElement(PAG1ParserState &state, PageFrame &pageFrame);
-
-private:
-  virtual void attribute(int name, const char *value);
-
-private:
-  PageFrame &m_pageFrame;
-};
-
-ContainerHintElement::ContainerHintElement(PAG1ParserState &state, PageFrame &pageFrame)
+DateElement::DateElement(PAG1ParserState &state, optional<string> &value)
   : PAG1XMLEmptyContextBase(state)
-  , m_pageFrame(pageFrame)
+  , m_value(value)
 {
 }
 
-void ContainerHintElement::attribute(const int name, const char *const value)
+void DateElement::attribute(const int name, const char *const value)
 {
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SF | IWORKToken::frame_h :
-    m_pageFrame.m_h = double_cast(value);
-    break;
-  case IWORKToken::NS_URI_SF | IWORKToken::frame_w :
-    m_pageFrame.m_w = double_cast(value);
-    break;
-  case IWORKToken::NS_URI_SF | IWORKToken::frame_x :
-    m_pageFrame.m_x = double_cast(value);
-    break;
-  case IWORKToken::NS_URI_SF | IWORKToken::frame_y :
-    m_pageFrame.m_y = double_cast(value);
-    break;
-  }
+  if (name == (IWORKToken::NS_URI_SF | IWORKToken::val))
+    m_value = value;
 }
 
 }
@@ -443,35 +264,29 @@ void ContainerHintElement::attribute(const int name, const char *const value)
 namespace
 {
 
-class TextBodyElement : public PAG1XMLContextBase<IWORKTextBodyElement>
+class SLCreationDatePropertyElement : public PAG1XMLElementContextBase
 {
 public:
-  explicit TextBodyElement(PAG1ParserState &state);
+  SLCreationDatePropertyElement(PAG1ParserState &state, optional<string> &value);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  IWORKXMLContextPtr_t element(int name) override;
 
 private:
-  PageFrame m_pageFrame;
+  optional<string> &m_value;
 };
 
-TextBodyElement::TextBodyElement(PAG1ParserState &state)
-  : PAG1XMLContextBase<IWORKTextBodyElement>(state)
-  , m_pageFrame()
+SLCreationDatePropertyElement::SLCreationDatePropertyElement(PAG1ParserState &state, optional<string> &value)
+  : PAG1XMLElementContextBase(state)
+  , m_value(value)
 {
 }
 
-IWORKXMLContextPtr_t TextBodyElement::element(const int name)
+IWORKXMLContextPtr_t SLCreationDatePropertyElement::element(const int name)
 {
-  switch (name)
-  {
-  case IWORKToken::NS_URI_SF | IWORKToken::container_hint :
-    return makeContext<ContainerHintElement>(getState(), m_pageFrame);
-  case IWORKToken::NS_URI_SF | IWORKToken::section :
-    return makeContext<SectionElement>(getState(), m_pageFrame);
-  }
-
-  return IWORKTextBodyElement::element(name);
+  if (name == (PAG1Token::NS_URI_SL | PAG1Token::SLCreationDateProperty))
+    return makeContext<DateElement>(getState(), m_value);
+  return IWORKXMLContextPtr_t();
 }
 
 }
@@ -479,52 +294,219 @@ IWORKXMLContextPtr_t TextBodyElement::element(const int name)
 namespace
 {
 
-class TextStorageElement : public PAG1XMLContextBase<IWORKTextStorageElement>
+template<class T, class C, int I>
+class DocumentPropertyContext : public PAG1XMLElementContextBase
 {
 public:
-  explicit TextStorageElement(PAG1ParserState &state);
+  DocumentPropertyContext(PAG1ParserState &state, optional<T> &value);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  IWORKXMLContextPtr_t element(int name) override;
 
 private:
-  bool m_textOpened;
+  optional<T> &m_value;
 };
 
-TextStorageElement::TextStorageElement(PAG1ParserState &state)
-  : PAG1XMLContextBase<IWORKTextStorageElement>(state)
-  , m_textOpened(false)
+template<class T, class C, int I>
+DocumentPropertyContext<T, C, I>::DocumentPropertyContext(PAG1ParserState &state, optional<T> &value)
+  : PAG1XMLElementContextBase(state)
+  , m_value(value)
 {
 }
 
-IWORKXMLContextPtr_t TextStorageElement::element(const int name)
+template<class T, class C, int I>
+IWORKXMLContextPtr_t DocumentPropertyContext<T, C, I>::element(const int name)
 {
-  switch (name)
+  if (name == I)
+    return makeContext<C>(getState(), m_value);
+  return IWORKXMLContextPtr_t();
+}
+
+}
+
+IWORK_DECLARE_NUMBER_CONVERTER(PAGFootnoteKind);
+
+optional<PAGFootnoteKind> IWORKNumberConverter<PAGFootnoteKind>::convert(const char *const value)
+{
+  const optional<int> kind(try_int_cast(value));
+  if (kind)
   {
-  case IWORKToken::NS_URI_SF | IWORKToken::attachments :
-    return makeContext<AttachmentsElement>(getState());
-  case IWORKToken::NS_URI_SF | IWORKToken::text_body :
-    if (!m_textOpened)
+    switch (get(kind))
     {
-      getCollector()->startText();
-      m_textOpened = true;
+    case 0 :
+      return PAG_FOOTNOTE_KIND_FOOTNOTE;
+    case 1 :
+      return PAG_FOOTNOTE_KIND_ENDNOTE;
+    case 2 :
+      return PAG_FOOTNOTE_KIND_SECTION_ENDNOTE;
     }
-    return makeContext<TextBodyElement>(getState());
   }
 
-  return PAG1XMLContextBase<IWORKTextStorageElement>::element(name);
+  return none;
 }
 
-void TextStorageElement::endOfElement()
+namespace
 {
-  IWORKTextStorageElement::endOfElement();
 
-  if (m_textOpened)
+typedef DocumentPropertyContext<double, IWORKNumberElement<double>, PAG1Token::NS_URI_SL | PAG1Token::number> KSFWPFootnoteGapPropertyElement;
+typedef DocumentPropertyContext<PAGFootnoteKind, IWORKNumberElement<PAGFootnoteKind>, PAG1Token::NS_URI_SL | PAG1Token::number> KSFWPFootnoteKindPropertyElement;
+
+}
+
+namespace
+{
+
+class PublicationInfoElement : public PAG1XMLElementContextBase
+{
+public:
+  explicit PublicationInfoElement(PAG1ParserState &state);
+
+private:
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
+
+private:
+  PAGPublicationInfo m_pubInfo;
+  optional<PAGFootnoteKind> m_footnoteKind;
+};
+
+PublicationInfoElement::PublicationInfoElement(PAG1ParserState &state)
+  : PAG1XMLElementContextBase(state)
+  , m_pubInfo()
+{
+}
+
+IWORKXMLContextPtr_t PublicationInfoElement::element(const int name)
+{
+  switch (name)
   {
-    getCollector()->collectTextBody();
-    getCollector()->endText();
+  case PAG1Token::NS_URI_SL | PAG1Token::kSFWPFootnoteGapProperty :
+    return makeContext<KSFWPFootnoteGapPropertyElement>(getState(), m_pubInfo.m_footnoteGap);
+  case PAG1Token::NS_URI_SL | PAG1Token::kSFWPFootnoteKindProperty :
+    return makeContext<KSFWPFootnoteKindPropertyElement>(getState(), m_footnoteKind);
+  case PAG1Token::NS_URI_SL | PAG1Token::SLCreationDateProperty :
+    return makeContext<SLCreationDatePropertyElement>(getState(), m_pubInfo.m_creationDate);
   }
+  return IWORKXMLContextPtr_t();
+}
+
+void PublicationInfoElement::endOfElement()
+{
+  if (isCollector())
+  {
+    if (m_footnoteKind)
+      m_pubInfo.m_footnoteKind = get(m_footnoteKind);
+    getCollector().collectPublicationInfo(m_pubInfo);
+  }
+}
+
+}
+
+namespace
+{
+
+class PageGroupElement : public PAG1XMLElementContextBase
+{
+public:
+  explicit PageGroupElement(PAG1ParserState &state);
+
+private:
+  void attribute(int name, const char *value) override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
+
+private:
+  void open();
+
+private:
+  optional<int> m_page;
+  optional<int> m_rpage;
+  bool m_opened;
+};
+
+PageGroupElement::PageGroupElement(PAG1ParserState &state)
+  : PAG1XMLElementContextBase(state)
+  , m_page()
+  , m_rpage()
+  , m_opened(false)
+{
+}
+
+void PageGroupElement::attribute(const int name, const char *const value)
+{
+  switch (name)
+  {
+  // TODO: what is the exact relation of sl:page and sl:rpage attrs?
+  case PAG1Token::NS_URI_SL | PAG1Token::page :
+    m_page = try_int_cast(value);
+    break;
+  case PAG1Token::NS_URI_SL | PAG1Token::rpage :
+    m_rpage = try_int_cast(value);
+    break;
+  }
+}
+
+IWORKXMLContextPtr_t PageGroupElement::element(const int name)
+{
+  if (!m_opened)
+    open();
+
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::media :
+    return makeContext<IWORKMediaElement>(getState());
+  case IWORKToken::NS_URI_SF | IWORKToken::drawable_shape :
+    return makeContext<IWORKShapeContext>(getState());
+  }
+
+  return IWORKXMLContextPtr_t();
+}
+
+void PageGroupElement::endOfElement()
+{
+  if (isCollector())
+    getCollector().closePageGroup();
+}
+
+void PageGroupElement::open()
+{
+  if (isCollector())
+  {
+    if (!m_page && m_rpage)
+      m_page = get(m_rpage) + 1;
+    if (m_page)
+      getCollector().openPageGroup(m_page);
+  }
+  m_opened = true;
+}
+
+}
+
+namespace
+{
+
+class DrawablesElement : public PAG1XMLElementContextBase
+{
+public:
+  explicit DrawablesElement(PAG1ParserState &state);
+
+private:
+  IWORKXMLContextPtr_t element(int name) override;
+};
+
+DrawablesElement::DrawablesElement(PAG1ParserState &state)
+  : PAG1XMLElementContextBase(state)
+{
+}
+
+IWORKXMLContextPtr_t DrawablesElement::element(const int name)
+{
+  switch (name)
+  {
+  case PAG1Token::NS_URI_SL | PAG1Token::page_group :
+    return makeContext<PageGroupElement>(getState());
+  }
+  return IWORKXMLContextPtr_t();
 }
 
 }
@@ -538,9 +520,10 @@ public:
   explicit DocumentElement(PAG1ParserState &state);
 
 private:
-  virtual void attribute(int name, const char *value);
-  virtual IWORKXMLContextPtr_t element(int name);
-  virtual void endOfElement();
+  void startOfElement() override;
+  void attribute(int name, const char *value) override;
+  IWORKXMLContextPtr_t element(int name) override;
+  void endOfElement() override;
 
 private:
   optional<IWORKSize> m_size;
@@ -550,6 +533,12 @@ DocumentElement::DocumentElement(PAG1ParserState &state)
   : PAG1XMLElementContextBase(state)
   , m_size()
 {
+}
+
+void DocumentElement::startOfElement()
+{
+  if (isCollector())
+    getCollector().startDocument();
 }
 
 void DocumentElement::attribute(const int name, const char *const value)
@@ -577,9 +566,13 @@ IWORKXMLContextPtr_t DocumentElement::element(const int name)
   case IWORKToken::NS_URI_SF | IWORKToken::footers :
     return makeContext<FootersElement>(getState());
   case IWORKToken::NS_URI_SF | IWORKToken::metadata :
-    return makeContext<MetadataElement>(getState());
+    return makeContext<IWORKMetadataElement>(getState());
   case IWORKToken::NS_URI_SF | IWORKToken::text_storage :
-    return makeContext<TextStorageElement>(getState());
+    return makeContext<PAG1TextStorageElement>(getState());
+  case PAG1Token::NS_URI_SL | PAG1Token::drawables :
+    return makeContext<DrawablesElement>(getState());
+  case PAG1Token::NS_URI_SL | PAG1Token::publication_info :
+    return makeContext<PublicationInfoElement>(getState());
   case PAG1Token::NS_URI_SL | PAG1Token::section_prototypes :
     return makeContext<SectionPrototypesElement>(getState());
   case PAG1Token::NS_URI_SL | PAG1Token::stylesheet :
@@ -591,6 +584,8 @@ IWORKXMLContextPtr_t DocumentElement::element(const int name)
 
 void DocumentElement::endOfElement()
 {
+  if (isCollector())
+    getCollector().endDocument();
 }
 
 }
@@ -604,7 +599,7 @@ public:
   explicit XMLDocument(PAG1ParserState &state);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  IWORKXMLContextPtr_t element(int name) override;
 };
 
 XMLDocument::XMLDocument(PAG1ParserState &state)
@@ -625,7 +620,39 @@ IWORKXMLContextPtr_t XMLDocument::element(const int name)
 
 }
 
-PAG1Parser::PAG1Parser(const RVNGInputStreamPtr_t &input, const RVNGInputStreamPtr_t &package, PAGCollector *const collector, PAGDictionary *const dict)
+namespace
+{
+
+class DiscardContext : public PAG1XMLContextBase<IWORKDiscardContext>
+{
+public:
+  explicit DiscardContext(PAG1ParserState &state);
+
+  IWORKXMLContextPtr_t element(int name) override;
+};
+
+DiscardContext::DiscardContext(PAG1ParserState &state)
+  : PAG1XMLContextBase<IWORKDiscardContext>(state)
+{
+}
+
+IWORKXMLContextPtr_t DiscardContext::element(const int name)
+{
+  switch (name)
+  {
+  case IWORKToken::NS_URI_SF | IWORKToken::sectionstyle :
+    return makeContext<PAG1StyleContext>(getState(), &getState().getDictionary().m_sectionStyles, "section-style-default");
+  case IWORKToken::NS_URI_SF | IWORKToken::stylesheet :
+  case PAG1Token::NS_URI_SL | PAG1Token::stylesheet :
+    return makeContext<StylesheetElement>(getState());
+  }
+
+  return PAG1XMLContextBase<IWORKDiscardContext>::element(name);
+}
+
+}
+
+PAG1Parser::PAG1Parser(const RVNGInputStreamPtr_t &input, const RVNGInputStreamPtr_t &package, PAGCollector &collector, PAG1Dictionary *const dict)
   : IWORKParser(input, package)
   , m_state(*this, collector, *dict)
 {
@@ -638,6 +665,11 @@ PAG1Parser::~PAG1Parser()
 IWORKXMLContextPtr_t PAG1Parser::createDocumentContext()
 {
   return makeContext<XMLDocument>(m_state);
+}
+
+IWORKXMLContextPtr_t PAG1Parser::createDiscardContext()
+{
+  return makeContext<DiscardContext>(m_state);
 }
 
 const IWORKTokenizer &PAG1Parser::getTokenizer() const

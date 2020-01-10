@@ -12,7 +12,6 @@
 
 #include <boost/static_assert.hpp>
 
-#include "IWORKToken.h"
 #include "IWORKTokenInfo.h"
 
 namespace libetonyek
@@ -32,9 +31,12 @@ enum
   key,
 
   // elements
+  authors,
   body_placeholder,
   c,
+  comment,
   headlineParagraphStyle,
+  keywords,
   master_slide,
   master_slides,
   metadata,
@@ -44,16 +46,19 @@ enum
   size,
   slide,
   slide_list,
+  slide_style,
   sticky_note,
   sticky_notes,
+  string,
+  style_ref,
   stylesheet,
   text,
   theme,
   theme_list,
+  title,
   title_placeholder,
 
   // attributes
-  right,
   version,
 
   // attribute values
@@ -62,9 +67,7 @@ enum
   VERSION_STR_3,
   VERSION_STR_4,
   VERSION_STR_5,
-  double_,
   i,
-  star,
 
   LAST_TOKEN
 };

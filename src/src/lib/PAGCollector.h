@@ -10,7 +10,10 @@
 #ifndef PAGCOLLECTOR_H_INCLUDED
 #define PAGCOLLECTOR_H_INCLUDED
 
+#include <map>
+
 #include "IWORKCollector.h"
+#include "PAGTypes.h"
 
 namespace libetonyek
 {
@@ -25,29 +28,61 @@ class PAGCollector : public IWORKCollector
 
     void clear();
 
+    IWORKStylePtr_t m_style;
     boost::optional<double> m_width;
     boost::optional<double> m_height;
     boost::optional<double> m_horizontalMargin;
     boost::optional<double> m_verticalMargin;
   };
 
+  typedef std::map<unsigned, IWORKOutputID_t> PageGroupsMap_t;
+
 public:
   explicit PAGCollector(IWORKDocumentInterface *document);
 
   // collector functions
 
+  void collectPublicationInfo(const PAGPublicationInfo &pubInfo);
+
   void collectTextBody();
-  void collectAttachment(const IWORKZoneID_t &id);
+
+  void collectAttachment(const IWORKOutputID_t &id, bool block);
+  void collectAttachmentPosition(const IWORKPosition &position);
+
+  void openPageGroup(const boost::optional<int> &page);
+  void closePageGroup();
 
   // helper functions
-  void startDocument();
-  void endDocument();
 
-  void openSection(double width, double height, double horizontalMargin, double verticalMargin);
+  void openSection(const std::string &style, double width, double height, double horizontalMargin, double verticalMargin);
   void closeSection();
+
+  void openAttachments();
+  void closeAttachments();
+
+  PAGFootnoteKind getFootnoteKind() const;
+
+private:
+  void drawTable() override;
+  void drawMedia(double x, double y, double w, double h, const std::string &mimetype, const librevenge::RVNGBinaryData &data) override;
+  void fillShapeProperties(librevenge::RVNGPropertyList &props) override;
+  void drawTextBox(const IWORKTextPtr_t &text, const glm::dmat3 &trafo, const IWORKGeometryPtr_t &boundingBox) override;
+
+  void flushPageSpan(bool writeEmpty = true);
+  void writePageGroupsObjects();
 
 private:
   Section m_currentSection;
+  bool m_firstPageSpan;
+
+  PAGPublicationInfo m_pubInfo;
+
+  PageGroupsMap_t m_pageGroups;
+  int m_page;
+
+  // FIXME: This is a clumsy workaround.
+  boost::optional<IWORKPosition> m_attachmentPosition;
+  bool m_inAttachments;
 };
 
 } // namespace libetonyek

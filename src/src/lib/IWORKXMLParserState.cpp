@@ -9,15 +9,26 @@
 
 #include "IWORKXMLParserState.h"
 
+#include <memory>
+
 #include "IWORKCollector.h"
 #include "IWORKDictionary.h"
 #include "IWORKParser.h"
+#include "IWORKTable.h"
+#include "IWORKText.h"
+#include "IWORKTypes.h"
 
 namespace libetonyek
 {
 
-IWORKXMLParserState::IWORKXMLParserState(IWORKParser &parser, IWORKCollector *const collector, IWORKDictionary &dict)
-  : m_parser(parser)
+IWORKXMLParserState::IWORKXMLParserState(IWORKParser &parser, IWORKCollector &collector, IWORKDictionary &dict)
+  : m_tableData()
+  , m_stylesheet()
+  , m_enableCollector(true)
+  , m_tableNameMap(std::make_shared<IWORKTableNameMap_t>())
+  , m_currentTable()
+  , m_currentText()
+  , m_parser(parser)
   , m_collector(collector)
   , m_dict(dict)
 {
@@ -33,7 +44,7 @@ IWORKDictionary &IWORKXMLParserState::getDictionary()
   return m_dict;
 }
 
-IWORKCollector *IWORKXMLParserState::getCollector() const
+IWORKCollector &IWORKXMLParserState::getCollector() const
 {
   return m_collector;
 }

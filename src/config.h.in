@@ -1,34 +1,27 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define to 1 if you have the <boost/algorithm/string/classification.hpp>
-   header file. */
-#undef HAVE_BOOST_ALGORITHM_STRING_CLASSIFICATION_HPP
-
-/* Define to 1 if you have the <boost/algorithm/string/predicate.hpp> header
-   file. */
-#undef HAVE_BOOST_ALGORITHM_STRING_PREDICATE_HPP
-
-/* Define to 1 if you have the <boost/algorithm/string/split.hpp> header file.
-   */
-#undef HAVE_BOOST_ALGORITHM_STRING_SPLIT_HPP
-
 /* Define to 1 if you have the <boost/any.hpp> header file. */
 #undef HAVE_BOOST_ANY_HPP
 
-/* Define to 1 if you have the <boost/bind.hpp> header file. */
-#undef HAVE_BOOST_BIND_HPP
+/* Define to 1 if you have the <boost/container/deque.hpp> header file. */
+#undef HAVE_BOOST_CONTAINER_DEQUE_HPP
 
-/* Define to 1 if you have the <boost/function.hpp> header file. */
-#undef HAVE_BOOST_FUNCTION_HPP
+/* Define to 1 if you have the <boost/cstdint.hpp> header file. */
+#undef HAVE_BOOST_CSTDINT_HPP
+
+/* Define to 1 if you have the <boost/fusion/adapted/std_pair.hpp> header
+   file. */
+#undef HAVE_BOOST_FUSION_ADAPTED_STD_PAIR_HPP
+
+/* Define to 1 if you have the <boost/fusion/include/adapt_struct.hpp> header
+   file. */
+#undef HAVE_BOOST_FUSION_INCLUDE_ADAPT_STRUCT_HPP
 
 /* Define to 1 if you have the <boost/lexical_cast.hpp> header file. */
 #undef HAVE_BOOST_LEXICAL_CAST_HPP
 
-/* Define to 1 if you have the <boost/logic/tribool.hpp> header file. */
-#undef HAVE_BOOST_LOGIC_TRIBOOL_HPP
-
-/* Define to 1 if you have the <boost/make_shared.hpp> header file. */
-#undef HAVE_BOOST_MAKE_SHARED_HPP
+/* Define to 1 if you have the <boost/none.hpp> header file. */
+#undef HAVE_BOOST_NONE_HPP
 
 /* Define to 1 if you have the <boost/numeric/conversion/cast.hpp> header
    file. */
@@ -37,27 +30,34 @@
 /* Define to 1 if you have the <boost/optional.hpp> header file. */
 #undef HAVE_BOOST_OPTIONAL_HPP
 
-/* Define to 1 if you have the <boost/ref.hpp> header file. */
-#undef HAVE_BOOST_REF_HPP
+/* Define to 1 if you have the <boost/spirit/include/phoenix.hpp> header file.
+   */
+#undef HAVE_BOOST_SPIRIT_INCLUDE_PHOENIX_HPP
 
-/* Define to 1 if you have the <boost/scoped_ptr.hpp> header file. */
-#undef HAVE_BOOST_SCOPED_PTR_HPP
+/* Define to 1 if you have the <boost/spirit/include/qi.hpp> header file. */
+#undef HAVE_BOOST_SPIRIT_INCLUDE_QI_HPP
 
-/* Define to 1 if you have the <boost/shared_ptr.hpp> header file. */
-#undef HAVE_BOOST_SHARED_PTR_HPP
-
-/* Define to 1 if you have the <boost/spirit/include/classic_core.hpp> header
+/* Define to 1 if you have the <boost/variant/recursive_variant.hpp> header
    file. */
-#undef HAVE_BOOST_SPIRIT_INCLUDE_CLASSIC_CORE_HPP
+#undef HAVE_BOOST_VARIANT_RECURSIVE_VARIANT_HPP
 
-/* Define to 1 if you have the <boost/unordered_map.hpp> header file. */
-#undef HAVE_BOOST_UNORDERED_MAP_HPP
+/* Define to 1 if you have the <boost/variant/variant.hpp> header file. */
+#undef HAVE_BOOST_VARIANT_VARIANT_HPP
+
+/* Define to 1 if the system has the clang-style `fallthrough' attribute */
+#undef HAVE_CLANG_ATTRIBUTE_FALLTHROUGH
+
+/* define if the compiler supports basic C++11 syntax */
+#undef HAVE_CXX11
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
-/* Define to 1 if you have the <glm/glm.hpp> header file. */
-#undef HAVE_GLM_GLM_HPP
+/* Define to 1 if the system has the `format' function attribute */
+#undef HAVE_FUNC_ATTRIBUTE_FORMAT
+
+/* Define to 1 if the system has the GNU-style `fallthrough' attribute */
+#undef HAVE_GCC_ATTRIBUTE_FALLTHROUGH
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
@@ -86,8 +86,7 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
 /* Name of package */
@@ -116,3 +115,6 @@
 
 /* Version number of package */
 #undef VERSION
+
+/* Build with liblangtag */
+#undef WITH_LIBLANGTAG

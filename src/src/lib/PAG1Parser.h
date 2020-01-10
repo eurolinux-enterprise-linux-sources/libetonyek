@@ -17,17 +17,18 @@ namespace libetonyek
 {
 
 class PAGCollector;
-struct PAGDictionary;
+struct PAG1Dictionary;
 
 class PAG1Parser: public IWORKParser
 {
 public:
-  PAG1Parser(const RVNGInputStreamPtr_t &input, const RVNGInputStreamPtr_t &package, PAGCollector *collector, PAGDictionary *dict);
-  virtual ~PAG1Parser();
+  PAG1Parser(const RVNGInputStreamPtr_t &input, const RVNGInputStreamPtr_t &package, PAGCollector &collector, PAG1Dictionary *dict);
+  ~PAG1Parser() override;
 
 private:
-  virtual IWORKXMLContextPtr_t createDocumentContext();
-  virtual const IWORKTokenizer &getTokenizer() const;
+  IWORKXMLContextPtr_t createDocumentContext() override;
+  IWORKXMLContextPtr_t createDiscardContext() override;
+  const IWORKTokenizer &getTokenizer() const override;
 
 private:
   PAG1ParserState m_state;

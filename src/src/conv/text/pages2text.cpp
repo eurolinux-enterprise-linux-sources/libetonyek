@@ -7,10 +7,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <memory>
 #include <stdio.h>
 #include <string.h>
-
-#include <boost/shared_ptr.hpp>
 
 #include <librevenge/librevenge.h>
 #include <librevenge-generators/librevenge-generators.h>
@@ -26,23 +25,28 @@
 #define VERSION "UNKNOWN VERSION"
 #endif
 
+#define TOOL "pages2text"
+
 namespace
 {
 
 int printUsage()
 {
-  printf("Usage: pages2text [OPTION] <Pages Document> | <Pages Directory>\n");
+  printf("`" TOOL "' converts Apple Pages documents to plain text.\n");
+  printf("\n");
+  printf("Usage: " TOOL " [OPTION] INPUT\n");
   printf("\n");
   printf("Options:\n");
-  printf("--info                Display document metadata instead of the text\n");
-  printf("--help                Shows this help message\n");
-  printf("--version             Output pages2text version\n");
+  printf("\t--help                show this help message\n");
+  printf("\t--version             show version information\n");
+  printf("\n");
+  printf("Report bugs to <https://bugs.documentfoundation.org/>.\n");
   return -1;
 }
 
 int printVersion()
 {
-  printf("pages2text %s\n", VERSION);
+  printf(TOOL " " VERSION "\n");
   return 0;
 }
 
@@ -55,7 +59,7 @@ int main(int argc, char *argv[])
   if (argc < 2)
     return printUsage();
 
-  char *szInputFile = 0;
+  char *szInputFile = nullptr;
   bool isInfo = false;
 
   for (int i = 1; i < argc; i++)
@@ -73,7 +77,7 @@ int main(int argc, char *argv[])
   if (!szInputFile)
     return printUsage();
 
-  using boost::shared_ptr;
+  using std::shared_ptr;
 
   shared_ptr<librevenge::RVNGInputStream> input;
   if (librevenge::RVNGDirectoryStream::isDirectory(szInputFile))

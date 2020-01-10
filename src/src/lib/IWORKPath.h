@@ -12,7 +12,6 @@
 
 #include "IWORKPath_fwd.h"
 
-#include <deque>
 #include <string>
 
 #include <glm/glm.hpp>
@@ -29,13 +28,13 @@ class IWORKPath
   friend bool approxEqual(const IWORKPath &left, const IWORKPath &right, const double eps);
 
 public:
-  class Element;
+  struct Impl;
+  struct InvalidException {};
 
 public:
   IWORKPath();
   explicit IWORKPath(const std::string &path);
   IWORKPath(const IWORKPath &other);
-  ~IWORKPath();
   IWORKPath &operator=(const IWORKPath &other);
 
   void swap(IWORKPath &other);
@@ -53,13 +52,18 @@ public:
     */
   void operator*=(const glm::dmat3 &tr);
 
-  /** Create WPG representation of this path.
+  /* Create a string representation of this path.
+   *
+   * @return an SVG path representing this.
+   */
+  const std::string str() const;
+
+  /** Create librevenge representation of this path.
     */
-  librevenge::RVNGPropertyListVector toWPG() const;
+  void write(librevenge::RVNGPropertyListVector &vec) const;
 
 private:
-  std::deque<Element *> m_elements;
-  bool m_closed;
+  std::shared_ptr<Impl> m_impl;
 };
 
 bool approxEqual(const IWORKPath &left, const IWORKPath &right, double eps = ETONYEK_EPSILON);

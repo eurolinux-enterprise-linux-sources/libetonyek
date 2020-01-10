@@ -40,6 +40,7 @@ public:
 
 private:
   virtual IWORKXMLContextPtr_t createDocumentContext() = 0;
+  virtual IWORKXMLContextPtr_t createDiscardContext() = 0;
 
 private:
   RVNGInputStreamPtr_t m_input;

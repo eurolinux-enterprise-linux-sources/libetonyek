@@ -26,7 +26,7 @@ using boost::lexical_cast;
 
 IWORKGeometryElement::IWORKGeometryElement(IWORKXMLParserState &state)
   : IWORKXMLElementContextBase(state)
-  , m_geometry(0)
+  , m_geometry(nullptr)
 {
 }
 
@@ -85,9 +85,15 @@ IWORKXMLContextPtr_t IWORKGeometryElement::element(const int name)
 void IWORKGeometryElement::endOfElement()
 {
   IWORKGeometryPtr_t geometry(new IWORKGeometry());
-  geometry->m_naturalSize = get(m_naturalSize);
-  geometry->m_size = bool(m_size) ? get(m_size) : get(m_naturalSize);
-  geometry->m_position = get(m_pos);
+  if (m_naturalSize)
+  {
+    geometry->m_naturalSize = get(m_naturalSize);
+    geometry->m_size = get(m_naturalSize);
+  }
+  if (m_size)
+    geometry->m_size = get(m_size);
+  if (m_pos)
+    geometry->m_position = get(m_pos);
   geometry->m_angle = m_angle;
   geometry->m_shearXAngle = m_shearXAngle;
   geometry->m_shearYAngle = m_shearYAngle;
@@ -98,8 +104,8 @@ void IWORKGeometryElement::endOfElement()
 
   if (m_geometry)
     *m_geometry = geometry;
-  else
-    getCollector()->collectGeometry(geometry);
+  else if (isCollector())
+    getCollector().collectGeometry(geometry);
 }
 
 }

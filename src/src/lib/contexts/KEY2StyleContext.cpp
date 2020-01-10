@@ -11,10 +11,11 @@
 
 #include "libetonyek_xml.h"
 #include "IWORKPropertyMapElement.h"
+#include "IWORKToken.h"
+#include "KEY2Dictionary.h"
 #include "KEY2ParserState.h"
 #include "KEY2Token.h"
 #include "KEYCollector.h"
-#include "KEYDictionary.h"
 #include "KEYTypes.h"
 
 namespace libetonyek
@@ -29,17 +30,15 @@ public:
   PropertyMapElement(KEY2ParserState &state, IWORKPropertyMap &propMap);
 
 private:
-  virtual IWORKXMLContextPtr_t element(int name);
+  IWORKXMLContextPtr_t element(int name) override;
 
 private:
   IWORKPropertyMapElement m_base;
-  IWORKPropertyMap &m_propMap;
 };
 
 PropertyMapElement::PropertyMapElement(KEY2ParserState &state, IWORKPropertyMap &propMap)
   : KEY2XMLElementContextBase(state)
   , m_base(state, propMap)
-  , m_propMap(propMap)
 {
 }
 
@@ -56,11 +55,11 @@ IWORKXMLContextPtr_t PropertyMapElement::element(const int name)
 
 }
 
-KEY2StyleContext::KEY2StyleContext(KEY2ParserState &state, const int id, const bool nested)
+KEY2StyleContext::KEY2StyleContext(KEY2ParserState &state, IWORKStyleMap_t *const styleMap, const bool nested)
   : KEY2XMLElementContextBase(state)
   , m_props()
-  , m_base(state, id, m_props, nested)
-  , m_id(id)
+  , m_base(state, m_props, styleMap, nested)
+  , m_styleMap(styleMap)
   , m_nested(nested)
 {
 }
@@ -96,36 +95,13 @@ IWORKXMLContextPtr_t KEY2StyleContext::element(const int name)
 
 void KEY2StyleContext::endOfElement()
 {
-  switch (m_id)
-  {
-  case IWORKToken::NS_URI_SF | IWORKToken::layoutstyle :
-  {
-    const IWORKStylePtr_t style(new IWORKStyle(m_props, m_ident, m_parentIdent));
-    if (getId())
-      getDictionary().m_layoutStyles[get(getId())] = style;
-    getCollector()->collectStyle(style, m_nested);
-    break;
-  }
-  case IWORKToken::NS_URI_SF | IWORKToken::placeholder_style :
-  {
-    const IWORKStylePtr_t style(new IWORKStyle(m_props, m_ident, m_parentIdent));
-    if (getId())
-      getDictionary().m_placeholderStyles[get(getId())] = style;
-    getCollector()->collectStyle(style, m_nested);
-    break;
-  }
-  case IWORKToken::NS_URI_SF | IWORKToken::slide_style :
-    getCollector()->collectStyle(IWORKStylePtr_t(), m_nested);
-    break;
-  default :
-    m_base.endOfElement();
-    break;
-  }
-}
-
-KEYDictionary &KEY2StyleContext::getDictionary()
-{
-  return getState().getDictionary();
+  const IWORKStylePtr_t style(new IWORKStyle(m_props, m_ident, m_parentIdent));
+  if (getId() && bool(m_styleMap))
+    (*m_styleMap)[get(getId())] = style;
+  if (m_ident && !m_nested && getState().m_stylesheet)
+    getState().m_stylesheet->m_styles[get(m_ident)] = style;
+  if (isCollector())
+    getCollector().collectStyle(style);
 }
 
 }

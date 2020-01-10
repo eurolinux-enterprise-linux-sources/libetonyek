@@ -11,13 +11,14 @@
 #define PAG1PARSERSTATE_H_INCLUDED
 
 #include "IWORKXMLParserState.h"
+#include "PAGTypes.h"
 
 namespace libetonyek
 {
 
 class PAG1Parser;
 class PAGCollector;
-struct PAGDictionary;
+struct PAG1Dictionary;
 
 class PAG1ParserState : public IWORKXMLParserState
 {
@@ -26,14 +27,17 @@ class PAG1ParserState : public IWORKXMLParserState
   PAG1ParserState &operator=(const PAG1ParserState &);
 
 public:
-  PAG1ParserState(PAG1Parser &parser, PAGCollector *collector, PAGDictionary &dict);
+  PAG1ParserState(PAG1Parser &parser, PAGCollector &collector, PAG1Dictionary &dict);
 
-  PAGCollector *getCollector();
-  PAGDictionary &getDictionary();
+  PAGCollector &getCollector();
+  PAG1Dictionary &getDictionary();
+
+public:
+  PAGFootnoteState m_footnoteState;
 
 private:
-  PAGCollector *const m_collector;
-  PAGDictionary &m_dict;
+  PAGCollector &m_collector;
+  PAG1Dictionary &m_dict;
 };
 
 }

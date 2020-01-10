@@ -10,6 +10,9 @@
 #ifndef IWORKDICTIONARY_H_INCLUDED
 #define IWORKDICTIONARY_H_INCLUDED
 
+#include <deque>
+#include <unordered_map>
+
 #include "IWORKPath.h"
 #include "IWORKStyle.h"
 #include "IWORKStylesheet.h"
@@ -36,20 +39,34 @@ struct IWORKDictionary
 {
   IWORKDictionary();
 
+  IWORKStyleMap_t m_cellStyles;
   IWORKStyleMap_t m_characterStyles;
   IWORKStyleMap_t m_graphicStyles;
+  IWORKStyleMap_t m_layoutStyles;
+  IWORKListStyleMap_t m_listStyles;
   IWORKStyleMap_t m_paragraphStyles;
+  IWORKStyleMap_t m_tabularStyles;
+  IWORKStyleMap_t m_vectorStyles;
 
   IWORKStylesheetMap_t m_stylesheets;
 
   IWORKPathMap_t m_beziers;
 
   IWORKDataMap_t m_data;
+  IWORKMediaContentMap_t m_binaries;
   IWORKMediaContentMap_t m_unfiltereds;
   IWORKMediaContentMap_t m_filteredImages;
   IWORKImageMap_t m_images;
 
   IWORKTabStopsMap_t m_tabs;
+
+  IWORKFilterDescriptorMap_t m_filterDescriptors;
+
+  IWORKListLabelTypeInfoMap_t m_listLabelTypeInfos;
+  IWORKListLabelTypeInfoMap_t m_textLabels;
+  IWORKListLabelGeometryMap_t m_listLabelGeometries;
+
+  std::unordered_map<ID_t, std::deque<double> > m_doubleArrays;
 };
 
 }

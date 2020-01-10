@@ -10,14 +10,14 @@
 #ifndef IWORKXMLCONTEXT_H_INCLUDED
 #define IWORKXMLCONTEXT_H_INCLUDED
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace libetonyek
 {
 
 class IWORKXMLContext;
 
-typedef boost::shared_ptr<IWORKXMLContext> IWORKXMLContextPtr_t;
+typedef std::shared_ptr<IWORKXMLContext> IWORKXMLContextPtr_t;
 
 class IWORKXMLContext
 {
@@ -96,6 +96,12 @@ template<typename Context, typename Arg1, typename Arg2, typename Arg3>
 IWORKXMLContextPtr_t makeContext(Arg1 &arg1, const Arg2 &arg2, const Arg3 &arg3)
 {
   return IWORKXMLContextPtr_t(new Context(arg1, arg2, arg3));
+}
+
+template<typename Context, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+IWORKXMLContextPtr_t makeContext(Arg1 &arg1, Arg2 &arg2, const Arg3 &arg3, const Arg4 &arg4)
+{
+  return IWORKXMLContextPtr_t(new Context(arg1, arg2, arg3, arg4));
 }
 
 template<typename Context, typename Arg1, typename Arg2, typename Arg3, typename Arg4>

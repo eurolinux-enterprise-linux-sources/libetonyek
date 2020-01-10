@@ -1,10 +1,7 @@
 libetonyek is a library and a set of tools for reading and converting
-Apple Keynote presentations. The library tries to extract the most
-important parts of version 2 format of Keynote (version 1 is not
-supported yet, but it should be in the future. Version 6 is being
-reverse engineered; we plan to support it as well when there is enough
-info about the new format to implement something). See FEATURES for what
-is currently supported.
+Apple iWork documents (Keynote, Pages and Numbers). Supported versions
+are Keynote 2-6, Pages 1-4 and Numbers 1-2. See FEATURES for more
+details about what is currently supported.
 
 Keynote documentation is, sadly, scarce. There are two official Apple
 documents: The first one is "Technical Note 2073" (TN2073) [TODO: add
@@ -23,6 +20,7 @@ Based on the previous paragraph, it should be clear that most of the
 code in this library is based on guesses, sample presentations created
 in Keynote '09 and "real-life" presentations collected on the Internet.
 
-libetonyek requires boost, glm, librevenge, libxml2 and zlib to build.
+libetonyek requires boost, glm, liblangtag, librevenge, libxml2, mdds
+and zlib to build.
 
 The library is available under MPL 2.0+.
