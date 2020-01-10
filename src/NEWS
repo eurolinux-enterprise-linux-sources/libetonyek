@@ -1,0 +1,28 @@
+libetonyek 0.0.4
+
+- fix some build problems
+- avoid data loss in some cases
+- scale images properly
+
+libetonyek 0.0.3
+
+- import text formatting attributes
+- draw rounded rectangles and callouts
+
+libetonyek 0.0.2
+
+- fixed build with older boost
+- implemented import of tables
+- implemented import of presentation notes
+- implemented import of sticky notes
+
+libetonyek 0.0.1
+
+- build fixes
+- improved input format detection
+- minor cleanups
+
+libetonyek 0.0.0
+
+- first release
+- see FEATURES for what is currently supported

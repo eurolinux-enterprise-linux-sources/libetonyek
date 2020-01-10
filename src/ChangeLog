@@ -1,0 +1,2447 @@
+2014-04-15  David Tardon  <dtardon@redhat.com>  [8a892aa514419625b7fbb7bf52653f2cbc26d135]
+
+	prepare release 0.0.4
+
+	Change-Id: I2578600d35f92e80ac77ffa0d337e75625723d77
+
+2014-04-15  David Tardon  <dtardon@redhat.com>  [8691e35d1519da8aad3e469dc8423c4272b783e0]
+
+	fdo#72030 scale images correctly
+
+	Change-Id: I277d0e8b58588a6b1281d7a8fd5e26486806e872
+	(cherry picked from commit 0a7f58b0d6a6b268f1633f65279a611ca0a714ef)
+	Signed-off-by: David Tardon <dtardon@redhat.com>
+
+2014-04-15  David Tardon  <dtardon@redhat.com>  [9000653b4bb63dfc74e16efe69a25899a8f507b9]
+
+	skip color profile data when parsing color
+
+	This fixes data loss, as the XML parser is left in inconsistent state
+	otherwise.
+
+	Change-Id: Idf58afaade36ec4ef7b9037a2a7c7d94eaad5ad2
+	(cherry picked from commit aa4614be86be70757c98af8bf6d33aa10ff61902)
+	Signed-off-by: David Tardon <dtardon@redhat.com>
+
+2013-12-15  Fridrich Štrba  <fridrich.strba@bluewin.ch>  [b1ebd32560eec337e19276a719f5e2938c7fea95]
+
+	Some versions of boost don't manage to take an address of template
+
+	Change-Id: Ida12034d189d2c789d7ecb71a58b7e1e94249139
+
+2013-12-06  Fridrich Štrba  <fridrich.strba@bluewin.ch>  [c2065764ae0826409f1dd683e52b7ca65f092972]
+
+	Comma at the end of emum list
+
+	Change-Id: I1370488e5bf682e23a923f37c09e76081aee7493
+
+2013-12-06  David Tardon  <dtardon@redhat.com>  [4302e5efd0ade9ea39f3363cf6242d5c9e1b9679]
+
+	prepare for a release
+
+	Change-Id: I13e0e1fe1eaf0cf00bb9fd768cf36b67c53dfd2a
+
+2013-12-06  David Tardon  <dtardon@redhat.com>  [528dc17941e544244e75a1e727644aea8f3f5d21]
+
+	connectors do not have any text
+
+	Change-Id: I9350126163a97b2b7f679b205f2730bcf3ff87dd
+
+2013-12-06  David Tardon  <dtardon@redhat.com>  [d6ae75d9d95f56b6bbc677f7cf592901e2c1436f]
+
+	approximate callouts
+
+	Change-Id: I9d823a749350a62a0fe972034b82210399a15c7f
+
+2013-12-06  David Tardon  <dtardon@redhat.com>  [ccdd11201440ccc3615996f0607a1271ac134abf]
+
+	draw rounded rect. as a simple rect.
+
+	This is not to lose data. Should be fixed later.
+
+	Change-Id: Ic763db278f55fbc14a1c358430375ca9ba67ed09
+
+2013-12-06  David Tardon  <dtardon@redhat.com>  [71b87a3cd46a8de0d18621a342b91321a0cda7ca]
+
+	parse paragraph attributes
+
+	Change-Id: Iefa77e4ebe12968de75b49cf76d1c2aa66ced260
+
+2013-12-06  David Tardon  <dtardon@redhat.com>  [7aeb9058e2608a25058b5ab554f499a0090881b0]
+
+	add to TODO list
+
+	Change-Id: I59d5aca17d79ad9d417092a96ecf6b61a8505535
+
+2013-12-06  David Tardon  <dtardon@redhat.com>  [1c7d11b5e609a85a2e596ecaffd2daf9337e4f5d]
+
+	all outgoing dims must be in inches
+
+	Change-Id: I81864ff8d774dcda134e473d2bd72d0d9434e7b6
+
+2013-12-06  David Tardon  <dtardon@redhat.com>  [1853bbaaded5d0ae6314053c9c3443c456643f90]
+
+	fix namespace prefix
+
+	Change-Id: Idbe0f5fd39bf07990502715c56d21ccb08e778d8
+
+2013-12-06  David Tardon  <dtardon@redhat.com>  [723d3edad97980d2950aa938b814add5a34e0e8f]
+
+	do not crash if there is no style for a level
+
+	Change-Id: Iff1aabbb137153521464003376e67d9e20a077c4
+
+2013-12-05  David Tardon  <dtardon@redhat.com>  [480218b88a402ff4ef2833bdf8eaebf310106ef0]
+
+	parse character properties
+
+	Change-Id: I71d13b559e44e6d679a8837a802e5d9374e2ba00
+
+2013-12-04  Fridrich Štrba  <fridrich.strba@bluewin.ch>  [34cabb0bb23707ce4a94d79d25f7a2dc8439baae]
+
+	Disable werror by default for now
+
+	Let us enable it when the gcc bug does not haunt us
+	in boost::optional anymore
+
+	Change-Id: I4de702bad1a89bdd42a86faf5bbd8ac87d17ac25
+
+2013-12-03  David Tardon  <dtardon@redhat.com>  [a3e3a1e218e17b0c67137ce86e15d8bdbca25cea]
+
+	bump version
+
+	Change-Id: I7ad031aca061b851d420425148e2c2a913096fba
+
+2013-12-03  David Tardon  <dtardon@redhat.com>  [f394e1da5e317ea5ee2c27e43d30df1b414be5fa]
+
+	add a note about Keynote 6 to README
+
+	Change-Id: Ifd11bc6e90ee0c299826e17b0ef872d5d8631dd0
+
+2013-12-03  David Tardon  <dtardon@redhat.com>  [923e9d4192d6aa350c9e7344dfc94eb3d88b4662]
+
+	update NEWS
+
+	Change-Id: I97640e3d266baecdac700230de1a7209282d0078
+
+2013-12-03  David Tardon  <dtardon@redhat.com>  [0543363bd6a43c6bdd116e412e8a272fa597be0a]
+
+	update FEATURES
+
+	Change-Id: I9342b518a63fc61343f2406a536acaf5684e1ed4
+
+2013-12-03  David Tardon  <dtardon@redhat.com>  [cd2af4a4eb7a0d3bf1f14413eecad9167a9ae4d5]
+
+	add support for comments (sticky notes)
+
+	Change-Id: I326fa87ea6e552cd96f9911b7bf1ec6f23817792
+
+2013-12-03  David Tardon  <dtardon@redhat.com>  [c15c823d44e16e5d3d187acbcf66f47240d3636b]
+
+	add support for presentation notes
+
+	Change-Id: I5981972aa766dcabf4f4ac5ff31fb04443f1ba16
+
+2013-12-02  David Tardon  <dtardon@redhat.com>  [9ccf379e2b0464a44269ddf6b5fac71cd4b81ed9]
+
+	specify cell alignment
+
+	Change-Id: I1cd22f6fbdebd6df3e1c54cfd7e00a04ee271e6d
+
+2013-12-02  David Tardon  <dtardon@redhat.com>  [ebf298af14b51657df004c08a237afc9237f70cc]
+
+	place table with correct size and position
+
+	Change-Id: I8a09b0a1dfc97f3f8ab1b9368cd94b69f1829d27
+
+2013-12-01  David Tardon  <dtardon@redhat.com>  [d8f16d68f2c571a1d68e13edbb57924b858ac5ff]
+
+	this is _graphic_ style; don't use for text
+
+	Change-Id: I38370e920f3bd82e164428cdd29adfa9344eb3a8
+
+2013-12-01  David Tardon  <dtardon@redhat.com>  [761dbf979741db51d45f6101b1ac18bdd529784a]
+
+	parse tables
+
+	Change-Id: I57d58493058a560e9505f8368c2c8124d7f9c85b
+
+2013-11-28  David Tardon  <dtardon@redhat.com>  [17342eaf4e60f6dd7e4ae909c30b3c12de859b65]
+
+	add options file for astyle
+
+	Change-Id: Ifa12207d6d3bde25af615b293ca1f18c839a3a2f
+
+2013-11-26  David Tardon  <dtardon@redhat.com>  [88bdbc481348b66329b3f747ef5a40b2d2c5c56a]
+
+	change astyle opts. to avoid problems with newest astyle
+
+
+2013-11-10  Fridrich Štrba  <fridrich.strba@bluewin.ch>  [d5472926097efe7e7b4cdefff076d5d984b439db]
+
+	And these ones are not there either
+
+
+2013-11-10  Fridrich Štrba  <fridrich.strba@bluewin.ch>  [a8dcfc38cbaa88263c4f87d63365c63425b7d61a]
+
+	somehow this constant is not there in older boost
+
+
+2013-11-08  Fridrich Štrba  <fridrich.strba@bluewin.ch>  [357df9c28ec31d980fe19313d962cb48750fa924]
+
+	Trying to fix builds with older boost
+
+	Change-Id: Ic270319ef9b7bcee33e6c443072308a3c63bc3af
+
+2013-11-06  Miklos Vajna  <vmiklos@collabora.co.uk>  [cce52b0fd27e9bec0aa8fec07fe05429cf0fd149]
+
+	configure: fail on missing gperf
+
+	Previously GPERF was set to 'libetonyek/missing --run gperf', which
+	doesn't make too much sense. Better to fail during configure instead of
+	during make if gperf is missing.
+
+	Change-Id: I144820f6202d27e5e4d6a45247a0c48b9611a041
+	Reviewed-on: https://gerrit.libreoffice.org/6596
+	Reviewed-by: David Tardon <dtardon@redhat.com>
+	Tested-by: David Tardon <dtardon@redhat.com>
+
+2013-11-04  David Tardon  <dtardon@redhat.com>  [5814950bbc7b9c0f189ee2fd0369e92c1636987f]
+
+	prepare for a release
+
+
+2013-11-01  David Tardon  <dtardon@redhat.com>  [5adfcbd9584564e3babbde6718dc10d88c87da60]
+
+	fix build with clang
+
+
+2013-11-01  David Tardon  <dtardon@redhat.com>  [28a3b93cc8b0050582c54722df5ac372530ff0a4]
+
+	impl. XML format detection
+
+
+2013-11-01  David Tardon  <dtardon@redhat.com>  [779bf4e19595ba5bd8f4163ca489bf55193fd616]
+
+	coverity: uncaught exception
+
+
+2013-11-01  David Tardon  <dtardon@redhat.com>  [03d04df97e9ca9637ecefbe31b02b5355ee5006c]
+
+	coverity: fix memory leak
+
+
+2013-10-31  David Tardon  <dtardon@redhat.com>  [dae7fe77e4172cbcf5d041d8e2e001b0c180fc34]
+
+	rethrow caught exception
+
+
+2013-10-31  Fridrich Štrba  <fridrich.strba@bluewin.ch>  [bf1ef59d354a49c842f1864b532f74fc90f71251]
+
+	If test fails, change test!
+
+	Change-Id: Ib31f65b7ef8c6a79bdc198be0bfab922ff1edebf
+
+2013-10-31  Fridrich Štrba  <fridrich.strba@bluewin.ch>  [21d81a6ba15984af32a81f6575b5627972524caa]
+
+	Minor fixup in configure output
+
+	Change-Id: If6abd45e3ef425fc63d3580a6e3fdf24fe2c7325
+	Reviewed-on: https://gerrit.libreoffice.org/6501
+	Reviewed-by: Fridrich Strba <fridrich@documentfoundation.org>
+	Tested-by: Fridrich Strba <fridrich@documentfoundation.org>
+
+2013-10-31  Fridrich Štrba  <fridrich.strba@bluewin.ch>  [4a85ea714d9dfc8295732a023fa4dd58ca7569a3]
+
+	Executable bit!!!
+
+	Change-Id: I8d715bd62c3c62b3c96448ad10dc43357a569d91
+
+2013-10-31  Fridrich Štrba  <fridrich.strba@bluewin.ch>  [2bfafe50d7373f66219e3abde04c07d57afaccad]
+
+	simplify use of git-review for libetonyek
+
+	Change-Id: Ie8910cdec6ea0867d09b5de731c32577fb83907d
+
+2013-10-31  Fridrich Štrba  <fridrich.strba@bluewin.ch>  [6fcc05adad479d9fd367e3336c1f6c8581d537aa]
+
+	add automatic git hook setting in autogen.sh
+
+
+2013-10-30  David Tardon  <dtardon@redhat.com>  [487a852b57073477ebae13bfd84bddbb50cf2505]
+
+	clean up forgotten refs to libwpg
+
+
+2013-10-30  David Tardon  <dtardon@redhat.com>  [ede79b36e822fdfd2baf570a38d58ab97017c499]
+
+	distribute FEATURES
+
+
+2013-10-30  David Tardon  <dtardon@redhat.com>  [abde3dc1e9c56f7bf68c91279d80a350beb58784]
+
+	fix windows build
+
+
+2013-10-30  David Tardon  <dtardon@redhat.com>  [034fb069ea71db0affefb86cf7842613d9354260]
+
+	update NEWS
+
+
+2013-10-30  David Tardon  <dtardon@redhat.com>  [5138b6e351e6c5151047de577b088f620a3d5413]
+
+	unzip stream
+
+
+2013-10-24  David Tardon  <dtardon@redhat.com>  [92038e56d36aef95f411489ccc05acbfac0035d6]
+
+	fix typo
+
+
+2013-10-24  David Tardon  <dtardon@redhat.com>  [1492b7566123384ac3b7471a95794df3fda26b1c]
+
+	emit image dimensions too
+
+
+2013-10-24  David Tardon  <dtardon@redhat.com>  [bc11421f340c1e606519ba7a7bf6eaef67e1d309]
+
+	detect mimetype if hfs-type is not specified
+
+
+2013-10-24  David Tardon  <dtardon@redhat.com>  [77c14558805d7a17a3ae238f30af80e4ba02a2ca]
+
+	emit mimetype for binary objects
+
+
+2013-10-24  David Tardon  <dtardon@redhat.com>  [c7e85f21c02dba575995030bc6d9576698836255]
+
+	WaE: ... should be initialized in the member init. list
+
+
+2013-10-24  David Tardon  <dtardon@redhat.com>  [97b2402ab359cf2686bff85b2ae9f356441944cf]
+
+	Revert "what would this class need virt. dtor for?"
+
+	mingw gcc apparently wants it...
+
+	This reverts commit e13d0953204979d7a80549ae83c237dd173b428c.
+
+	Conflicts:
+		src/lib/KN2ParserUtils.cpp
+
+2013-10-24  David Tardon  <dtardon@redhat.com>  [0ab85d610388f292b9d6d8dbd966512bd9f0e052]
+
+	WaE: format string is not a string literal
+
+
+2013-10-24  David Tardon  <dtardon@redhat.com>  [2a8b48805e82fabd32d3558343236207ee34496f]
+
+	WaE: unused function
+
+
+2013-10-23  David Tardon  <dtardon@redhat.com>  [78493d6c7086a8e0bcee87baa86211db6328d171]
+
+	fix drawing of arrow
+
+
+2013-10-23  David Tardon  <dtardon@redhat.com>  [3fea574352e4f3191ec54c6850905f8033ee9dea]
+
+	fix drawing of double-ended arrow
+
+
+2013-10-23  David Tardon  <dtardon@redhat.com>  [41fa5e671720d193e0fc65659baa874a27fc0d10]
+
+	simplify handling of closed path
+
+
+2013-10-23  David Tardon  <dtardon@redhat.com>  [f43ec8733c773b98272eaad5d5a4d48046ae3f0a]
+
+	fix drawing of star
+
+
+2013-10-23  David Tardon  <dtardon@redhat.com>  [cafe6dd1ae64c4f85a22cfd31fc14a2792c393e3]
+
+	fix drawing of double-ended arrow
+
+
+2013-10-23  David Tardon  <dtardon@redhat.com>  [091e46dae521704ea9d618a9c43a894253126b02]
+
+	fix indentation
+
+
+2013-10-23  David Tardon  <dtardon@redhat.com>  [ed413599fd87d3ce97689674da810ac2ab7e4fa8]
+
+	fix drawing of arrow
+
+
+2013-10-23  David Tardon  <dtardon@redhat.com>  [bf5db221e9b856d03e73ccdfa5807baf5e36c285]
+
+	fix position of text in shape
+
+	The position is already determined by the current transformation; we
+	only need width and height.
+
+2013-10-23  David Tardon  <dtardon@redhat.com>  [6b6262f3b616aa901f05c576ae748cc32d565d41]
+
+	temporarily disable debug msgs.
+
+	They interfere with output to stdout.
+
+2013-10-23  David Tardon  <dtardon@redhat.com>  [f2fa9729b4e3e8d0614bc5000c1a40825aadc49a]
+
+	boost::system is not needed anymore
+
+
+2013-10-23  Fridrich Štrba  <fridrich.strba@bluewin.ch>  [c56775d4d6a55fb41c98aa504078c185ba0b8d19]
+
+	Use POSIX syntax for Windows too
+
+
+2013-10-23  David Tardon  <dtardon@redhat.com>  [86c3703af581fcd2e73d832442aa1a567760b86d]
+
+	reformat a bit
+
+
+2013-10-22  David Tardon  <dtardon@redhat.com>  [e3b5e0605a19c3641dfccaca55c949b9711d946e]
+
+	rename project because of name clash
+
+	Courtesy to The Sensational Reverse Brothers.
+
+2013-10-22  David Tardon  <dtardon@redhat.com>  [014f158ab04c9f495f83a722229e161ef35d3e9f]
+
+	add missing header
+
+	thx to Fridrich
+
+2013-10-21  David Tardon  <dtardon@redhat.com>  [32bd460e140b8bf84419290f09c8cbdb58a60a37]
+
+	replace use of libwpg by a pres. specific interface
+
+
+2013-10-21  David Tardon  <dtardon@redhat.com>  [d121f790d07484622649f32c5253550b5f35e13c]
+
+	place text to position
+
+
+2013-10-21  David Tardon  <dtardon@redhat.com>  [f62b76154698cd864fe9d70219fa9b81e05951c6]
+
+	resolve text placeholder geometry during parsing
+
+
+2013-10-21  David Tardon  <dtardon@redhat.com>  [e08a2ca2fa5f98303485d435855129e53e3accc8]
+
+	beware of the used length unit
+
+
+2013-10-20  David Tardon  <dtardon@redhat.com>  [a33a6cc1f6619bec091b1bb9402b30cdca61aeee]
+
+	add a tool for extracting text from presentation
+
+
+2013-10-19  David Tardon  <dtardon@redhat.com>  [78202b5d4a032a1273a93f5aae5fddab945e6dda]
+
+	read size correctly
+
+
+2013-10-19  David Tardon  <dtardon@redhat.com>  [f17361616a3d5c0bd9393eb5c7c6ccdbbf5bb506]
+
+	convert lengths to inches explicitly
+
+	While libwpd allows to insert numeric properties with different length
+	units, generators usually fail horribly in that case. IOW, they simply
+	use getDouble(), expecting that the value is in inches.
+
+2013-10-19  David Tardon  <dtardon@redhat.com>  [dfe23ee9a3872d995d455808d66762989056a4a1]
+
+	emit layer ID
+
+
+2013-10-18  David Tardon  <dtardon@redhat.com>  [6149b00c6d75d7a52a1dd18cecfad48cfd9e344c]
+
+	bah, drop these gcc workarounds again
+
+	I will just run distcheck with manually disabled werror.
+
+2013-10-18  David Tardon  <dtardon@redhat.com>  [3cd214cc7878789562ff4ccd2317499bb57f2cbf]
+
+	fix distcheck
+
+
+2013-10-18  David Tardon  <dtardon@redhat.com>  [8daa9ba75d57219e08ee5511de9bb9384dc97c7e]
+
+	briefly describe what is implemented
+
+
+2013-10-18  David Tardon  <dtardon@redhat.com>  [3ada59131b09007661df20222c8a85ca13c3757c]
+
+	add HACKING
+
+
+2013-10-18  David Tardon  <dtardon@redhat.com>  [6b107e8a20ccd5e69b0c53091d8afa6b6c5310f8]
+
+	improve README
+
+
+2013-10-18  David Tardon  <dtardon@redhat.com>  [3a7e62c7b51d7652b5fb013e76ea41957064cdbf]
+
+	parse shape text
+
+
+2013-10-18  David Tardon  <dtardon@redhat.com>  [5c199e4554f20ada57fb761ad321659fcadab559]
+
+	do not emit duplicate start/endTextObject
+
+
+2013-10-18  David Tardon  <dtardon@redhat.com>  [61a0dc0716b4aad0b69be96d5881ffaea534dbe2]
+
+	only parse what is needed
+
+
+2013-10-18  David Tardon  <dtardon@redhat.com>  [acab7cf7210c28217996643d2930ac72cd5b3c4a]
+
+	no warning here
+
+
+2013-10-18  David Tardon  <dtardon@redhat.com>  [879390e0b53ae7a7a428e560e748f12e9d61566d]
+
+	only parse what is needed
+
+
+2013-10-18  David Tardon  <dtardon@redhat.com>  [1e89adf5402ac68f305192667ca5f8cf7c097703]
+
+	really save presentation size
+
+
+2013-10-18  David Tardon  <dtardon@redhat.com>  [68a4e4eaba0c307739bb9a5c036cd52d77ef5ed2]
+
+	use presentation size
+
+
+2013-10-18  David Tardon  <dtardon@redhat.com>  [9a4cf0c245f720e9bba460f4b70253c9cb811090]
+
+	shuffle includes a bit
+
+
+2013-10-18  David Tardon  <dtardon@redhat.com>  [e118c867e64f55fc15018f11ca01047bd8bbfd2f]
+
+	rename files
+
+
+2013-10-17  David Tardon  <dtardon@redhat.com>  [57fd6be9f6901a6d65242352eb85458e6d87b185]
+
+	use parsed filtered and leveled images
+
+
+2013-10-17  David Tardon  <dtardon@redhat.com>  [01bec67f9698df5e14f2763d547c6641cd79be20]
+
+	sf:link-ref needs an extra treatment: ignore for now
+
+
+2013-10-17  David Tardon  <dtardon@redhat.com>  [cf5968ddae8f42feee109ecf1ceb7f68396014bf]
+
+	only parse what is needed
+
+
+2013-10-17  David Tardon  <dtardon@redhat.com>  [2231a7f9398acef7a0c5faf96860cb56f359a62c]
+
+	only parse what is needed
+
+
+2013-10-17  David Tardon  <dtardon@redhat.com>  [2817b823644fd1b4daa6d30240852082d92ebd4b]
+
+	this is unnecessary
+
+
+2013-10-17  David Tardon  <dtardon@redhat.com>  [2a0399e5554ef6b778707a98a19c1190c151a913]
+
+	WaE: commas at the end of enumerator lists are a C++11 extension
+
+
+2013-10-17  David Tardon  <dtardon@redhat.com>  [3371ecef1b981ab4612d07c24dd8143a57329f1d]
+
+	handle filtered images
+
+
+2013-10-16  David Tardon  <dtardon@redhat.com>  [c22476ed32aaafb5f220c38c7daf4d71ed8b1d35]
+
+	parse movies and sounds
+
+
+2013-10-16  David Tardon  <dtardon@redhat.com>  [911eb83f25a5fc48022c49112a8557b0a0765096]
+
+	add missing member initializers
+
+
+2013-10-16  David Tardon  <dtardon@redhat.com>  [7739ed0a5f2088054c3a744471aa414d992515eb]
+
+	simplify handling of media content
+
+
+2013-10-16  David Tardon  <dtardon@redhat.com>  [7dcc5de7f0ced2767a053464f4189aa37e5e7806]
+
+	place image to right position
+
+
+2013-10-15  David Tardon  <dtardon@redhat.com>  [ff8ccd91473da645da5643c64f99275183a9312c]
+
+	just return 0 if file is not found
+
+
+2013-10-15  David Tardon  <dtardon@redhat.com>  [b00a929dcf99bd05254433e9e572bba3f60f6723]
+
+	add more assertions
+
+
+2013-10-15  David Tardon  <dtardon@redhat.com>  [1a8954bc356e27231796f53dbc9b604a65e2d3e0]
+
+	get media content
+
+
+2013-10-15  David Tardon  <dtardon@redhat.com>  [ed819d566162b951c92ab6617478cb027864b53c]
+
+	really parse sf:image-media element
+
+
+2013-10-15  David Tardon  <dtardon@redhat.com>  [7f78f6cf22c2e913c3feaf060ca2ab3a1090fbf0]
+
+	uncompress stream
+
+
+2013-10-15  David Tardon  <dtardon@redhat.com>  [200724ecf6600983a93a4bc0382a4604c7937fd4]
+
+	astyle
+
+
+2013-10-14  David Tardon  <dtardon@redhat.com>  [319a12e8314f6c17dc2dfc896f97eddf5903d88a]
+
+	oops, everyone knows now where I stole this from
+
+
+2013-10-14  David Tardon  <dtardon@redhat.com>  [28961b0f65a2f1ea75ba5693f18887d6ec2ee4de]
+
+	improve parsing of older format versions
+
+
+2013-10-14  David Tardon  <dtardon@redhat.com>  [f926da652feea92e6c8d8daa5a658bb3cb03b756]
+
+	notify app. that the input is a standalone APXL file
+
+
+2013-10-14  David Tardon  <dtardon@redhat.com>  [8873a2a27009bebc9bfe9c8273622f1d44a405d6]
+
+	paint image
+
+
+2013-10-14  David Tardon  <dtardon@redhat.com>  [d20c26d6212cc69d7e20ad9e0b833f97e24ea806]
+
+	process parsed images
+
+
+2013-10-11  David Tardon  <dtardon@redhat.com>  [e094bced98a3271aae3f62273188526a2891c8e6]
+
+	use correct unit
+
+
+2013-10-11  David Tardon  <dtardon@redhat.com>  [e13d0953204979d7a80549ae83c237dd173b428c]
+
+	what would this class need virt. dtor for?
+
+
+2013-10-11  David Tardon  <dtardon@redhat.com>  [b31702238502b0108ec440771b5a7390ad1f24c5]
+
+	angles must be in radians
+
+
+2013-10-07  David Tardon  <dtardon@redhat.com>  [d0d0cb261bc9c4ea2c141f5e411147b1b1b81237]
+
+	rename function
+
+
+2013-10-07  David Tardon  <dtardon@redhat.com>  [8c6215dc9a8ca3263466a7dc34083d3d71928d34]
+
+	test construction of transformation from geometry
+
+
+2013-10-06  David Tardon  <dtardon@redhat.com>  [91b33a34d197e65ad05b7d62546d70fba2f6ae16]
+
+	size and position must be defined, the rest is opt.
+
+
+2013-10-06  David Tardon  <dtardon@redhat.com>  [d48e80416e99000e8ba64ebbdc0ea9d6854af91f]
+
+	do not keep both size components of geometry
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [ff242a72c2d4afd736368b93ce9c925c915bf950]
+
+	add more transformation tests
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [8cce6fe6783198f2f1f4ff18dfa5c8bcaeb568de]
+
+	WaE: missing member init.
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [f36a0fb246d284788edd5b6b843b6ac0ddeefe7c]
+
+	WaE: base class has a non-virtual destructor
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [6d6d77f22481c6a6a1509d2bdf7ae4fc93286fba]
+
+	use boost math constants
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [5f459c3016fbc1769b71ecfe2e61dd331541a9e1]
+
+	disable temporarily
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [86345ee6e7bfec89b95f1be5e09d4bb29f8cbc8b]
+
+	fix test
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [7928436bd5c3666090326b5d046256f472716e04]
+
+	fix test
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [e299bb53a3f2c8974f422cf5dc11f4288c57afa2]
+
+	rename variable
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [a3bbf12df254ba1dc3cde4e81b874e23c3cac8fa]
+
+	use operator instead of function
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [2175ce0298ff16467ad1e2e3bfa90c58e10d4712]
+
+	work around gcc bug
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [294e7838a46f9326c0672ebcd064fa4152ab0f7f]
+
+	rename file to match the rest of the project
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [3eda4f99a489f685240b683b636425799bb94daa]
+
+	add unit test for KNStyleBase
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [24f6337ceb7b46753e0ed73059bd4843ed670a0a]
+
+	add unit test for KNOutput
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [d743e21584751f94089fa3a2de36a160724b1fe0]
+
+	add unit test for KNStyleContext
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [cfa89512a696d04bae5f1ab34eb998da6e672bf8]
+
+	enable tests comparing doubles
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [63db40f70ed4f984e86337c9d1ac72b81448a20e]
+
+	do not use == for fp comparison
+
+
+2013-10-05  David Tardon  <dtardon@redhat.com>  [18c9b86a9434f8466a0143b992d21afdecdd03f5]
+
+	add func. for approx. comparison of doubles
+
+
+2013-10-04  David Tardon  <dtardon@redhat.com>  [4ed7ebc956406b8d89358aa0e9240e90ab209af8]
+
+	draw text objects with path
+
+
+2013-10-04  David Tardon  <dtardon@redhat.com>  [258227ba765122b76c90fc1391e155f0616259c0]
+
+	generalize property extraction
+
+
+2013-10-04  David Tardon  <dtardon@redhat.com>  [c0db51ee10d5219bd2ec1f434ed954468b34f4bc]
+
+	look up style attributes recursively
+
+
+2013-10-03  David Tardon  <dtardon@redhat.com>  [d961003a28d527a1d5d0611910cab265ad1217ad]
+
+	check the right variable
+
+
+2013-10-03  David Tardon  <dtardon@redhat.com>  [cf15122648bc0993337f09304ba520421377e6eb]
+
+	add missing break
+
+
+2013-10-03  David Tardon  <dtardon@redhat.com>  [f7dba4a1e676e526eab4dd7cc4e7f6562003898f]
+
+	really store placeholder style, take 2
+
+
+2013-10-03  David Tardon  <dtardon@redhat.com>  [b85edbb3a354ca5ef9425353000d691ed981ca44]
+
+	add unit test for KNPropertyMap
+
+
+2013-10-03  David Tardon  <dtardon@redhat.com>  [51bd683fcbc0997c68e5a866de8e2b9efedf56ac]
+
+	temporarily disable test
+
+
+2013-10-03  David Tardon  <dtardon@redhat.com>  [026c541e899eb354b571a4bf0ee36a682ab3bbde]
+
+	refactor handling of text
+
+
+2013-10-03  David Tardon  <dtardon@redhat.com>  [7552b242aaef47b4312d618393689039f112c0d3]
+
+	fix more copypasta
+
+
+2013-10-03  David Tardon  <dtardon@redhat.com>  [e6e0d6cd300dc6732ddc5d39c7a8cb54bfd9a2c1]
+
+	fix copypasta
+
+
+2013-10-02  David Tardon  <dtardon@redhat.com>  [c4f6def657e8e39ec4b6a439874c8d30ab206202]
+
+	really store active placeholder style
+
+
+2013-10-02  David Tardon  <dtardon@redhat.com>  [48c12b4793567b982da8e19c6356e8eb1eca2543]
+
+	do not spam debug output with false message
+
+
+2013-10-02  David Tardon  <dtardon@redhat.com>  [a04b2a9ad88b1ffe6886be202451c93941408c40]
+
+	draw placeholders with the right geometry
+
+
+2013-09-30  David Tardon  <dtardon@redhat.com>  [5107520b83427023df79e21e06a68fab1b39089d]
+
+	impl. lookup for geometry in placeholder style
+
+
+2013-09-30  David Tardon  <dtardon@redhat.com>  [bd6fbbb14557dcf80fd7f34054b6bc4662cdf55e]
+
+	parse placeholder geometry
+
+
+2013-09-30  David Tardon  <dtardon@redhat.com>  [e48c4f88340d4876a82a4f533804488cdfbbdc60]
+
+	simplify
+
+
+2013-09-30  David Tardon  <dtardon@redhat.com>  [f4206c4c0149f445ef15c0765b12ac559a2c5982]
+
+	move some common parser functions into a mixin class
+
+
+2013-09-30  David Tardon  <dtardon@redhat.com>  [551f5301adb45f1c6805057920894093dd943ef4]
+
+	do not duplicate start/endTextObject events
+
+	KNText object impl. already emits these.
+
+2013-09-30  David Tardon  <dtardon@redhat.com>  [48c8c18bd334d94f8418d0ca972a68c71400b1cf]
+
+	do not drop current text prematurely
+
+
+2013-09-30  David Tardon  <dtardon@redhat.com>  [a54161b2903a887a311f5f2d80014329f49cc845]
+
+	fix copypasta
+
+
+2013-09-30  David Tardon  <dtardon@redhat.com>  [25e390b797a470cb722109af16aa43ac2745e3fa]
+
+	parse all props containing styles
+
+	This is necessary because of possible references to them through ID.
+
+2013-09-29  David Tardon  <dtardon@redhat.com>  [c79fd0471a3c5c670052ee6b221caf8ea4ea19dd]
+
+	prepare for parsing properties
+
+
+2013-09-29  David Tardon  <dtardon@redhat.com>  [4a24f5d67cd951ae09038874c46e8f3e1b2627b6]
+
+	prepare KN2StyleParser for recursive use
+
+
+2013-09-29  David Tardon  <dtardon@redhat.com>  [532332ebbdc44591021cb74b56fc52d10caacadd]
+
+	parse more style types
+
+
+2013-09-29  David Tardon  <dtardon@redhat.com>  [2594cc88476c9f5edddef3e66eb4b9a4ab4eb95b]
+
+	parse style ident.
+
+
+2013-09-29  David Tardon  <dtardon@redhat.com>  [65ed6b04ddb4001f03a3d60efa27e022479074fe]
+
+	drop obsolete todo comment
+
+	All active styles are available via KNOutput's style stack.
+
+2013-09-29  David Tardon  <dtardon@redhat.com>  [a6c5e3e76c9b7fde32b8cf90efc4c50513f3fc46]
+
+	impl. creation of shape object
+
+
+2013-09-29  David Tardon  <dtardon@redhat.com>  [1cddea0b84303fa5b65ba38819d6c2f8c3c8fb5a]
+
+	really collect shapes
+
+
+2013-09-29  David Tardon  <dtardon@redhat.com>  [950e7d5687456364dd71c1260f0b501e0f8dce77]
+
+	fix shape creation
+
+
+2013-09-28  David Tardon  <dtardon@redhat.com>  [2956bd2ffc901c250fcf6652a423a1a7612b0edd]
+
+	add test for drawing param. shapes
+
+
+2013-09-27  David Tardon  <dtardon@redhat.com>  [08ba6fe9294f11a07b244a1616a2a9789e13525c]
+
+	create a new path before appending to it
+
+
+2013-09-27  David Tardon  <dtardon@redhat.com>  [6d2baa79f310c0cb47246b7b1422b9e8890ce268]
+
+	create styles in collector
+
+
+2013-09-27  David Tardon  <dtardon@redhat.com>  [149f9ce94a13fa2341f062c2b5d6eba4bdb2c0ec]
+
+	placeholder style is only needed when parsing placeholders
+
+
+2013-09-27  David Tardon  <dtardon@redhat.com>  [d3dca59e9cb314b171d2bd64c26aac9e817728f6]
+
+	attach style to shape
+
+
+2013-09-27  David Tardon  <dtardon@redhat.com>  [95658fd22fa367acb5c8ca1422fb8874d31bf42c]
+
+	attach style to text placeholder
+
+
+2013-09-27  David Tardon  <dtardon@redhat.com>  [3be4a1f3c8e01584e669a0ab687eec086476ef6c]
+
+	a layer must start a level
+
+
+2013-09-27  David Tardon  <dtardon@redhat.com>  [b38eac27e2ea7f6fada7f9114fa0aa7119819630]
+
+	collect placeholder styles
+
+
+2013-09-27  David Tardon  <dtardon@redhat.com>  [3d607bf747d28f1f47caf1e0b3e091ad64fa37af]
+
+	collect styles for shape levels
+
+
+2013-09-26  David Tardon  <dtardon@redhat.com>  [fe78fc83096b703c5343314efc74522dcb80d5cb]
+
+	collect other parts of a shape
+
+
+2013-09-26  David Tardon  <dtardon@redhat.com>  [fc2b764074b919a784f8611108f48d4972eef991]
+
+	draw text placeholders
+
+
+2013-09-26  David Tardon  <dtardon@redhat.com>  [55e42f6891e782d0682b0746d0a07437c5b4cb3c]
+
+	placeholder's geometry is taken from style
+
+
+2013-09-26  David Tardon  <dtardon@redhat.com>  [24a3ea92caa3b99a48940992f6d70ef88011792c]
+
+	draw shapes
+
+
+2013-09-26  David Tardon  <dtardon@redhat.com>  [328b4822eba205b50f1e694323058edf4d4746a8]
+
+	shuffle code around a bit
+
+
+2013-09-26  David Tardon  <dtardon@redhat.com>  [d1e148d5def2fbc6f4df1257a6b643d6aa9958df]
+
+	drop unused function
+
+
+2013-09-26  David Tardon  <dtardon@redhat.com>  [adc3dd5e3f132e86512e2606d3dee521ec1117da]
+
+	allow to convert path to libwpg syntax
+
+
+2013-09-25  David Tardon  <dtardon@redhat.com>  [eb70a52e9de9601748d1e6ca2e851fa621ecafa2]
+
+	collect refs to placeholders too
+
+
+2013-09-25  David Tardon  <dtardon@redhat.com>  [26ce8c96848fafd617bf6c0290af48f026b09773]
+
+	rename function
+
+
+2013-09-24  David Tardon  <dtardon@redhat.com>  [835faffdd509be574f64df210387db5c3b193028]
+
+	Rename KNTextBody to KNPlaceholder
+
+	I am going to use the same struct for object placeholders too.
+
+2013-09-24  David Tardon  <dtardon@redhat.com>  [3a5f0f8f95a9bdf2f4a75ae20e12541af6081c6d]
+
+	handle nesting of geometry elements
+
+
+2013-09-24  David Tardon  <dtardon@redhat.com>  [20c00818682d40069d13bcd699036e5481c61f5f]
+
+	handle level change in parser
+
+
+2013-09-24  David Tardon  <dtardon@redhat.com>  [b36069603f2a6865f4511007f296b99886ea8423]
+
+	drop misleading statement
+
+	The same element is used to mark geometry property and its content in
+	property maps...
+
+2013-09-24  David Tardon  <dtardon@redhat.com>  [03ba9e9d0e95e2fe8829f4d35751d8807994b55f]
+
+	change handling of geometry in collector
+
+
+2013-09-24  David Tardon  <dtardon@redhat.com>  [d12d7a25e36025976197a17edbc9eb48ce4b3b69]
+
+	get default geometry
+
+
+2013-09-24  David Tardon  <dtardon@redhat.com>  [ed67adba3284f0d769d674a88b62d5642b1050cc]
+
+	add functions to mark generic level change to collector
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [3a1b16af07bf1d30501685f4be8fa25bec9cdb33]
+
+	disable copying
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [d1dc6151b12a10f65b2102cc29f22a0b535b180f]
+
+	WaE: ... should be initialized in the member init. list
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [e1d3b75608f57928ed6163db963e708ea25952cf]
+
+	add missing initializers
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [9e07c2d5626f6ccabe96ac4ae6483fda03e5fee7]
+
+	WaE: ... should be initialized in the member init. list
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [59add18e747621877203b914eff8a3a3539072ce]
+
+	KNPropertyMap actually needs copy ctor
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [1ea011d71b08b9949e9b75f02529594fbb80f001]
+
+	impl. correct copy ctor
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [37552b2ecbc86473ad3cf307ef8784d9872edd3c]
+
+	add missing initializers
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [3071066ac222f73ac8d9be6a9eb847694fff378f]
+
+	work around gcc bug
+
+	error: '*((void*)& point +24)' may be used uninitialized in this
+	function [-Werror=maybe-uninitialized]
+
+	http://gcc.gnu.org/bugzilla/show_bug.cgi?id=47679
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [f409a43c7ae17e886f9b2ab93a2f16f1dcb4496d]
+
+	WaE: ... should be initialized in the member init. list
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [0f1f3eb5834582b99bcc5b5da6b51caafd6d9539]
+
+	WaE: ... should be initialized in the member init. list
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [8cfe1a976bab4d1457a2ab39b90c62e118a8ecb5]
+
+	astyle
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [8be80572adc827bfdd4de9be7e2ed5d3a3f735e6]
+
+	WaE: ... should be initialized in the member init. list
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [42525b16d4647ba8f79f4330869b898ae82e4d9f]
+
+	disable copying
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [bf61ad16b5bd23fa0bbb382e90dd679f4c6653d9]
+
+	WaE: unused variables
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [01fe67cc56d0203299079ff79ad7207561a7093c]
+
+	WaE: unused function
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [d69b01ed5cc483bf733a72d984d34ffdf4bbb77e]
+
+	WaE: private field 'm_dict' is not used
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [cbd9b6282dc497e57bbb566b7f92be2f2f5b7555]
+
+	drop useless forward decl
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [8837d154c16a768acbcff155fa366aeec5730c0f]
+
+	WaE: 'Paragraph' defined as a struct
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [52a74c2b057d432ae447109050a680f97d882d09]
+
+	WaE: drop unused member vars
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [8370431ebf62dc5fdeeeb74cc0c0e001f06e4e21]
+
+	drop useless forward decl
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [83b2c79996b52b1863b4c64d9113d328fa283647]
+
+	WaE: unused variables
+
+
+2013-09-21  David Tardon  <dtardon@redhat.com>  [24b7f761e07929c16ab6a8662a8373512f9bc67c]
+
+	WaE: unused variables
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [3fc6a426e96a35839cabfa9ca65c86dc75a27eb1]
+
+	fix another stupid mistake
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [3e592b857646d9c7bfd8a50470e8c59eeec55671]
+
+	test application of transformation
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [19f6ed963651cc6ec233b327c80fb7712eaf60bf]
+
+	test inverse transformations
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [e8aecd20ca340a0c4403a150f5252466b6397125]
+
+	fix stupid typo
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [285b08d02bdf36d7f25d27e433d8bd58ecaf19e7]
+
+	test mult. of transformations
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [8763e391b3f0acf0b8b9e50632463191e2764289]
+
+	test transformation creation
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [91e95fbade308ad4a0df50e1a3f60a87feaf9e0c]
+
+	impl. operator== for transformations
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [9061269b5c0f549bd2136a833cd12216f05f2d3d]
+
+	add missing &
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [b17f07e93af1903630106fa45d1c46728f315d47]
+
+	add more stub tests
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [bce9e27597a997ee9969afc148e4bf3c4020b76c]
+
+	register transformation test
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [69c92372b628ccea18ad872f43f7456a5a202c0d]
+
+	test v.2 tokenizer
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [c425736e5a1a17356af7bb050919650217a56ce2]
+
+	drop unused header
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [3dab47b23e2306c339c29fc210b757dbbbcf0415]
+
+	simplify tokenizer call chain
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [f895e5093dbba16d629bdb7dee911fae4cb66c41]
+
+	drop unneeded functions
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [a2323d37d5ca4480466746924889751d81cfd138]
+
+	simplify tokenizer call chain
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [670cfcf1113fe23ff2cd948d466abb37ef89acea]
+
+	replace direct use of getKN2TokenID()
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [ecb9186655475306eeda18b67712d79bf01985ca]
+
+	drop unused functions
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [421d1858f1ce04fd88b9c98e47dd8e93203e80bd]
+
+	handle no namespace
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [5a89338fb1c435fcace3543418554262b268db7b]
+
+	differentiate between unknown and empty namespace
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [2b04e88a99c8c1e2a556fe11a97387e59e2efbac]
+
+	move break to right position
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [2aaa052d6da05d8f73c80a5e9e009d6bd7857b1e]
+
+	add missing else
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [5c1d3dccef7409ce4e3c5825ab217352b8b13b7c]
+
+	add missing else
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [0cb4d6fb84fbdb1f020cf2c197b4955928b2894b]
+
+	add missing else
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [a49fd0edf0bbe98db966989987100f81bbb3a73d]
+
+	use readID() where applicable
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [c554bfb887e89f5c9cac71f9e8724135041d1c2c]
+
+	add func to read ID if it is the only attr.
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [256b05cd39f9c382ae6b35eee5177f4f7006f79e]
+
+	do not crash on tags without namespace
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [c4766012ab44bfc90fee738aae28920fb42ee2c0]
+
+	add functions to retun ns and name as one token
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [b6faeb6b0675842742400e06c94c2d39948f2944]
+
+	allow to combine name and namespace token in one value
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [9d8deb00ccd42f609303729ce3a011fadf00672b]
+
+	add a func to draw a list of objects
+
+
+2013-09-19  David Tardon  <dtardon@redhat.com>  [5665a20271d943bac42b1959bf63cd0232e2886e]
+
+	overhaul handling of output
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [1c443dba6853f613b660c00fddb27d897171885d]
+
+	finish parsing of title and body placeholders
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [8fbd372d1b5700d6c52260ff3e026725a53e52ae]
+
+	collect placeholder styles too
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [6f6e92ea25bcafcfab2008a4ad9d3684329a0615]
+
+	apply default value
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [60a3d5faa50f80111beaa0edeb1ac15f0f30fd29]
+
+	mark functions for use from subclasses as protected
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [d2c2e16983cb2cde7a3a4469634b8ad60fb829d6]
+
+	rename function to make its meaning cleaner
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [5070f9c0339dc0e1dce4a79e901611fb94723ddc]
+
+	drop duplicate function
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [0c8960dc243ff007f777e0a9de265500ed9f428a]
+
+	WaE: comma at end of enumerator list
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [274499ff46db3c0d5daa8e38bb3770aa32fa53b8]
+
+	drop unneeded function / simplify
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [67c8f937d6753bc824a85028009ca3e24e75b83f]
+
+	use readRef() here
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [9a3096bf0e49ea97e38e633886bb40df74d0e036]
+
+	do not allow IDREF to be missing
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [92b7448a5d86e23b4d87ecd0e41c246e3a2d7f24]
+
+	pointless change
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [4a8d78ee601162fb757df685f4dfde1d1071124c]
+
+	no need to pass size as separate width and height
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [80a1ba8da247426062ed53f8a968e2ba278def0d]
+
+	read complete size or nothing
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [3bf75ed7427de7bd031e1a9802de83253ff3f850]
+
+	abstract reading of two attrs from element
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [64b3f4a82484a4e386ca502aba0ea7b87e069f83]
+
+	rename function for consistency
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [fd5256cb3ae975164388df39b03083810726058d]
+
+	just use lexical_cast
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [f6ca82139af2dd92056cad982c33fb26bd29b1cf]
+
+	int -> unsigned
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [3ed97736cb94fbe06f0ca7e4d8937112788e45c3]
+
+	parse image media elements
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [532bf7691f30a12de63ce588f197bcc24d95bfeb]
+
+	parse sf:content element
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [cce00e57b55a037c9d91d6ec58e0692126bcfe7f]
+
+	do not parse what is not needed
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [e53066c67b149e604205764a86deb25ec7ebd210]
+
+	there is no crop-geometry element in media
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [444d3417b1c34b2dc345f4e8bb6168aafc39fb8b]
+
+	build media struct from collected parts
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [2dc7a045805d56ba0aa1d97fccd364480bc3ce4f]
+
+	add filtered image map to dict.
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [d54b71e7aa744e9f15d6857c8ea99b5da99e8268]
+
+	add vert. spaces
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [2105d33857aa5c89ce272e7a50fa11abed109e1a]
+
+	add collector func for filtered image
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [3f7f1e02f58c04e0397be10a3aa5f0be1eb01949]
+
+	add collector func for unfiltered image
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [6a90f6aceca029ce233e42ef4d1640d0152fabea]
+
+	add unfiltered map to dictionary
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [d97e29798463a75c830a58f0348adf406ca1d240]
+
+	add data map to dictionary
+
+
+2013-09-18  David Tardon  <dtardon@redhat.com>  [e144664e453527523e96821a6149b1f612bfe366]
+
+	add a func to collect ext. data
+
+
+2013-09-17  David Tardon  <dtardon@redhat.com>  [d69096eed384e7f431fd1f4fbf5ae9037e5fd280]
+
+	transform before creating path
+
+
+2013-09-17  David Tardon  <dtardon@redhat.com>  [8dec3b38f5175b52d369ec349357d3a37bd8df43]
+
+	draw arrows
+
+
+2013-09-17  David Tardon  <dtardon@redhat.com>  [56039b9334e0bb4e24ea3dc47c7cf3ae8feff4f8]
+
+	draw star
+
+
+2013-09-17  David Tardon  <dtardon@redhat.com>  [179180d6167e4e00edda227aa445a5d1fcc0be20]
+
+	draw polygon
+
+
+2013-09-17  David Tardon  <dtardon@redhat.com>  [bd024d787dc49d6edf951b4178686041c5bb4be8]
+
+	impl. transformation of path
+
+
+2013-09-17  David Tardon  <dtardon@redhat.com>  [4913cd5e00a3a3feccd24a6bae5f1e563212efbe]
+
+	impl. parent style linking
+
+
+2013-09-17  David Tardon  <dtardon@redhat.com>  [6c90af79e3b0f1d0bf7d0c0622a8e5882ef25969]
+
+	resolve style parents when stylesheet is processed
+
+
+2013-09-17  David Tardon  <dtardon@redhat.com>  [a8d9d1136a5891038fb2e768016b79506638fa6a]
+
+	parse missing parts of key:stylesheet element
+
+
+2013-09-17  David Tardon  <dtardon@redhat.com>  [1e885cd7e3b88090812ee44114b1971ac70f37f6]
+
+	pass the stylesheet to use for resolving parent styles
+
+
+2013-09-17  David Tardon  <dtardon@redhat.com>  [54699608247102caba3f00399a30fe4681b43328]
+
+	handle stylesheets
+
+
+2013-09-17  David Tardon  <dtardon@redhat.com>  [58573355f79748b549c66c3e41ae9c73f4ca83d7]
+
+	there is actually no need to keep master stylesheets
+
+	This reverts commit d98360d49bfb4be1ff9da3e725dbbcb1f49caec3.
+
+2013-09-16  David Tardon  <dtardon@redhat.com>  [d98360d49bfb4be1ff9da3e725dbbcb1f49caec3]
+
+	pass master slide stylesheets around
+
+
+2013-09-16  David Tardon  <dtardon@redhat.com>  [10acb6e9538726b59c1d30cca894939cdd292492]
+
+	use the same arg to mark anonymous styles
+
+
+2013-09-16  David Tardon  <dtardon@redhat.com>  [0c0bdbcaff64be4f227c21c23ac2def305ecab59]
+
+	stylesheet can be referenced
+
+
+2013-09-15  David Tardon  <dtardon@redhat.com>  [153350389448396cbe47692669ceec13d56408f1]
+
+	add dummy classes for v.1 and v.2 defaults
+
+
+2013-09-15  David Tardon  <dtardon@redhat.com>  [3649a8c056342376b2f4f96d8fb4d9d5e6f9a540]
+
+	pass defaults around
+
+
+2013-09-15  David Tardon  <dtardon@redhat.com>  [568d14cac3ca77b8a5996820c55c8da42b95ad4a]
+
+	prepare ground for handling default values
+
+
+2013-09-15  David Tardon  <dtardon@redhat.com>  [53413b31c2a130b5fd969f5f2b1285b11e711348]
+
+	cover versions, not just the two generations of the format
+
+
+2013-09-15  David Tardon  <dtardon@redhat.com>  [b7df4ecd9f49d31eaede0b2d82fa0b2d40b658f3]
+
+	add a representation of a stylesheet
+
+
+2013-09-15  David Tardon  <dtardon@redhat.com>  [1c60fe3dbdcb2867debf35ef57e588f6d819eb05]
+
+	allow to collect other style types
+
+
+2013-09-15  David Tardon  <dtardon@redhat.com>  [f3aac9b311652cc27bef7a1af7ffff91b7bb6761]
+
+	allow to handle nested style defs in a special way
+
+	Nested styles are styles defined in the property map of another style
+	(of a different type).
+
+2013-09-15  David Tardon  <dtardon@redhat.com>  [0fb2555bf2734fce6f5875c2d4424f2096b35169]
+
+	handle style refs too
+
+
+2013-09-15  David Tardon  <dtardon@redhat.com>  [e310936cd66ec8132eff6392c5f25e1a2f6fe2be]
+
+	simplify handling direct values and references
+
+
+2013-09-15  David Tardon  <dtardon@redhat.com>  [76fa4d146c6bf0cef8fc61b61e4974b6cb236f21]
+
+	use specific style types everywhere
+
+
+2013-09-15  David Tardon  <dtardon@redhat.com>  [eb4de26718bf68bab9767c6680d9d212a1e10bd3]
+
+	create specific style types
+
+
+2013-09-15  David Tardon  <dtardon@redhat.com>  [49037b8f09648f64a1990e64cbc4a9f66082876f]
+
+	there are no headline styles in v. 5
+
+	It is likely that style type has been renamed (or dropped entirely).
+
+2013-09-15  David Tardon  <dtardon@redhat.com>  [62e1981e101f427ed4d716baae5b6e2b4d084d6a]
+
+	drop unused function
+
+
+2013-09-15  David Tardon  <dtardon@redhat.com>  [b846ce2e7e98093421776730fc97ca875f8288f8]
+
+	pass WPXInputStream around as shared_ptr
+
+
+2013-09-15  David Tardon  <dtardon@redhat.com>  [2e4e1c6932af62910f1282b02137b654b14d2ace]
+
+	allow optional IDs
+
+
+2013-09-14  David Tardon  <dtardon@redhat.com>  [41c27451ca400d53e4d9eb0ae085c64906f6b906]
+
+	style ident. and parent ident. is optional
+
+
+2013-09-14  David Tardon  <dtardon@redhat.com>  [ab0262497cefca912a435beba965863b0d1aab38]
+
+	add a func to retrieve the style's property map
+
+
+2013-09-14  David Tardon  <dtardon@redhat.com>  [eef973bf246b3b69eec829e72aab24894508abea]
+
+	add separate classes for style types
+
+
+2013-09-14  David Tardon  <dtardon@redhat.com>  [d9e45f00559b6b11c09fdf2e97f9d264d0046715]
+
+	add a class representing a property map
+
+
+2013-09-14  David Tardon  <dtardon@redhat.com>  [115f8fc11f6a6c14d90ff9e87b80ba0fe7332d7d]
+
+	change KNStyle into an interface
+
+	This is the the first from a series of commits on style and stylesheet
+	support.
+
+2013-09-13  David Tardon  <dtardon@redhat.com>  [cfe750848a6bb2056c2f46d857300cc06f06944f]
+
+	impl. matrix mult.
+
+
+2013-09-13  David Tardon  <dtardon@redhat.com>  [73363244ac5fb5fa225571c7510e72aa918aad2b]
+
+	add func for application of trans.
+
+
+2013-09-13  David Tardon  <dtardon@redhat.com>  [f17c15f780d0bb539ded9aeed34ababd5b2e3668]
+
+	impl. creating trans. from geometry
+
+
+2013-09-13  David Tardon  <dtardon@redhat.com>  [19d1209543f97ecf047b08b0cad827d25a20c22c]
+
+	impl. primitive transformations
+
+
+2013-09-13  David Tardon  <dtardon@redhat.com>  [e5f60c6066086fcc6320cda542087aa02e5b0b29]
+
+	add dummy test for transformations
+
+
+2013-09-13  David Tardon  <dtardon@redhat.com>  [c8e857823d14df59627a2b564d60603cb36f3bf0]
+
+	add some documentation
+
+
+2013-09-13  David Tardon  <dtardon@redhat.com>  [659955128647899fdc5a8ff2d3e3b0f7191a780f]
+
+	be consistent with cairo
+
+
+2013-09-13  David Tardon  <dtardon@redhat.com>  [d873f96b08a8a627d2b62db16eb3e8030f24989a]
+
+	flips are already encoded in trans. matrix
+
+
+2013-09-13  David Tardon  <dtardon@redhat.com>  [f77e2c1e489049b09df789d4f99c96ea1c0d7053]
+
+	this does not need to be a ctor
+
+
+2013-09-13  David Tardon  <dtardon@redhat.com>  [35987bb109fac4785efac3371234a744de16f112]
+
+	allow to create transformation from its components
+
+
+2013-09-13  David Tardon  <dtardon@redhat.com>  [16f5379d785c1ebf98c0b46d1780c234e3b6c024]
+
+	fix path parser
+
+	The tokenization does not work as I expected. It is likely I am missing
+	something, but I will not bother with it now...
+
+2013-09-13  David Tardon  <dtardon@redhat.com>  [3b710e323236229299d3075fcc8c811b7f79938d]
+
+	fix SVG export of paths
+
+
+2013-09-13  David Tardon  <dtardon@redhat.com>  [ea23cde34929219fad3930f4cf23e08922ac6b31]
+
+	add unit test for SVG path export
+
+
+2013-09-13  David Tardon  <dtardon@redhat.com>  [becfa9d9b4cc7005ba6b71a83bc49b19852202e0]
+
+	rename test functions
+
+
+2013-09-13  David Tardon  <dtardon@redhat.com>  [2cbbdda0e9fc3f85928d9231e4a6f9a7ca155561]
+
+	add unit test for path construction
+
+
+2013-09-13  David Tardon  <dtardon@redhat.com>  [5823ee4123397540d833e275431ef23e4fcc77d9]
+
+	impl. operator== for paths
+
+
+2013-09-12  David Tardon  <dtardon@redhat.com>  [7550bb3f8ab2819837209a7a4bfbf2f980e3ccf4]
+
+	parse path string
+
+
+2013-09-12  David Tardon  <dtardon@redhat.com>  [e7071446e574024a4c9ece923a399c0e45b5592c]
+
+	parse all shape types
+
+
+2013-09-12  David Tardon  <dtardon@redhat.com>  [487d567d43e57754d76f557c6910bdfdacdb2567]
+
+	fix copypasta
+
+
+2013-09-12  David Tardon  <dtardon@redhat.com>  [caa30f453ce1b19526fffe18111e2c776dd05437]
+
+	parse all path types
+
+
+2013-09-12  David Tardon  <dtardon@redhat.com>  [fa40d3f2db327e2152aeb8cc6ff1bcba0eb82dd3]
+
+	fix typo
+
+
+2013-09-12  David Tardon  <dtardon@redhat.com>  [7bd5e90df594f947ba3cdb55ef3fdda99b46d83f]
+
+	collect bezier path
+
+
+2013-09-12  David Tardon  <dtardon@redhat.com>  [c923f936867173d49cd82859c7e17cd7194f543e]
+
+	collect special paths
+
+
+2013-09-12  David Tardon  <dtardon@redhat.com>  [19318104c0809486e39af307a277e54a788b9434]
+
+	path must be saved till we know what to do with it
+
+
+2013-09-11  David Tardon  <dtardon@redhat.com>  [0de92cd607a8ca2cccbd826d2a6cbfae62e1bd42]
+
+	add path creator funcs for stock shapes
+
+
+2013-09-11  David Tardon  <dtardon@redhat.com>  [c8cc322ff18fadbd1197fa8db0a82ab1a3b011b3]
+
+	add struct for holding shapes
+
+
+2013-09-11  David Tardon  <dtardon@redhat.com>  [3dd1a452019c8b9e28425e412ba46709b0e3bf44]
+
+	add recently discovered elements and attrs
+
+
+2013-09-11  David Tardon  <dtardon@redhat.com>  [80c284e967f951742286f832e846da04663272ac]
+
+	parse sf:bezier element
+
+
+2013-09-11  David Tardon  <dtardon@redhat.com>  [a2923835e3c7c49b767b249906b0faf13e4839a4]
+
+	save beziers
+
+
+2013-09-11  David Tardon  <dtardon@redhat.com>  [cf3c8a012225586976845537befa34c6976b652d]
+
+	parse sf:path element
+
+
+2013-09-11  David Tardon  <dtardon@redhat.com>  [f536cf66cb434abca5a5d109eb5f414eb1c24cbb]
+
+	rename to reflect the new purpose
+
+
+2013-09-11  David Tardon  <dtardon@redhat.com>  [58b40cc300fb04c7a3c2f2f0b412fd72caca472a]
+
+	add unit tests (empty now) for KNPath
+
+
+2013-09-11  David Tardon  <dtardon@redhat.com>  [5a7a33de9cf5bcf00195452fa5af76573a7392be]
+
+	impl. conversion to SVG path
+
+
+2013-09-11  David Tardon  <dtardon@redhat.com>  [0130e81508b6a9fd8e432843142ae547864beaed]
+
+	allow to construct KNPath from path string
+
+
+2013-09-10  David Tardon  <dtardon@redhat.com>  [c6cc98b1c41d9903326896d0b007dd483650e191]
+
+	drop geometry from KNPath
+
+
+2013-09-10  David Tardon  <dtardon@redhat.com>  [ca3472f1d9a8e7235e5e278ce2e997295adec4be]
+
+	drop pointless KNPoint struct
+
+
+2013-09-04  David Tardon  <dtardon@redhat.com>  [8c437ac598f724ff5a0ebb3d52ea89aa6265570d]
+
+	do nothing if not collecting
+
+
+2013-09-04  David Tardon  <dtardon@redhat.com>  [3f86a665df9a09159e3edc6bf11c214ce0a2e755]
+
+	rename function
+
+
+2013-09-04  David Tardon  <dtardon@redhat.com>  [84ee974745716bfc0ddfb54a0462e6ea449cf290]
+
+	paint object group
+
+
+2013-09-04  David Tardon  <dtardon@redhat.com>  [582308076f5c2546390019be488e8f916dce6043]
+
+	do not process text placeholders for now
+
+
+2013-09-03  David Tardon  <dtardon@redhat.com>  [008f4b4c3e95bcfa588ec6691b79dfe2036ed56a]
+
+	process slide text
+
+
+2013-09-03  David Tardon  <dtardon@redhat.com>  [4e89b90179610777437df7027a989a544b0ad177]
+
+	do nothing if not collecting
+
+
+2013-09-03  David Tardon  <dtardon@redhat.com>  [1e19acc4dfff91cc669b6b3f56d6673194a04c15]
+
+	reset current text
+
+
+2013-09-03  David Tardon  <dtardon@redhat.com>  [e2bf0ffad1c89748d2263e7c7ecda1de6fbaa044]
+
+	fix copypasta
+
+
+2013-09-03  David Tardon  <dtardon@redhat.com>  [41dad8b45f269dd0faee05718c10133f83b6a286]
+
+	skip unparsed elements
+
+
+2013-09-03  David Tardon  <dtardon@redhat.com>  [ccaaf9113ebff28a0823c92280b65f2f8aadf315]
+
+	fix stupid typo
+
+
+2013-08-24  David Tardon  <dtardon@redhat.com>  [e28bc566f6bccc199434c5897d1743b76d335ace]
+
+	WaE: comma at end of enumerator list
+
+
+2013-08-23  David Tardon  <dtardon@redhat.com>  [178e7179f02373c83b8c8136651867b6b00e8075]
+
+	parse text placeholders
+
+
+2013-08-23  David Tardon  <dtardon@redhat.com>  [8cdbb5b4111e3d19812471c2d96ede250b5133ec]
+
+	parse text
+
+
+2013-08-23  David Tardon  <dtardon@redhat.com>  [4ad0fbf15e676d9c9d624d77870963f749d2deaf]
+
+	more debug macros
+
+
+2013-08-23  David Tardon  <dtardon@redhat.com>  [4b7aae6f72e8fe62ac2c8e58ea1aaa7d39641a3f]
+
+	add missing implementations
+
+
+2013-08-23  David Tardon  <dtardon@redhat.com>  [4397dc1e5055abb2d92cd322e6af8c7033c6cea6]
+
+	drop decls of removed functions
+
+
+2013-08-23  David Tardon  <dtardon@redhat.com>  [7eb35ddf8b706840e6d084a9f744e00efd513a9b]
+
+	continue with the same para style after line break
+
+
+2013-08-22  David Tardon  <dtardon@redhat.com>  [054ee8138795a451abbafc640847155ceb16a264]
+
+	prepare for parsing slide text
+
+
+2013-08-22  David Tardon  <dtardon@redhat.com>  [7441195444aa927ca341b6302c99580ef00de2ce]
+
+	add support for handling text
+
+
+2013-08-22  David Tardon  <dtardon@redhat.com>  [cea7cad8a873b15755b6d2da7e80b3970559e0b1]
+
+	relicence with agreement of the author
+
+
+2013-08-21  David Tardon  <dtardon@redhat.com>  [0853e8b3bad8b23d4eb35e48c17f3be25a9e7d47]
+
+	move parsing of styles to an extra class
+
+
+2013-08-21  David Tardon  <dtardon@redhat.com>  [205deab93f6589269e24ef0aa1b3f4277cbc58bf]
+
+	wrong include
+
+
+2013-08-21  David Tardon  <dtardon@redhat.com>  [4a0062f629018d9dda18c8857291c7577753a3bc]
+
+	move generic XML functions out of KN2Parser impl.
+
+
+2013-08-21  David Tardon  <dtardon@redhat.com>  [1a5685a3d4b60bea6cb8fea8230640907c1cc806]
+
+	rename to KNThemeCollector to better match intent
+
+
+2013-08-21  David Tardon  <dtardon@redhat.com>  [8f3c1eeb44c0518286e958f79d65a083c02d0a5c]
+
+	better handling of finished layer
+
+
+2013-08-21  David Tardon  <dtardon@redhat.com>  [f1c6b247cc638d79f43ad0ce137983f42660ca5c]
+
+	do nothing if collecting is disabled
+
+
+2013-08-21  David Tardon  <dtardon@redhat.com>  [46a0beb317d8f173cdf0ed434cbebf1315101ad1]
+
+	handle group collecting correctly
+
+
+2013-08-21  David Tardon  <dtardon@redhat.com>  [b645395e3f9387f2047e4ff4c9ce821717108a6e]
+
+	initialize var.
+
+
+2013-08-21  David Tardon  <dtardon@redhat.com>  [2d8fe74548f621ed7eaf4d0afaceb262f239c518]
+
+	drop nonreferenceable objs from dict
+
+
+2013-08-21  David Tardon  <dtardon@redhat.com>  [e9400a9456cd8d6cb9819f18a86714b4d50deca7]
+
+	do not need dict. for drawing anymore
+
+	From now on, all resolving of object IDs is going to happen during
+	parsing.
+
+2013-08-21  David Tardon  <dtardon@redhat.com>  [0ef8e75ba0d9ed00b41b9aa5c0818c5eac2cd24f]
+
+	replace indirect object refs via ID by smart ptrs
+
+
+2013-08-21  David Tardon  <dtardon@redhat.com>  [e1e59cde7ac0d8875736c68b768d1e551555bdf1]
+
+	fix processing of object groups
+
+
+2013-08-21  David Tardon  <dtardon@redhat.com>  [60729d8cb46cdb3537b0418f553c1cc7b40a7427]
+
+	output line style too
+
+
+2013-08-20  David Tardon  <dtardon@redhat.com>  [b1f536e93949c3f5785af11f90bfb9f04a3f0c63]
+
+	paint line
+
+
+2013-08-20  David Tardon  <dtardon@redhat.com>  [d3226228c9937b3e51688fbdcd7267a787f2b0bd]
+
+	process layer objects
+
+
+2013-08-20  David Tardon  <dtardon@redhat.com>  [a4db12e831b5b415076082f0a9bbfd8a7b416298]
+
+	fill in README and NEWS
+
+
+2013-08-20  David Tardon  <dtardon@redhat.com>  [a993d74a29227fe21be902f82b56d8073b63f6f0]
+
+	add todo list
+
+
+2013-08-20  David Tardon  <dtardon@redhat.com>  [8ab80f1c02a13f32711f96b38917f1f637d742f5]
+
+	impl. KNObject for basic types
+
+
+2013-08-20  David Tardon  <dtardon@redhat.com>  [d434a6e0fa8d8e26f2f2ae0eaaad79c2fe992183]
+
+	create interface for saved pres. objects
+
+
+2013-08-20  David Tardon  <dtardon@redhat.com>  [dad350dd0cab63129d7bf9f04321500ea73e96d7]
+
+	fix typo in doc
+
+
+2013-08-20  David Tardon  <dtardon@redhat.com>  [4fde22242e266ca38efdba603f73c495bdc1ce51]
+
+	add (skeleton) transformation class
+
+
+2013-08-20  David Tardon  <dtardon@redhat.com>  [604e85d2c2641707ff974c61b753df263504f17b]
+
+	factor common parts out
+
+
+2013-08-20  David Tardon  <dtardon@redhat.com>  [3e50e79ce4158aeaf5f94bd71198ec488f68d03b]
+
+	we need to remember all referenceable entities
+
+
+2013-08-20  David Tardon  <dtardon@redhat.com>  [b3e7806d9f1ddbe7af844d3d515cb9a3ac9164de]
+
+	ignore top elements ui_state and version_history
+
+
+2013-08-20  David Tardon  <dtardon@redhat.com>  [93554027e76b88a776b07c35b19df8f8e3550938]
+
+	size is floating point
+
+
+2013-08-20  David Tardon  <dtardon@redhat.com>  [b46a1416390047a288a9a9e79b0a2fb4dc023b86]
+
+	process drawables
+
+
+2013-08-19  David Tardon  <dtardon@redhat.com>  [cb4081ebc82f65065452a906d7d921440fd99d59]
+
+	fix path construction
+
+
+2013-08-18  David Tardon  <dtardon@redhat.com>  [64b323ad5d609af2c52f25eabe87118b1f7a0f49]
+
+	reset input stream before parsing
+
+
+2013-08-17  David Tardon  <dtardon@redhat.com>  [bc60891edbab1762f3288858e91eedc4a48c7989]
+
+	switch to KNXMLReader
+
+
+2013-08-17  David Tardon  <dtardon@redhat.com>  [fd3537887be4901ef3548d2b195337e3e7421757]
+
+	fix condition
+
+
+2013-08-17  David Tardon  <dtardon@redhat.com>  [040d1b99cda832f1a8036df832c60366f40c5fd0]
+
+	create a simpler mechanism for slurping the XML content
+
+
+2013-08-17  David Tardon  <dtardon@redhat.com>  [91c41263a1d158f564cbf6fea56b496b3ad61fee]
+
+	fix build
+
+
+2013-08-17  David Tardon  <dtardon@redhat.com>  [362c4afd3b679009abc0e7ffa8ee4e8b3e04bce1]
+
+	fix typo (and compilation)
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [30edcb7273e84c41fa20ad8c9a54a689d0bbadef]
+
+	skip ignored element
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [85500348c5451315c75781c065cceba5295c60b1]
+
+	fix order of arguments
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [796b9c52207c98b8ceffcbfc2b59d2d1c156212c]
+
+	really parse layers element
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [9a42d470f8a368f42c4a8f85c08c0262bd014fba]
+
+	proxy-master-layer opens a new layer too
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [b746dfd871617812de13c54b67009e67190e6349]
+
+	fix processing of pages
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [68183f2e45a50fbade2b16424dcd550ba454ed37]
+
+	handle empty elements correctly
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [971408aae181f3b8cca733676fbe761e2b2707bb]
+
+	sf:property-map can be empty
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [f6d992ca86b9e8099c746bf8f0f4b7cac3a852de]
+
+	define in the right scope
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [c4a8fa4b24ccdaedc5425bb993c5839cdfbacb3f]
+
+	this element is processed...
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [f501011159bd30bc224f12df111d4e0e02641ca1]
+
+	skip unknown and unprocessed elements
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [c2b605f78b682832c45d0c3a09b3f529a8aad26c]
+
+	fix copypasta in assertion
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [ad68cf295a20bf89619bfc8b44f6dbf25c5a7c78]
+
+	fix checking of empty element
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [43a2767fa7d9483b8c105cd9cab7c1c829844b38]
+
+	test name, not namespace URI
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [57e5e96b5af6e949483988f4d96399bba3714071]
+
+	fix order of arguments
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [3c19f4a761f4b2eb62894bc0b29abd0c00d04f17]
+
+	drop unneeded virtual function
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [6fa535c245d80d25b81403e1c2c7ec44f9e03a3d]
+
+	BIPU page output
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [80baaa62db8554ed62daa3ffc5906055158357ae]
+
+	parse shapes
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [72920e9fe34817fc34b5bc0623ce959d75b3e979]
+
+	keep the tokens sorted alphabetically
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [d5bd7543c662561bd1bfd4590b6290b4c5f67fb1]
+
+	fix typo
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [501b39ba6c7211b0f121a02cdd129ba859e44209]
+
+	parse page and layer elements
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [7f8767d4710a342483837c43b81e30a40aa727df]
+
+	parse master-slide element
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [64b3c2ca91846869ec443c29b8fc3cf9df5fe7b1]
+
+	use ID_t consistently
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [c015a018b73c26ec2c7ac1a3e7f0cd3cff95e12f]
+
+	actually parse things
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [cf0f253ec6c607890cd39e2c13b324bd626b9d89]
+
+	handle presentation size
+
+
+2013-08-16  David Tardon  <dtardon@redhat.com>  [0ed934174949a2cac2bcbdc5e8392afcbcede5a0]
+
+	refactor collector
+
+
+2013-08-15  David Tardon  <dtardon@redhat.com>  [5c8c8e32e883a926137ad9bd6f991a1448693179]
+
+	fix URL
+
+
+2013-08-15  David Tardon  <dtardon@redhat.com>  [c1564f5c6a5f7ec9cccbe634e4f7e4367cf0a004]
+
+	prepare for processing shapes
+
+
+2013-08-15  David Tardon  <dtardon@redhat.com>  [de9bce536d0ae730f87a43f5590c42a828b70de7]
+
+	remove double space
+
+
+2013-08-15  David Tardon  <dtardon@redhat.com>  [aa376dc0be90c871965a3c1633cf325664281760]
+
+	process styles
+
+
+2013-08-15  David Tardon  <dtardon@redhat.com>  [b2cd93c040ff91dad710c3a303878351e5ae7827]
+
+	allow to handle styles from master pages
+
+
+2013-08-15  David Tardon  <dtardon@redhat.com>  [ea34e90a6e24c6fb841654c0304fa83459525070]
+
+	add more basic types
+
+
+2013-08-15  David Tardon  <dtardon@redhat.com>  [ab18985fc252e0b5b2654a3644f29057a34b2ab8]
+
+	.apxl.gz is preferred over .apxl, if both exist
+
+
+2013-08-14  David Tardon  <dtardon@redhat.com>  [3dd588ef1f8d2d78977902b6eb0af69fa1fdf165]
+
+	add helper func. for reading single attr. value
+
+
+2013-08-14  David Tardon  <dtardon@redhat.com>  [2bcdab50e346fe9214b5fe04d54e7abd88f14bdb]
+
+	parse styles
+
+
+2013-08-14  David Tardon  <dtardon@redhat.com>  [80247f1187d988c660354db15ee9810b22e82604]
+
+	change xmlChar* to char* to simplify use
+
+
+2013-08-14  David Tardon  <dtardon@redhat.com>  [02ea1d7ba8d9b35941f497dd8ced9d1dc2976e5d]
+
+	add BIPU support for handling of styles
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [ca8b22c63cb40a6ad77d8d0afe00b0a88180ead5]
+
+	check for NULL is already done in getKN2TokenID
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [73a1dbdb5ebbc23c6362b1f98f7278c7dccd2a0f]
+
+	add more useful types
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [f63f885ca99c83672c0a40d5855fa2767b2027b6]
+
+	parse key:size
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [8922bc9bffe4a40e0e262954cfcd7c5b520acbb5]
+
+	parse overall structure of the presentation
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [6be867054a8e7086663f3de261615c0b8b9a8f77]
+
+	calc-engine is in sf namespace
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [5bdf8d89705d978c455cd5f7ba33e8cde00b13fd]
+
+	add XML specific debug macros
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [db1dba9a038a05a570e00c40e4efb6388cea64fe]
+
+	check for the right attribute
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [71c8ca22655db39dcb3123d473c94871352078d6]
+
+	do not read extra node at end
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [f47c09ca91ea97ec3c68b3f068ac9b20324bc30a]
+
+	add debug msg
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [e90b5a6b9f11530d873b4182d9d9328b69a9459c]
+
+	fix skipping of empty elements
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [73c3d23f2dfae765a56b52927b1b90637317c229]
+
+	pass args in the right order
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [6b627be655a28aaba3b72b948a810675af02b9a9]
+
+	fix condition
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [e1c8f066cc234a0857ebe3f8dcb8299e87b0da85]
+
+	simplify program flow
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [6633b675a7d41e338ecf8f253ff16bfd5434b6bf]
+
+	use exceptions to signalize parser error
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [c95c7e8569dc9cd0570a8c401a98a341470cf05d]
+
+	return false when there are no further nodes
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [25eac1a7b2599b524dd0672dac7d56a59d5f5456]
+
+	add helper functions for processing XML
+
+	The libxml2 functions are bit too verbose to my taste .-)
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [59a3633b82191a7e1cc1c9a6ecf997324a3241d9]
+
+	add license headers
+
+
+2013-08-13  David Tardon  <dtardon@redhat.com>  [12625bd310251ca8c8a837987373b2cb0c94a7ca]
+
+	simplify mapping of token names
+
+	Also split token maps for v.1 and v.2.
+
+2013-08-12  David Tardon  <dtardon@redhat.com>  [4093f19c97ed47c0727774e214e0322670f3cd65]
+
+	fix library path for tests
+
+
+2013-08-12  David Tardon  <dtardon@redhat.com>  [a7a78a7f5b7c90f6e690d7af0beaf4d02b9aab8e]
+
+	add KNToken.gperf to tarball
+
+
+2013-08-08  David Tardon  <dtardon@redhat.com>  [a5820ebad363bee27ce8b673e703bb1db8039768]
+
+	astyle
+
+
+2013-08-08  David Tardon  <dtardon@redhat.com>  [9a989842023518df10f1058934b1d5e08206e251]
+
+	read root element
+
+
+2013-08-08  David Tardon  <dtardon@redhat.com>  [eeedbd06baea9a30f0509f90022f7ef4f49ab522]
+
+	add unit test for XML attr. iterator
+
+
+2013-08-08  David Tardon  <dtardon@redhat.com>  [bb3a3838ecc640635f1fbc7806c32d93a5aef989]
+
+	simplify processing of XML element attrs
+
+
+2013-08-08  David Tardon  <dtardon@redhat.com>  [24c422d7b8a0349bc6573f1961e6b75c86c33831]
+
+	rename version macros
+
+
+2013-08-07  David Tardon  <dtardon@redhat.com>  [23b61e4aee02bcd9f7c921b57968e2b91596d333]
+
+	add tokens for v.1
+
+
+2013-08-07  David Tardon  <dtardon@redhat.com>  [a532b9702d26435eed049677478a40d00f65e1c9]
+
+	add more attribute/element tokens
+
+	These are inferred from available files of v.2. There might be more
+	needed in the future.
+
+2013-08-06  David Tardon  <dtardon@redhat.com>  [2430ea8f325e8f84e3d6c7ff5928ab8292b3ffb4]
+
+	add support for gzip decompression
+
+
+2013-08-06  David Tardon  <dtardon@redhat.com>  [1847f2456c7a61c54e6c447ba868f3295b2abb02]
+
+	improve detection
+
+	All versions before Keynote `09 were saved as "packages", which means
+	directories containing all the files. That poses a problem, because
+	there is no way to get the path from a stream (even if it is a
+	file-based stream). Let's ignore that problem for now .-)
+
+2013-08-06  David Tardon  <dtardon@redhat.com>  [70c871d45c67e3bdede2000fdb2ce5038df6f9b1]
+
+	astyle
+
+
+2013-08-06  David Tardon  <dtardon@redhat.com>  [692b28931e494824ea9b52a5535dcbcbe1e2ad6a]
+
+	need plain zlib too
+
+
+2013-08-06  David Tardon  <dtardon@redhat.com>  [2637badc644f4740c7c03a4e677141b3ac82c3f9]
+
+	detect Keynote 1.x format
+
+
+2013-08-06  David Tardon  <dtardon@redhat.com>  [b6966486462f179603abd37959bd903bfe251ee4]
+
+	create skeleton XML parser
+
+
+2013-08-05  David Tardon  <dtardon@redhat.com>  [69d2033e7569e38de5ba193c359018e48e9368d5]
+
+	add simple format detection
+
+
+2013-08-05  David Tardon  <dtardon@redhat.com>  [be094b2cf9630d41f53996ef5e46464e1a15ef18]
+
+	update read* functions
+
+
+2013-08-05  David Tardon  <dtardon@redhat.com>  [89aa6c4160e62cbe31aa03f4ffe9d17b7206fb9d]
+
+	add streams
+
+
+2013-08-05  David Tardon  <dtardon@redhat.com>  [2f675ef23b0b6e6c7170ca6f12211366e626a79c]
+
+	initial import
+

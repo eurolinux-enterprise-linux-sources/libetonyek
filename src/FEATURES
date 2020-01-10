@@ -1,0 +1,49 @@
+= Format coverage =
+
+== Currently supported ==
+
+* shapes
+  + simple shapes
+    - rectangle
+    - triangle
+    - circle
+    - generic path
+  + text shapes
+  + parametrizable shapes
+    - polygon
+    - star
+    - arrow
+    - double-sided arrow
+  + transformations
+* presentation text
+  + formatting attributes
+* media
+  + images
+  + movies and sounds
+    - just insterted into the output. No fancy stuff like autoplay etc.
+* tables
+  + structure
+  + text cells
+  + number cells
+    - but no numeric formats
+* comments aka sticky notes
+* (slide) notes
+
+== Planned ==
+
+* shape attributes (background / line)
+* the rest of parametrizable shapes
+* transitions
+* animations
+* auto-fitting of presentation text
+* better handling of bullet lists
+* connectors
+* more cell types (date, duration)
+
+== Unlikely to be supported ==
+
+* charts
+  + because there is a lot of stuff to do and it is an area I know very
+    little about
+  + it would be best to handle them through a separate API anyway
+* formulas in tables
